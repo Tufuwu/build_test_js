@@ -1,29 +1,24 @@
-name: Node.js CI
+name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: ["16"]
-
+    timeout-minutes: 30
+    name: CI
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "npm"
-      - run: npm ci
-      - run: npm test
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          node-version: "16"
+      - name: Install Dependencies
+        run: |
+          yarn
+      - name: Run Tests
+        run: |
+          yarn ci
