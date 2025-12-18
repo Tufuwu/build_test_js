@@ -1,421 +1,238 @@
-# Pa11y CI
+# Localicious
 
-[![NPM version][shield-npm]][info-npm]
-[![Node.js version support][shield-node]][info-node]
-[![Build status][shield-build]][info-build]
-[![LGPL-3.0-only licensed][shield-license]][info-license]
+localicious is a toolchain for working with localization files in a platform-agnostic way. With it, you can:
 
-Pa11y CI is an accessibility test runner built using [Pa11y], designed to run in Continuous Integration environments. Automated testing of your application can help to prevent accessibility issues reaching production.
+* Maintain all your localized copy and accessibility key/value pairs in one file, grouped per component.
+* Verify the integrity of your base localization file against a schema
+* Generate locale files for both Android, iOS or JS from your base localization file
 
-Use this tool to test against a list of URLs or a sitemap, and report on issues it finds.
+The goals of localicious are:
 
-## Requirements
+* **Copywriter-friendliness**
+  
+  Likewise, it should be easy for copywriters to change and add copy. For each string copywriters should be able to easily get an overview of the translations provided for the various languages.
 
-This command line tool requires a stable (even-numbered) [Node.js] version of 12 or above.
+* **Developer-friendliness**
+  
+  It should be easy for developers maintaining and developing features to work with the new system. They should be able to trust that the necessary copy will be there for any language. Moreover, the format in which the copy is delivered should be predictable to minimise dependencies between developers and copywriters in a fast-paced environment.
 
-### Pa11y CI 3 and Ubuntu
+* **Robustness**
 
-To use version 3 of Pa11y CI with a version of Ubuntu above `20.04`, a path for the Chrome executable [must be defined in your Pa11y CI config][ubuntu-fix], as `defaults.chromeLaunchConfig.executablePath`. Version 4 of Pa11y CI, which will use Pa11y 7 along with a more recent version of Puppeteer, will resolve this issue.
+  One cannot blindly import localization files into the app and expect everything to work. Therefore, localicious enables both validation and conversion. Together, these two operations can support a robust workflow that minimises the potential for mistakes.
 
-## Usage
+## Workflow
 
-Pa11y CI is provided as a command line tool, `pa11y-ci`. To install it globally with npm:
+localicious assumes the following workflow:
 
-```sh
-npm install -g pa11y-ci
+1. You keep all your localizable strings in a YAML file that adheres to the structure defined by localicious.
+2. When committed to a source repository, the YAML file is guaranteed to have passed localicious verification.
+3. You point to the current working version of the YAML file in your iOS or Android project.
+4. Using localicious, you generate the localization files when desired.
+
+## Requirements and installation
+
+localicious requires node 10.12.0 or later.
+
+## The Localicipe
+
+The central concept of localicious is the so-called Localicipe. It is a YAML file that contains all localized copy and accessibility strings grouped by feature and screen. The strings in the Localicipe can be divided into different collections. Multiple collections can be combined when [Converting the Localicipe](#converting-the-localicipe) into platform specific outputs.
+
+Using collections it's easy to keep track of strings that are used on a single platform and strings that are shared across multiple platforms. 
+For an existing iOS and Android app, it could be useful to create three different collections: 
+- `IOS`(containing all iOS specific strings) 
+- `ANDROID`(containing all Android specific strings)
+- `SHARED`(containing all strings that are shared between iOS and Android).
+
+Each leaf node in a collection is either a `COPY` group or an `ACCESSIBILITY` group. The required structure of both groups is explained below:
 ```
-
-```console
-$ npx pa11y-ci --help
-
-Usage: pa11y-ci [options] <paths>
-
-Options:
-  -V, --version                    output the version number
-  -c, --config <path>              the path to a JSON or JavaScript config file
-  -s, --sitemap <url>              the path to a sitemap
-  -f, --sitemap-find <pattern>     a pattern to find in sitemaps. Use with --sitemap-replace
-  -r, --sitemap-replace <string>   a replacement to apply in sitemaps. Use with --sitemap-find
-  -x, --sitemap-exclude <pattern>  a pattern to find in sitemaps and exclude any url that matches
-  -j, --json                       Output results as JSON
-  -T, --threshold <number>         permit this number of errors, warnings, or notices, otherwise fail with exit code 2
-                                   (default: "0")
-  --reporter <reporter>            the reporter to use. Can be a npm module or a path to a local file.
-  -h, --help                       display help for command
-```
-
-### Configuration
-
-Pa11y CI checks the current working directory for a JSON config file named `.pa11yci`. An example:
-
-```json
-{
-    "urls": [
-        "https://pa11y.org/",
-        "https://pa11y.org/contributing"
-    ]
-}
-```
-
-Pa11y CI will visit each URL in the `urls` array, together with any path provided as a CLI argument. A path can be relative, absolute, or a [glob] pattern.
-
-Specify a different configuration file, JSON or JavaScript, using the command-line parameter `--config`:
-
-```sh
-pa11y-ci --config path/to/config.json
-```
-
-### Default configuration
-
-You can specify a default set of [pa11y configurations] that should be used for each test run. Attach this to a `defaults` property in your config; for example:
-
-```json
-{
-    "defaults": {
-        "timeout": 1000,
-        "viewport": {
-            "width": 320,
-            "height": 480
-        }
-    },
-    "urls": [
-        "https://pa11y.org/",
-        "https://pa11y.org/contributing"
-    ]
-}
-```
-
-Pa11y CI supports two additional options here:
-
-* `concurrency`: The number of tests that should be run in parallel. Defaults to `1`.
-* `useIncognitoBrowserContext`: Run test with an isolated incognito browser context; stops cookies being shared and modified between tests. Defaults to `true`.
-
-### URL configuration
-
-A URL can be a `string`, or an `object`; in its object form, part or all of the default [pa11y configuration][pa11y configurations] can be overridden per URL. For example, this allows the timeout to be increased for a slow-loading page, or to take a screenshot for a page of particular interest:
-
-```json
-{
-    "defaults": {
-        "timeout": 1000
-    },
-    "urls": [
-        "https://pa11y.org/",
-        {
-            "url": "https://pa11y.org/contributing",
-            "timeout": 50000,
-            "screenCapture": "myDir/my-screen-capture.png"
-        }
-    ]
-}
-```
-
-### Sitemaps
-
-Provide a `--sitemap` argument to retrieve a sitemap and then test each URL within:
-
-```sh
-pa11y-ci --sitemap https://pa11y.org/sitemap.xml
-```
-
-Pa11y will be run against the text content of each `<loc/>` in the sitemap's XML.
-
-> NOTE
-> Providing a sitemap will cause the `urls` property in your JSON config to be ignored.
-
-#### Transforming URLs retrieved from a sitemap before testing
-
-Pa11y CI can replace a string within each URL found in a sitemap, before beginning to test.  This can be useful when your sitemap contains production URLs, but you'd actually like to test
-those pages in another environment. Use the flags `--sitemap-find` and `sitemap-replace`:
-
-```sh
-pa11y-ci --sitemap https://pa11y.org/sitemap.xml --sitemap-find pa11y.org --sitemap-replace localhost
-```
-
-#### Excluding URLs
-
-Exclude URLs from the test run with the flag `--sitemap-exclude`.
-
-## Reporters
-
-Pa11y CI includes two reporters:
-
-* (default) `cli`, a reporter that outputs pa11y results to the console
-* `json`, which outputs JSON-formatted results, either to the console or a file
-
-Custom reporters are also supported.
-
-Choose a specific reporter with the flag `--reporter`. The value of this flag can also be:
-
-* a path to a locally installed npm package (ie: `pa11y-reporter-html`)
-* a path to a local node module; either an absolute path, or one relative to the current working directory (for example `./reporters/my-reporter.js`)
-
-Example:
-
-```sh
-npm install pa11y-reporter-html --save
-pa11y-ci https://pa11y.org/ --reporter=pa11y-reporter-html 
-```
-
-### Use multiple reporters
-
-You can use multiple reporters by setting them on the `defaults.reporters` array in your config.  The shorthand `cli` and `json` can be included to select the included reporters.
-
-```json
-{
-    "defaults": {
-        "reporters": [
-            "cli", // <-- this is the default reporter
-            "pa11y-reporter-html",
-            "./my-local-reporter.js"
-        ]
-    },
-    "urls": [
-        "https://pa11y.org/",
-        {
-            "url": "https://pa11y.org/contributing",
-            "timeout": 50000,
-            "screenCapture": "myDir/my-screen-capture.png"
-        }
-    ]
-}
-```
-
-> NOTE
-> If the `--reporter` flag is provided on the command line, all appearances of `reporters` in the config file will be overridden.
-
-### Reporter options
-
-Reporters can be configured, when supported, by settings the reporter as an array with its options as the second item:
-
-```json
-{
-    "defaults": {
-        "reporters": [
-            "pa11y-reporter-html",
-            ["./my-local-reporter.js", { "option1": true }] // <-- note that this is an array
-        ]
-    },
-    "urls": [
-        "https://pa11y.org/",
-        {
-            "url": "https://pa11y.org/contributing",
-            "timeout": 50000,
-            "screenCapture": "myDir/my-screen-capture.png"
-        }
-    ]
-}
-```
-
-The included CLI reporter does not support any options.
-
-The included JSON reporter outputs the results to the console by default.  It can also accept a `fileName` with a relative or absolute file name where the JSON results will be written. Relative file name will be resolved from the current working directory.
-
-```json
-{
-    "defaults": {
-        "reporters": [
-            ["json", { "fileName": "./results.json" }] // <-- note that this is an array
-        ]
-    },
-    "urls": [
-        "https://pa11y.org/"
-    ]
-}
-```
-
-### Write a custom reporter
-
-Pa11y CI reporters use an interface similar to [pa11y reporters] and support the following optional methods:
-
-* `beforeAll(urls)`: called at the beginning of the process. `urls` is the URLs array defined in your config
-* `afterAll(report)` called at the very end of the process with the following arguments:
-  * `report`: pa11y-ci report object
-  * `config`: pa11y-ci configuration object
-* `begin(url)`: called before processing each URL. `url` is the URL being processed
-* `results(results, config)` called after pa11y test run with the following arguments:
-  * `results`: pa11y results object [URL configuration object](#url-configuration)
-  * `config`: the current [URL configuration object](#url-configuration)
-* `error(error, url, config)`: called when a test run fails with the following arguments:
-  * `error`: pa11y error message
-  * `url`: the URL being processed
-  * `config`: the current [URL configuration object](#url-configuration)
-
-Here is an example of a custom reporter writing pa11y-ci report and errors to files:
-
-```js
-const fs = require('fs');
-const { createHash } = require('crypto');
-
-// create a unique filename from URL
-function fileName(url: any, prefix = '') {
-    const hash = createHash('md5').update(url).digest('hex');
-    return `${prefix}${hash}.json`;
-}
-
-exports.afterAll = function (report) {
-    return fs.promises.writeFile('report.json', JSON.stringify(report), 'utf8');
-}
-
-// write error details to an individual log for each URL
-exports.error = function (error, url) {
-    const data = JSON.stringify({url, error});
-    return fs.promises.writeFile(fileName(url, 'error-'), data, 'utf8');
-}
-```
-
-#### Configurable reporters
-
-A configurable reporter is a special kind of pa11y-ci reporter exporting a single factory function as its default export.
-
-When initialized, the function receives the user configured options (if any) and pa11y-ci configuration object as argument.
-
-For example, here is a reporter writing all results to a single configurable file:
-
-```js
-// ./my-reporter.js
-
-const fs = require('fs');
-
-module.exports = function (options) {
-    // initialize an empty report data
-    const customReport = {
-        results: {},
-        errors: [],
-        violations: 0,
-    }
-
-    const fileName = options.fileName
-
-    return {
-        // add results to the report
-        results(results) {
-            customReport.results[results.pageUrl] = results;
-            customReport.violations += results.issues.length;
-        },
-
-        // add errors too
-        error(error, url) {
-            customReport.errors.push({ error, url });
-        },
-
-        // write everything to a file
-        afterAll() {
-            const data = JSON.stringify(customReport);
-            return fs.promises.writeFile(fileName, data, 'utf8');
-        }
-    }
-};
-```
-
-```json
-// configuration file
-{
-    "defaults": {
-        "reporters": [
-            ["./my-reporter.js", { "fileName": "./my-report.json" }]
-        ]
-    },
-    "urls": [
+<COLLECTION NAME>:
+  Feature:
+    Screen:
+      Element:
+        COPY:
+          en: "Translation for English speakers"
+          nl: "Vertaling voor Nederlandstaligen"
+        ACCESSIBILITY:
+          HINT|LABEL|VALUE:
+            en: "Accessibility for English speakers"
+            nl: "Toegankelijkheid voor Nederlandstaligen"
+      AnotherElement:
+        COPY:
+          ZERO|ONE|OTHER:
+            en: "Plural translation for English speakers"
+            nl: "Meervoudige vertaling voor Nederlandstaligen"
         ...
-    ]
-}
+      ...
+    ...
+  ...
+...
 ```
 
-### Docker
+## Retrieving the Localicipe
 
-If you want to run `pa11y-ci` in a Docker container then you can use the [`buildkite/puppeteer`](https://github.com/buildkite/docker-puppeteer) image as this installs Chrome and all the required libs to run headless chrome on Linux.
+If you are working with a team, you probably want to store your Localicipe in a Git repository and manage changes like you handle changes to your source code. Localicious supports that workflow. Simply create a repository that hosts your Localicipe. Then, in the root of the source repository of your Android or iOS project, you add the following `LocaliciousConfig.yaml`:
 
-You will need a `config.json` that sets the `--no-sandbox` Chromium launch arguments:
-
-```json
-{
-    "defaults": {
-        "chromeLaunchConfig": {
-            "args": [
-                "--no-sandbox"
-            ]
-        }
-    },
-    "urls": [
-        "https://pa11y.org/",
-        "https://pa11y.org/contributing"
-    ]
-}
+```
+source:
+  git:
+    url: 'https://github.com/localicious/localicious-test.git'
+languages:
+  - en
+  - nl
+outputTypes:
+  - IOS
+collections:
+  - IOS
+  - SHARED
 ```
 
-And then a Dockerfile that installs `pa11y-ci` and adds the `config.json`
+To retrieve the latest version of the file in your repository, simply run `localicious install`. localicious also supports specifying a specific Git branch (by adding `:branch`).
 
-```Dockerfile
-FROM buildkite/puppeteer:v1.15.0
+## Converting the Localicipe
 
-RUN npm install --global --unsafe-perm pa11y-ci
-ADD config.json /usr/config.json
+Using the `render` command, a Localicipe can be converted into platform specific outputs. Here's an overview on how the command works:
 
-ENTRYPOINT ["pa11y-ci", "-c", "/usr/config.json"]
+**Syntax**
+
+`localicious render <localicipe path> <output path>`
+
+**Options**
+
+`--outputTypes/-ot` (required)
+- The platform/language for which the output files will be generated (`Localized.strings` for iOS, `strings.xml` for Android, `strings.json` for JS).
+- Available options are: `ios`, `android` or `js`
+
+`--collections/-c` (required)
+- The collections, defined in the Localicipe, that should be included into the output.
+
+`--languages/-l` (required)
+- The languages that should be included into the output.
+
+Consider the following Localicipe:
+
+```
+---
+# Strings that are used in Android only
+ANDROID:
+  Checkout:
+    OrderOverview:
+      Total:
+        COPY:
+          en: 'Total price: %1{{s}}'  # This placeholder will expand to %1$@ on iOS and %1$s on Android
+          nl: 'Totaal: %1{{s}}'
+# Strings that are used in iOS only
+IOS:
+  Settings:
+    PushPermissionsRequest:
+      Title:
+        COPY:
+          en: 'Stay up to date'
+          nl: 'Blijf op de hoogte'
+# Strings that are shared between Android and iOS
+SHARED:
+  Delivery:
+    Widget:
+      Title:
+        COPY:
+          en: "Help"
+          nl: "Help"
+      SubTitle:
+        COPY:
+          ZERO:
+            en: '%1{{d}} Pending order'
+            nl: '%1{{d}} Lopende bestelling'
+          ONE:
+            en: '%1{{d}} Pending order'
+            nl: '%1{{d}} Lopende bestelling'
+          OTHER:
+            en: '%1{{d}} Pending Orders'
+            nl: '%1{{d}} Lopende bestellingen'
 ```
 
-## Tutorials and articles
+By running the following localicious command:
 
-Here are some useful articles written by Pa11y users and contributors:
+`localicious render ./copy.yaml ./output_path --outputTypes android --collections ANDROID,SHARED --languages en`
 
-* [Automated accessibility testing with Travis and Pa11y CI](https://andrewmee.com/posts/automated-accessibility-testing-node-travis-ci-pa11y/)
+We can generate a strings.xml file for Android with the English translations provided:
 
-## Contributing
-
-There are many ways to contribute to Pa11y CI, some of which we describe in the [contributing guide](CONTRIBUTING.md) for this repo.
-
-If you're ready to contribute some code, clone this repo locally and commit your code on a new branch.
-
-Please write unit tests for your code, and check that everything works by running the following before opening a pull request:
-
-```sh
-npm run lint    # Lint the code
-npm test        # Run every test, reporting coverage
+```
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="Checkout.OrderOverview.Total.COPY">Total price: %1$s</string>
+  <string name="Delivery.Widget.Title.COPY">Help</string>
+  <plurals name="Delivery.Widget.SubTitle.COPY">
+    <item quantity="zero">%1$d Pending order</item>
+    <item quantity="one">%1$d Pending order</item>
+    <item quantity="other">%1$d Pending Orders</item>
+  </plurals>
+</resources>
 ```
 
-You can also run verifications and tests individually:
+A similar file with the Dutch translations will be created as well if we request localicious to do so:
 
-```sh
-npm run test-unit           # Run only the unit tests
-npm run coverage            # Run the unit tests, reporting coverage
-npm run test-integration    # Run only the integration tests
+`localicious render ./copy.yaml ./output_path --outputTypes android --collections ANDROID,SHARED --languages en,nl`
+
+By changing the destination output type, like so:
+
+`localicious render ./copy.yaml ./output_path --outputTypes ios --collections IOS,SHARED --languages en`
+
+the following Localizable.strings file will be generated for iOS:
+
+```
+"Settings.PushPermissionsRequest.Title.COPY" = "Stay up to date";
+"Delivery.Widget.Title.COPY" = "Help";
+"Delivery.Widget.SubTitle.COPY.ZERO" = "%1$d Pending order";
+"Delivery.Widget.SubTitle.COPY.ONE" = "%1$d Pending order";
+"Delivery.Widget.SubTitle.COPY.OTHER" = "%1$d Pending Orders";
 ```
 
-## Support and migration
+## Validating
 
-> [!NOTE]
-> We maintain a [migration guide](MIGRATION.md) to help you migrate between major versions.
+Whenever we make changes to the Localicipe, it is important to verify that the format of the file is still correct.
+Using the `validate` command, a Localicipe can be validated.
 
-When we release a new major version we will continue to support the previous major version for 6 months. This support will be limited to fixes for critical bugs and security issues. If you're opening an issue related to this project, please mention the specific version that the issue affects.
+**Syntax**
 
-The following table lists the major versions available and, for each previous major version, its end-of-support date, and its final minor version released.
+`localicious validate <localicipe path> <output path>`
 
-| Major version | Final minor release | Node.js LTS support | Support end date |
-| :------------ | :------------------ | :------------------ | :--------------- |
-| 🔜 `4`        |                     | `>= 18`             |                  |
-| `3`           | Imminent            | `>= 12` ([Ubuntu caveat](#pa11y-ci-3-and-ubuntu))| May 2024 |
-| `2`           | `2.4.2`             | `>= 8`              | 2022-05-26       |
-| `1`           | `1.3`               | `>= 4`              | 2018-04-18       |
+**Options**
 
-## Licence
+`--collections/-c` (required)
+- The collections, defined in the Localicipe, that should be validated.
 
-Licensed under the [Lesser General Public License (LGPL-3.0-only)](LICENSE).  
-Copyright &copy; 2016-2023, Team Pa11y and contributors
+`--required-languages/-l` (required)
+- The languages that are required in the provided Localicipe.
 
-[glob]: https://github.com/isaacs/node-glob#glob
-[node.js]: https://nodejs.org/
-[pa11y]: https://github.com/pa11y/pa11y
-[pa11y configurations]: https://github.com/pa11y/pa11y#configuration
-[pa11y reporters]: https://github.com/pa11y/pa11y#reporters
-[ubuntu-fix]: https://github.com/pa11y/pa11y-ci/issues/198#issuecomment-1418343240
+`--optional-languages/-o`
+- The languages that are optional in the provided Localicipe.
 
-[info-license]: LICENSE
-[info-node]: package.json
-[info-npm]: https://www.npmjs.com/package/pa11y-ci
-[info-build]: https://github.com/pa11y/pa11y-ci/actions/workflows/tests.yml
 
-[shield-license]: https://img.shields.io/badge/license-LGPL--3.0--only-blue.svg
-[shield-node]: https://img.shields.io/badge/node.js%20support-8-brightgreen.svg
-[shield-npm]: https://img.shields.io/npm/v/pa11y-ci.svg
-[shield-build]: https://github.com/pa11y/pa11y-ci/actions/workflows/tests.yml/badge.svg
+Imagine that we change the file in the previous example and add another entry for iOS:
+
+```
+Settings:
+  PushPermissionsRequest:
+    Subtitle:
+      COPY
+        en: 'Stay up to date'
+```
+
+Using the validation feature, we can validate whether the structure of the file is still correct after the change:
+
+`localicious validate ./copy.yaml --collections IOS --required-languages en,nl`
+
+Since we forgot to add a Dutch localization for the `Settings.PushPermissionsRequest.Subtitle.COPY` key, this will fail:
+
+```
+❌ Your Localicipe contains some issues.
+```
+
+localicious also supports the concept of optional languages. If we were to run the validator as follows:
+
+`localicious validate ./copy.yaml --collections IOS --required-languages en --optional-languages nl`
+
+the above file would pass validation even without the Dutch translation missing for some entries.
+
+## Migration
+
+Read all migration details in our [Migration Guide](MIGRATION.md).

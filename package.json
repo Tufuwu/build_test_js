@@ -1,58 +1,40 @@
 {
-  "name": "pa11y-ci",
-  "version": "3.0.1",
-  "description": "Pa11y CI is a CI-centric accessibility test runner, built using Pa11y",
-  "keywords": [],
-  "author": "Team Pa11y",
-  "contributors": [
-    "Rowan Manning (https://rowanmanning.com/)"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/pa11y/pa11y-ci.git"
+  "name": "@picnicsupermarket/localicious",
+  "version": "1.0.1",
+  "description": "A toolchain for working with localization files in a platform-agnostic way.",
+  "bin": {
+    "localicious": "bin/localicious"
   },
-  "homepage": "https://github.com/pa11y/pa11y-ci",
-  "bugs": "https://github.com/pa11y/pa11y-ci/issues",
-  "license": "LGPL-3.0-only",
-  "engines": {
-    "node": ">= 12"
-  },
+  "repository": "https://github.com/PicnicSupermarket/localicious",
+  "author": "Picnic Technologies",
+  "license": "MIT",
+  "private": false,
   "dependencies": {
-    "async": "~2.6.4",
-    "cheerio": "~1.0.0-rc.10",
-    "commander": "~6.2.1",
-    "globby": "~6.1.0",
-    "kleur": "~4.1.4",
-    "lodash": "~4.17.21",
-    "node-fetch": "~2.6.1",
-    "pa11y": "^6.2.3",
-    "protocolify": "~3.0.0",
-    "puppeteer": "~9.1.1",
-    "wordwrap": "~1.0.0"
+    "ajv": "^6.10.2",
+    "better-ajv-errors": "^0.6.7",
+    "commander": "^3.0.1",
+    "git-clone": "^0.1.0",
+    "handlebars": "^4.4.5",
+    "js-yaml": "^3.13.1"
   },
   "devDependencies": {
-    "eslint": "^7.27.0",
-    "mocha": "^8.4.0",
-    "mockery": "^2.1.0",
-    "nyc": "^15.1.0",
-    "pa11y-lint-config": "^3.0.0",
-    "proclaim": "^3.6.0",
-    "sinon": "^11.1.0"
-  },
-  "main": "./lib/pa11y-ci.js",
-  "bin": {
-    "pa11y-ci": "./bin/pa11y-ci.js"
+    "eslint": "^6.5.1",
+    "eslint-config-prettier": "^6.4.0",
+    "eslint-plugin-import": "^2.19.1",
+    "eslint-plugin-jest": "^22.19.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "jest": "^24.9.0",
+    "prettier": "^1.18.2"
   },
   "scripts": {
-    "lint": "eslint .",
-    "verify-coverage": "nyc check-coverage --lines 90 --functions 90 --branches 90",
-    "test-unit": "mocha --file test/unit/setup.test.js 'test/unit/**/*.test.js' --recursive",
-    "test-coverage": "nyc --reporter=text --reporter=html mocha --file test/unit/setup.test.js 'test/unit/**/*.test.js' --recursive",
-    "test-integration": "mocha --file test/integration/setup.test.js 'test/integration/**/*.test.js' test/integration/teardown.test.js --recursive --timeout 20000 --slow 5000",
-    "test": "npm run test-coverage && npm run verify-coverage && npm run test-integration"
+    "lint": "yarn eslint --fix bin/**/* src/**/*.js tests/**/*.js",
+    "lint-on-ci": "yarn eslint bin/**/* src/**/*.js tests/**/*.js",
+    "test": "jest"
   },
-  "files": [
-    "bin",
-    "lib"
-  ]
+  "prettier": {
+    "printWidth": 100
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  }
 }
