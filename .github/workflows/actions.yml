@@ -1,22 +1,33 @@
----
 name: CI
-on: [push, pull_request, workflow_dispatch]
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
     strategy:
-      max-parallel: 1
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest]
+        # TODO: Include 22 and 23 when https://github.com/yeoman/yeoman-welcome/issues/7 is fixed
         node-version: ["16"]
-    name: node ${{ matrix.node }}
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - run: npm install -g bob
-      - run: bob build
-      - uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: .bob/coverage/c8/lcov.info
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test

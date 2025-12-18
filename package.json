@@ -1,55 +1,32 @@
 {
-  "name": "nestor",
-  "type": "module",
-  "description": "Jenkins CLI and node.js client",
+  "name": "yeoman-welcome",
+  "version": "1.0.1",
+  "description": "Yeoman welcome message used in generators",
+  "license": "MIT",
+  "repository": "yeoman/yeoman-welcome",
+  "author": "Yeoman",
+  "engines": {
+    "node": ">=8"
+  },
+  "scripts": {
+    "test": "ava"
+  },
+  "files": [
+    "index.js"
+  ],
   "keywords": [
-    "jenkins",
-    "ci",
-    "cli",
-    "api",
-    "client"
+    "yeoman",
+    "character",
+    "welcome",
+    "message",
+    "msg",
+    "ascii",
+    "ansi"
   ],
-  "version": "3.1.2-pre.0",
-  "homepage": "https://github.com/cliffano/nestor",
-  "author": "Cliffano Subagio <blah@cliffano.com> (https://blog.cliffano.com)",
-  "contributors": [
-    "All contributors (https://github.com/cliffano/nestor/graphs/contributors)"
-  ],
-  "main": "./lib/jenkins.js",
-  "bin": {
-    "nestor": "./bin/nestor.js"
-  },
-  "preferGlobal": true,
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/cliffano/nestor.git"
-  },
-  "bugs": {
-    "url": "https://github.com/cliffano/nestor/issues"
-  },
-  "directories": {
-    "bin": "./bin",
-    "lib": "./lib",
-    "test": "./test"
-  },
   "dependencies": {
-    "async": "^3.2.6",
-    "bagofcli": "^2.4.1",
-    "colors": "^1.4.0",
-    "cron": "^4.3.3",
-    "lodash": "^4.17.21",
-    "moment": "^2.30.1",
-    "rss-parser": "^3.13.0",
-    "swaggy-jenkins": "^3.1.0",
-    "xml2js": "^0.6.2"
+    "chalk": "^2.4.2"
   },
   "devDependencies": {
-    "@sinonjs/referee": "^11.0.1",
-    "sinon": "^21.0.0"
-  },
-  "scripts": {},
-  "engines": {
-    "node": ">= 20.0.0"
-  },
-  "license": "MIT"
+    "ava": "*"
+  }
 }
