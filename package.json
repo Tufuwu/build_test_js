@@ -1,37 +1,51 @@
 {
-  "name": "flat",
-  "version": "5.0.2",
-  "main": "index.js",
-  "bin": "cli.js",
-  "scripts": {
-    "test": "mocha -u tdd --reporter spec && standard cli.js index.js test/index.js"
+  "author": "Alberto Terragni",
+  "bugs": "https://github.com/ilterra/markdown-yaml-metadata-parser/issues",
+  "dependencies": {
+    "detect-newline": "^3.1.0",
+    "js-yaml": "^4.1.0"
   },
-  "license": "BSD-3-Clause",
-  "description": "Take a nested Javascript object and flatten it, or unflatten an object with delimited keys",
+  "description": "Parse YAML metadata (front matter) in a markdown document",
   "devDependencies": {
-    "mocha": "~8.1.1",
-    "standard": "^14.3.4"
+    "ascjs": "^6.0.3",
+    "mkdirp": "^3.0.1",
+    "standard": "^17.1.2"
   },
-  "directories": {
-    "test": "test"
+  "engines": {
+    "node": ">=18.0.0"
   },
-  "dependencies": {},
+  "exports": {
+    "require": "./cjs/lib/index.js",
+    "default": "./lib/index.js"
+  },
+  "files": [
+    "cjs",
+    "lib"
+  ],
+  "keywords": [
+    "front matter",
+    "markdown",
+    "metadata",
+    "parser",
+    "yaml"
+  ],
+  "license": "MIT",
+  "main": "./cjs/lib/index.js",
+  "module": "./lib/index.js",
+  "name": "markdown-yaml-metadata-parser",
   "repository": {
     "type": "git",
-    "url": "git://github.com/hughsk/flat.git"
+    "url": "https://github.com/ilterra/markdown-yaml-metadata-parser"
   },
-  "keywords": [
-    "flat",
-    "json",
-    "flatten",
-    "unflatten",
-    "split",
-    "object",
-    "nested"
-  ],
-  "author": "Hugh Kennedy <hughskennedy@gmail.com> (http://hughskennedy.com)",
-  "bugs": {
-    "url": "https://github.com/hughsk/flat/issues"
+  "scripts": {
+    "build": "mkdirp cjs/lib cjs/test && ascjs lib cjs/lib --no-default && ascjs test cjs/test --no-default",
+    "lint": "standard --fix",
+    "prepublishOnly": "npm run build",
+    "pretest": "standard && npm run build",
+    "test": "npm run test:esm && npm run test:cjs",
+    "test:cjs": "node --test --experimental-test-coverage cjs/test/*.test.js",
+    "test:esm": "node --test --experimental-test-coverage test/*.test.js"
   },
-  "homepage": "https://github.com/hughsk/flat"
+  "type": "module",
+  "version": "4.0.0"
 }

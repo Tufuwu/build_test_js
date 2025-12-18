@@ -1,236 +1,60 @@
-# flat [![Build Status](https://github.com/hughsk/flat/actions/workflows/main.yml/badge.svg)](https://github.com/hughsk/flat/actions/workflows/main.yml)
+# Markdown YAML metadata parser
 
-Take a nested Javascript object and flatten it, or unflatten an object with
-delimited keys.
+![Build Status](https://github.com/ilterra/markdown-yaml-metadata-parser/actions/workflows/node.js.yml/badge.svg)
+
+Parse YAML metadata (front matter) in a markdown document.
+
+This is a dual module, written in ESM (ECMAScript modules) and supporting CJS (CommonJS).
 
 ## Installation
 
-``` bash
-$ npm install flat
+Install the latest version via npm:
+
+```bash
+$ npm install markdown-yaml-metadata-parser
 ```
 
-## Methods
+## Usage
 
-### flatten(original, options)
+In order to be parsed, metadata must be placed at the beginning of the markdown document between two triple dashes (YAML front matter). Example:
 
-Flattens the object - it'll return an object one level deep, regardless of how
-nested the original object was:
+    ---
+    title: Meditations
+    author: Marcus Aurelius
+    keywords: stoicism, book
+    ---
 
-``` javascript
-var flatten = require('flat')
+    Vestibulum tortor quam, *feugiat vitae*, ultricies eget, tempor sit amet, ante.
 
-flatten({
-    key1: {
-        keyA: 'valueI'
-    },
-    key2: {
-        keyB: 'valueII'
-    },
-    key3: { a: { b: { c: 2 } } }
-})
+Here's how to parse the metadata. Import (or require) the parser:
 
-// {
-//   'key1.keyA': 'valueI',
-//   'key2.keyB': 'valueII',
-//   'key3.a.b.c': 2
-// }
+```js
+import metadataParser from 'markdown-yaml-metadata-parser'
 ```
 
-### unflatten(original, options)
+Assuming source is a string containing the markdown document, parse source:
 
-Flattening is reversible too, you can call `flatten.unflatten()` on an object:
-
-``` javascript
-var unflatten = require('flat').unflatten
-
-unflatten({
-    'three.levels.deep': 42,
-    'three.levels': {
-        nested: true
-    }
-})
-
-// {
-//     three: {
-//         levels: {
-//             deep: 42,
-//             nested: true
-//         }
-//     }
-// }
+```js
+const source = '--- title: Meditations...'
+const result = metadataParser(source)
 ```
 
-## Options
+`result` is a two-property object. The first property, `result.metadata`, is the object of parsed metadata:
 
-### delimiter
-
-Use a custom delimiter for (un)flattening your objects, instead of `.`.
-
-### safe
-
-When enabled, both `flat` and `unflatten` will preserve arrays and their
-contents. This is disabled by default.
-
-``` javascript
-var flatten = require('flat')
-
-flatten({
-    this: [
-        { contains: 'arrays' },
-        { preserving: {
-              them: 'for you'
-        }}
-    ]
-}, {
-    safe: true
-})
-
-// {
-//     'this': [
-//         { contains: 'arrays' },
-//         { preserving: {
-//             them: 'for you'
-//         }}
-//     ]
-// }
+```js
+{
+  'title': 'Meditations',
+  'author': 'Marcus Aurelius',
+  'keywords': 'stoicism, book'
+}
 ```
 
-### object
+The second property, `result.content`, is the document source without metadata:
 
-When enabled, arrays will not be created automatically when calling unflatten, like so:
-
-``` javascript
-unflatten({
-    'hello.you.0': 'ipsum',
-    'hello.you.1': 'lorem',
-    'hello.other.world': 'foo'
-}, { object: true })
-
-// hello: {
-//     you: {
-//         0: 'ipsum',
-//         1: 'lorem',
-//     },
-//     other: { world: 'foo' }
-// }
+```
+Vestibulum tortor quam, *feugiat vitae*, ultricies eget, tempor sit amet, ante.
 ```
 
-### overwrite
+## License
 
-When enabled, existing keys in the unflattened object may be overwritten if they cannot hold a newly encountered nested value:
-
-```javascript
-unflatten({
-    'TRAVIS': 'true',
-    'TRAVIS.DIR': '/home/travis/build/kvz/environmental'
-}, { overwrite: true })
-
-// TRAVIS: {
-//     DIR: '/home/travis/build/kvz/environmental'
-// }
-```
-
-Without `overwrite` set to `true`, the `TRAVIS` key would already have been set to a string, thus could not accept the nested `DIR` element.
-
-This only makes sense on ordered arrays, and since we're overwriting data, should be used with care.
-
-
-### maxDepth
-
-Maximum number of nested objects to flatten.
-
-``` javascript
-var flatten = require('flat')
-
-flatten({
-    key1: {
-        keyA: 'valueI'
-    },
-    key2: {
-        keyB: 'valueII'
-    },
-    key3: { a: { b: { c: 2 } } }
-}, { maxDepth: 2 })
-
-// {
-//   'key1.keyA': 'valueI',
-//   'key2.keyB': 'valueII',
-//   'key3.a': { b: { c: 2 } }
-// }
-```
-
-### transformKey
-
-Transform each part of a flat key before and after flattening.
-
-```javascript
-var flatten = require('flat')
-var unflatten = require('flat').unflatten
-
-flatten({
-    key1: {
-        keyA: 'valueI'
-    },
-    key2: {
-        keyB: 'valueII'
-    },
-    key3: { a: { b: { c: 2 } } }
-}, {
-    transformKey: function(key){
-      return '__' + key + '__';
-    }
-})
-
-// {
-//   '__key1__.__keyA__': 'valueI',
-//   '__key2__.__keyB__': 'valueII',
-//   '__key3__.__a__.__b__.__c__': 2
-// }
-
-unflatten({
-      '__key1__.__keyA__': 'valueI',
-      '__key2__.__keyB__': 'valueII',
-      '__key3__.__a__.__b__.__c__': 2
-}, {
-    transformKey: function(key){
-      return key.substring(2, key.length - 2)
-    }
-})
-
-// {
-//     key1: {
-//         keyA: 'valueI'
-//     },
-//     key2: {
-//         keyB: 'valueII'
-//     },
-//     key3: { a: { b: { c: 2 } } }
-// }
-```
-
-## Command Line Usage
-
-`flat` is also available as a command line tool. You can run it with 
-[`npx`](https://ghub.io/npx):
-
-```sh
-npx flat foo.json
-```
-
-Or install the `flat` command globally:
- 
-```sh
-npm i -g flat && flat foo.json
-```
-
-Accepts a filename as an argument:
-
-```sh
-flat foo.json
-```
-
-Also accepts JSON on stdin:
-
-```sh
-cat foo.json | flat
-```
+Markdown YAML metadata parser is licensed under the MIT License. See the `LICENSE` file for details.
