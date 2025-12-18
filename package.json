@@ -1,48 +1,51 @@
 {
-  "private": true,
-  "name": "definitelytyped.github.io",
-  "version": "0.1.0",
-  "description": "DefinitelyTyped website",
-  "homepage": "http://definitelytyped.github.io",
+  "name": "keshi",
+  "version": "3.0.0",
+  "description": "An in-memory cache for Node and the browser designed for Promises",
+  "repository": "https://github.com/DominicTobias/keshi",
   "keywords": [
-    "DefinitelyTyped",
-    "website"
+    "node",
+    "browser",
+    "in-memory",
+    "cache",
+    "store",
+    "async",
+    "promises",
+    "fetch"
   ],
-  "author": "DefinitelyTyped",
-  "maintainers": [],
-  "contributors": [],
-  "bugs": {
-    "url": "https://github.com/DefinitelyTyped/definitelytyped.github.io/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/DefinitelyTyped/definitelytyped.github.io.git"
-  },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://raw.github.com/DefinitelyTyped/definitelytyped.github/master/LICENSE-MIT.txt"
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.umd.js",
+  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.umd.js"
     }
-  ],
+  },
   "scripts": {
-    "test": "grunt test",
-    "deploy": "grunt deploy"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "prepublishOnly": "tsc && vite build"
   },
-  "dependencies": {},
+  "author": "Dominic Tobias (https://github.com/DominicTobias/)",
+  "license": "ISC",
+  "dependencies": {
+    "ms": "^2.1.3"
+  },
   "devDependencies": {
-    "docpad": "^6.79.0",
-    "docpad-plugin-eco": "^2.1.0",
-    "docpad-plugin-marked": "^2.2.0",
-    "docpad-plugin-partials": "^2.9.0",
-    "docpad-plugin-less": "^2.4.1",
-    "docpad-plugin-livereload": "^2.6.0",
-    "grunt": "^1.0.1",
-    "grunt-cli": "^1.2.0",
-    "grunt-gh-pages": "^2.0.0",
-    "grunt-contrib-clean": "^1.1.0",
-    "grunt-contrib-copy": "^1.0.0",
-    "highlight.js": "^9.12.0",
-    "marked": "^0.3.2"
-  },
-  "main": "node_modules/docpad/bin/docpad-server"
+    "@eslint/js": "^9.18.0",
+    "@types/ms": "^0.7.34",
+    "eslint": "^9.18.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "typescript": "~5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vite": "^6.0.7",
+    "vite-plugin-dts": "^4.5.0",
+    "vitest": "^2.1.8"
+  }
 }
