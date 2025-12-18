@@ -1,3 +1,8 @@
+.DS_Store
+
+build
+lib-dist
+node_modules
+
 npm-debug.log
-node_modules/
-yarn.lock
+README.md
