@@ -1,133 +1,53 @@
-# dmn-js-properties-panel
+# MEGAJS
 
-[![CI](https://github.com/bpmn-io/dmn-js-properties-panel/workflows/CI/badge.svg)](https://github.com/bpmn-io/dmn-js-properties-panel/actions?query=workflow%3ACI)
+Unofficial JavaScript SDK for MEGA
 
-This is properties panel extension for [dmn-js](https://github.com/bpmn-io/dmn-js).
+* This is based on [tonistiigi's mega library](https://github.com/tonistiigi/mega).
+* This is all unofficial, based on [developer guide](https://mega.nz/#developers) and site source.
+* Make sure you agree with MEGA's [Terms of Service](https://mega.nz/#terms) before using it.
+* Maybe an official SDK will probably be released in the future here: https://github.com/meganz/
 
-![dmn-js-properties-panel screenshot](./docs/screenshot.png "Screenshot of the dmn-js editor + the properties panel")
+## Installation
 
-## Features
-
-The properties panel allows users to edit invisible DMN properties in a convenient way.
-
-Some of the features are:
-
-* Edit element ids and names
-* Edit execution related [Camunda](http://camunda.org) properties
-* Redo and undo (plugs into the [dmn-js](https://github.com/bpmn-io/dmn-js) editing cycle)
-
-
-## Usage
-
-Provide two HTML elements, one for the properties panel and one for the DMN diagram:
-
-```html
-<div class="modeler">
-  <div id="canvas"></div>
-  <div id="properties"></div>
-</div>
+```shell
+npm install megajs
 ```
-
-Bootstrap [dmn-js](https://github.com/bpmn-io/dmn-js) with the properties panel, and a [properties provider](./lib/provider):
 
 ```javascript
-import DmnModeler from 'dmn-js/lib/Modeler';
-
-import {
-  DmnPropertiesPanelModule,
-  DmnPropertiesProviderModule,
-} from 'dmn-js-properties-panel';
-
-var dmnModeler = new DmnModeler({
-  drd: {
-    propertiesPanel: {
-      parent: '#properties'
-    },
-    additionalModules: [
-      DmnPropertiesPanelModule,
-      DmnPropertiesProviderModule
-    ]
-  },
-  container: '#canvas'
-});
+const mega = require('megajs') // or
+import mega from 'megajs'
 ```
 
+You can also load it in a browser using `<script src="https://unpkg.com/megajs/dist/main.node-cjs.js"></script>`, which exports the library in the `mega` global variable. You can also use `import * as mega from 'https://unpkg.com/megajs/dist/main.browser-es.js'`.
 
-### Dynamic Attach/Detach
+**For more details, API documentation and examples check wiki: https://github.com/qgustavor/mega/wiki**
 
-You may attach or detach the properties panel dynamically to any element on the page, too:
+The bundled files are available via [npm](https://www.npmjs.com/package/megajs) and [UNPKG](https://unpkg.com/megajs/dist/).
 
-```javascript
-var propertiesPanel = dmnJS.get('propertiesPanel');
+**For CLI usage check MEGAJS CLI**: https://github.com/qgustavor/megajs-cli
 
-// detach the panel
-propertiesPanel.detach();
+## Implementation notes
 
-// attach it to some other element
-propertiesPanel.attachTo('#other-properties');
-```
+Only part of the file related API is implemented. For now implementing contact and chat functions seems out of scope.
 
+Cryptography is mostly ported from browser code. In Node some parts are optimized: AES operations are done using native crypto. Sadly WebCrypto don't support streaming so in browser the old pure JavaScript implementation is used. The RSA operations aren't optimized as currently there isn't any need to improve that.
 
-### Use with Camunda properties
+This module works in the browser: the "main.browser-umd.js" is a build using the UMD format where Node specific modules, like crypto and request modules, were replaced with browser equivalents. If you want to use tree shaking then use the "main.browser-es.js" bundle. This module wasn't tested in other environments.
 
-In order to be able to edit [Camunda](https://camunda.org) related properties, use the [camunda properties provider](./lib/provider/camunda).
-In addition, you need to define the `camunda` namespace via [camunda-dmn-moddle](https://github.com/camunda/camunda-dmn-moddle).
+## Fork objectives
 
-```javascript
-import DmnModeler from 'dmn-js/lib/Modeler';
-import {
-  DmnPropertiesPanelModule,
-  DmnPropertiesProviderModule,
-  CamundaPropertiesProviderModule
-} from 'dmn-js-properties-panel';
+This package started as a fork, with the following objectives:
 
+* Make the original package work in browsers again: even following [the instructions from the original library](https://github.com/tonistiigi/mega#browser-support) it stopped working because some dependencies used `__proto__`, which is non-standard and isn't supported in many browsers. Also the updated versions of those libraries broke backyards compatibility;
+* Reduce dependencies and replace big dependencies with smaller ones, like crypto libraries, which usually are huge;
+* Rewrite code using the new JavaScript syntax, allowing to use [Rollup](http://rollupjs.org/), which can generate smaller bundles;
+* Make tests work again after the changes above;
+* Continue the original library development implementing new features and improving performance.
 
-// use Camunda properties provider
-import CamundaPropertiesProvider from 'src/provider/camunda';
+Request package was replaced with a shim based in [browser-request](https://www.npmjs.com/package/browser-request) and [xhr-stream](https://www.npmjs.com/package/xhr-stream), which additional changes in order to make it work inside Service Workers. Crypto was replaced with [secure-random](https://www.npmjs.com/package/secure-random).
 
-// a descriptor that defines Camunda related DMN 1.1 XML extensions
-import camundaModdleDescriptor from 'camunda-dmn-moddle/resources/camunda';
+As there were many changes there isn't any plan to merge those changes into the original library, unless the original author accept those massive changes. That's why I put "js" in the name, which is silly because both libraries use JavaScript. At least it's better than other ideas I had, like "mega2", "mega-es" and "modern-mega".
 
-var dmnModeler = new DmnModeler({
-  drd: {
-    propertiesPanel: {
-      parent: '#properties'
-    },
-    additionalModules: [
-      DmnPropertiesPanelModule,
-      DmnPropertiesProviderModule,
-      CamundaPropertiesProviderModule
-    ]
-  },
-  container: '#canvas'
-  // make camunda prefix known for import, editing and export
-  moddleExtensions: {
-    camunda: camundaModdleDescriptor
-  }
-});
+## Contributing
 
-...
-```
-
-
-## Additional Resources
-
-* [Issue tracker](https://github.com/bpmn-io/dmn-js-properties-panel)
-* [Forum](https://forum.bpmn.io)
-
-
-## Development
-
-### Running the tests
-
-```bash
-npm install
-
-export TEST_BROWSERS=Chrome
-npm run all
-```
-
-
-## License
-
-MIT
+When contributing fork the project, clone it, run `npm install`, change the library as you want, run tests using `npm run test` and build the bundled versions using `npm run build`. Before creating a pull request, *please*, run tests.
