@@ -1,33 +1,36 @@
-name: CI
+name: test
+
 on:
-  - push
-  - pull_request
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
 jobs:
   test:
-    name: Node.js ${{ matrix.node-version }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+
+    runs-on: ubuntu-latest
+
+    env:
+      CI: true
+      TZ: utc
+      NODE_ENV: test
+
     strategy:
-      fail-fast: false
       matrix:
-        node-version:
-          - 6
-          - 8
-          - 10
-          - 12
-          - 14
-          - 16
-        os:
-          - ubuntu-latest
+        node-version: ["16"]
+
+    name: test on nodejs ${{ matrix.node-version }}
+
     steps:
-      - name: Checkout repository and submodules
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+
+      - name: install node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
-      - run: npm run test
-      - uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: trues
+
+      - uses: bahmutov/npm-install@v1
+
+      - name: run tests
+        run: npm run test

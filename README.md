@@ -1,72 +1,109 @@
-# Rainbows :rainbow:
-A prototype of the Rainbows programming language
+## NodeJS SQL DDL Synchronization
 
-[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fnfischer%2Frainbows-lang%2Fbadge%3Fref%3Dmain&style=flat-square)](https://actions-badge.atrox.dev/nfischer/rainbows-lang/goto?ref=main)
-[![Codecov](https://img.shields.io/codecov/c/github/nfischer/rainbows-lang/main.svg?style=flat-square&label=coverage)](https://codecov.io/gh/nfischer/rainbows-lang)
-[![Try online](https://img.shields.io/badge/try_it-online!-yellow.svg?style=flat-square)](https://nfischer.github.io/rainbows-lang/)
+[![Build Status](https://secure.travis-ci.org/dresende/node-sql-ddl-sync.png?branch=master)](http://travis-ci.org/dresende/node-sql-ddl-sync)
+[![](https://badge.fury.io/js/sql-ddl-sync.png)](https://npmjs.org/package/sql-ddl-sync)
+[![](https://gemnasium.com/dresende/node-sql-ddl-sync.png)](https://gemnasium.com/dresende/node-sql-ddl-sync)
 
-*Because coding should be as easy as coloring in the lines, and programs should
-be as readable as coloring books* :art:
+## Install
 
-To learn about the motivation, check out the original [one page design
-doc](doc/OnePager3v2.pdf).
-
-Try out the [online live coding
-environment](https://nfischer.github.io/rainbows-lang/) and let me know what you
-think!
-
-## Browser Compatibility
-
-I'm taking advantage of [css
-variables](https://developers.google.com/web/updates/2016/02/css-variables-why-should-you-care?hl=en),
-so your browser will need to support these. This should be fine for Chrome
-v49+, Firefox 29+, and Safari 9.1+. Also, there is no mobile support as of yet.
-
-If this project is not compatible with these browsers, please let me know. If
-you want to run the dev unit tests, you'll need NodeJS v6+.
-
-## Language features
-
- - Types are specified by color
- - JavaScript-inspired syntax
- - Type inference
- - Stricter typing than in Javascript
- - Type hints for function APIs (a colorful underline serves to remind what type
-   the function will implicitly cast your values to)
-
-## [Live coding environment](https://nfischer.github.io/rainbows-lang/)
-
- - Quickly cast things to a different type just by using the color slider
- - Customize the color scheme by picking new colors for each type
- - Type hints pop up when hovering over any identifier or literal
- - Type errors display at the bottom of the editor
-
-Also, check out the [official vim
-plugin](https://github.com/nfischer/vim-rainbows)!
-
-## Soon to come
-
- - The ability to hook into npm modules
- - Alternatives for colorblindness and accessibility
- - Object orientation and custom types
- - Types for expressions will be shown by highlighting the surrounding
-   parentheses in the appropriate color
-
-## Contributing (help is appreciated!)
-
-The best way you can contribute right now is to help think of examples where
-Rainbows shines! If you have a short code snippet you think Rainbows would help
-make more readable, feel free to suggest it an issue or send a PR against [the
-examples list](src/rb-examples.js).
-
-## Building the project
-
-First, install it (**and the git submodule dependencies!**)
-
-```Bash
-$ git clone --recursive https://github.com/nfischer/rainbows-lang.git
-$ cd rainbows-lang/
-$ npm install
+```sh
+npm install sql-ddl-sync
 ```
 
-Next, run it in the browser using `npm start`.
+## Dialects
+
+- MySQL
+- PostgreSQL
+- SQLite
+
+## About
+
+This module is part of [ORM](http://dresende.github.com/node-orm2). It's used synchronize model tables in supported dialects.
+Sorry there is no API documentation for now but there are a couple of tests you can read and find out how to use it if you want.
+
+## Example
+
+Install `orm` & the required driver (eg: `mysql`).
+Create a file with the contents below and change insert your database credentials.
+Run once and you'll see table `ddl_sync_test` appear in your database. Then make some changes to it (add/drop/change columns)
+and run the code again. Your table should always return to the same structure.
+
+```js
+var orm   = require("orm");
+var mysql = require("mysql");
+var Sync  = require("sql-ddl-sync").Sync;
+
+orm.connect("mysql://username:password@localhost/database", function (err, db) {
+	if (err) throw err;
+	var driver = db.driver;
+
+	var sync = new Sync({
+		dialect : "mysql",
+		driver  : driver,
+		debug   : function (text) {
+			console.log("> %s", text);
+		}
+	});
+
+	sync.defineCollection("ddl_sync_test", {
+    id     : { type: "serial", key: true, serial: true },
+    name   : { type: "text", required: true },
+    age    : { type: "integer" },
+    male   : { type: "boolean" },
+    born   : { type: "date", time: true },
+    born2  : { type: "date" },
+    int2   : { type: "integer", size: 2 },
+    int4   : { type: "integer", size: 4 },
+    int8   : { type: "integer", size: 8 },
+    float4 : { type: "number",  size: 4 },
+    float8 : { type: "number",  size: 8 },
+    photo  : { type: "binary" }
+  });
+
+	sync.sync(function (err) {
+		if (err) {
+			console.log("> Sync Error");
+			console.log(err);
+		} else {
+			console.log("> Sync Done");
+		}
+		process.exit(0);
+	});
+});
+
+```
+
+## PostgreSQL UUID
+
+```js
+{ type: 'uuid', defaultExpression: 'uuid_generate_v4()' }
+```
+
+## Test
+
+To test, first make sure you have development dependencies installed. Go to the root folder and do:
+
+```sh
+npm install
+```
+
+Then, just run the tests.
+
+```sh
+npm test
+```
+
+If you have a supported database server and want to test against it, first install the module:
+
+```sh
+# if you have a mysql server
+npm install mysql
+# if you have a postgresql server
+npm install pg
+```
+
+And then run:
+
+```sh
+node test/run-db --uri 'mysql://username:password@localhost/database'
+```
