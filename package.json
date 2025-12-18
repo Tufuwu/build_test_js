@@ -1,26 +1,51 @@
 {
-  "name": "Base64",
-  "version": "1.1.0",
-  "description": "Base64 encoding and decoding",
-  "author": "David Chambers <dc@davidchambers.me>",
-  "main": "./base64.js",
-  "license": "(Apache-2.0 OR WTFPL)",
+  "name": "doctest",
+  "version": "0.19.0",
+  "description": "Doctests for JavaScript and CoffeeScript",
+  "license": "WTFPL",
+  "contributors": [
+    "Aldwin Vlasblom <aldwin@avaq.it>",
+    "David Chambers <dc@davidchambers.me>",
+    "Francesco Occhipinti <f.occhipinti@gmail.com>"
+  ],
+  "keywords": [
+    "doctests",
+    "test"
+  ],
+  "type": "module",
+  "main": "./lib/doctest.js",
+  "bin": "./bin/doctest",
   "repository": {
     "type": "git",
-    "url": "git://github.com/davidchambers/Base64.js.git"
+    "url": "git://github.com/davidchambers/doctest.git"
+  },
+  "engines": {
+    "node": ">=12.22.0"
+  },
+  "dependencies": {
+    "acorn": "8.5.x",
+    "coffeescript": "2.6.x",
+    "commander": "2.20.x",
+    "sanctuary-show": "2.0.x",
+    "sanctuary-type-classes": "12.1.x"
   },
   "devDependencies": {
-    "eslint": "8.2.x",
-    "istanbul": "0.4.x",
-    "mocha": "5.2.x",
-    "sanctuary-style": "5.0.x",
-    "uglify-js": "3.5.x",
-    "xyz": "4.0.x"
+    "babel-eslint": "10.1.x",
+    "c8": "7.10.x",
+    "oletus": "3.2.x",
+    "sanctuary-scripts": "5.0.x"
+  },
+  "scripts": {
+    "doctest": "sanctuary-doctest",
+    "lint": "sanctuary-lint",
+    "release": "sanctuary-release",
+    "test": "npm run lint && sanctuary-test && npm run doctest"
   },
   "files": [
+    "/bin/",
+    "/lib/",
     "/LICENSE",
     "/README.md",
-    "/base64.js",
     "/package.json"
   ]
 }
