@@ -1,19 +1,33 @@
-name: Continuous integration
-on: [push]
+name: test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
 jobs:
-  run-ci:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: Run checkout
-        uses: actions/checkout@v4
-      - name: Use Node.js 10.x
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          ref: master
+
+      - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: "16"
-          cache: 'yarn'
+
       - name: Install dependencies
-        run: yarn install
-      - name: Run tests
-        run: yarn test
-      - name: Lint
-        run: yarn lint-on-ci
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Compute coverage
+        run: npm run coverage
+
+      - name: Publish coverage
+        uses: coverallsapp/github-action@v2

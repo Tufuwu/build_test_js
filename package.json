@@ -1,40 +1,52 @@
 {
-  "name": "@picnicsupermarket/localicious",
-  "version": "1.0.1",
-  "description": "A toolchain for working with localization files in a platform-agnostic way.",
-  "bin": {
-    "localicious": "bin/localicious"
-  },
-  "repository": "https://github.com/PicnicSupermarket/localicious",
-  "author": "Picnic Technologies",
+  "name": "mapsort",
+  "description": "Performant sorting for complex input",
+  "version": "1.0.8",
+  "main": "compiled/cjs/mapsort.min.js",
+  "module": "compiled/esm/mapsort.min.js",
+  "unpkg": "compiled/iife/mapsort.min.js",
+  "types": "index.d.ts",
+  "files": [
+    "source",
+    "compiled",
+    "index.d.ts",
+    "copying.txt",
+    "readme-nl.md"
+  ],
   "license": "MIT",
-  "private": false,
-  "dependencies": {
-    "ajv": "^6.10.2",
-    "better-ajv-errors": "^0.6.7",
-    "commander": "^3.0.1",
-    "git-clone": "^0.1.0",
-    "handlebars": "^4.4.5",
-    "js-yaml": "^3.13.1"
-  },
   "devDependencies": {
-    "eslint": "^6.5.1",
-    "eslint-config-prettier": "^6.4.0",
-    "eslint-plugin-import": "^2.19.1",
-    "eslint-plugin-jest": "^22.19.0",
-    "eslint-plugin-prettier": "^3.1.1",
-    "jest": "^24.9.0",
-    "prettier": "^1.18.2"
+    "@babel/core": "^7.20.7",
+    "@babel/preset-env": "^7.20.2",
+    "@rollup/plugin-babel": "^6.0.3",
+    "babel-jest": "^29.3.1",
+    "babel-loader": "^9.1.0",
+    "babel-preset-minify": "^0.5.2",
+    "benchmark": "^2.1.4",
+    "jest": "^29.3.1",
+    "lodash": "^4.17.21",
+    "rollup": "^3.9.0",
+    "typescript": "^4.9.4",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
   },
   "scripts": {
-    "lint": "yarn eslint --fix bin/**/* src/**/*.js tests/**/*.js",
-    "lint-on-ci": "yarn eslint bin/**/* src/**/*.js tests/**/*.js",
-    "test": "jest"
+    "build": "rollup --config rollup.config.js",
+    "build-conceptual-benchmark": "webpack --config benchmarks/conceptual/webpack.config.js",
+    "test": "npm run-script build && jest && tsc --strict --noEmit --types \" \" test/type-test.ts",
+    "coverage": "TEST_TYPE=coverage jest --coverage"
   },
-  "prettier": {
-    "printWidth": 100
+  "author": {
+    "name": "Nullhouse",
+    "url": "https://null.house"
   },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org"
-  }
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pimm/mapsort.git"
+  },
+  "homepage": "https://null.house/open-source/mapsort",
+  "keywords": [
+    "performance",
+    "map",
+    "sort"
+  ]
 }

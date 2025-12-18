@@ -1,20 +1,5 @@
-# OSX
-#
-.DS_Store
+# NPM modules
+/node_modules
 
-# VS Code
-.vscode
-
-# node.js
-#
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# Jest
-.jest/
-
-# Specifics
-test-results.json
-
-**/*.orig
+# Rollup output
+/compiled

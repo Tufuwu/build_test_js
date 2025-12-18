@@ -1,238 +1,85 @@
-# Localicious
+# mapsort &middot; [![License (X11/MIT)](https://badgen.net/github/license/pimm/mapsort)](https://github.com/Pimm/mapsort/blob/master/copying.txt) [![npm version](https://badgen.net/npm/v/mapsort)](https://www.npmjs.com/package/mapsort) [![Test status](https://github.com/Pimm/mapsort/actions/workflows/test.yaml/badge.svg)](https://github.com/Pimm/mapsort/actions/workflows/test.yaml) [![Coverage status](https://coveralls.io/repos/github/Pimm/mapsort/badge.svg?branch=master)](https://coveralls.io/github/Pimm/mapsort?branch=master)
 
-localicious is a toolchain for working with localization files in a platform-agnostic way. With it, you can:
+Performant sorting for complex input.
 
-* Maintain all your localized copy and accessibility key/value pairs in one file, grouped per component.
-* Verify the integrity of your base localization file against a schema
-* Generate locale files for both Android, iOS or JS from your base localization file
+## Preface
 
-The goals of localicious are:
+**You do not need this library unless you are having performance issues.** `mapsort` does not add any functionality not present in plain JavaScript. Rather, it greatly improves your performance in case:
 
-* **Copywriter-friendliness**
-  
-  Likewise, it should be easy for copywriters to change and add copy. For each string copywriters should be able to easily get an overview of the translations provided for the various languages.
+* sorting is your bottleneck, and
+* the elements in your arrays require expensive preprocessing before their correct order can be determined.
 
-* **Developer-friendliness**
-  
-  It should be easy for developers maintaining and developing features to work with the new system. They should be able to trust that the necessary copy will be there for any language. Moreover, the format in which the copy is delivered should be predictable to minimise dependencies between developers and copywriters in a fast-paced environment.
+# Concept
 
-* **Robustness**
-
-  One cannot blindly import localization files into the app and expect everything to work. Therefore, localicious enables both validation and conversion. Together, these two operations can support a robust workflow that minimises the potential for mistakes.
-
-## Workflow
-
-localicious assumes the following workflow:
-
-1. You keep all your localizable strings in a YAML file that adheres to the structure defined by localicious.
-2. When committed to a source repository, the YAML file is guaranteed to have passed localicious verification.
-3. You point to the current working version of the YAML file in your iOS or Android project.
-4. Using localicious, you generate the localization files when desired.
-
-## Requirements and installation
-
-localicious requires node 10.12.0 or later.
-
-## The Localicipe
-
-The central concept of localicious is the so-called Localicipe. It is a YAML file that contains all localized copy and accessibility strings grouped by feature and screen. The strings in the Localicipe can be divided into different collections. Multiple collections can be combined when [Converting the Localicipe](#converting-the-localicipe) into platform specific outputs.
-
-Using collections it's easy to keep track of strings that are used on a single platform and strings that are shared across multiple platforms. 
-For an existing iOS and Android app, it could be useful to create three different collections: 
-- `IOS`(containing all iOS specific strings) 
-- `ANDROID`(containing all Android specific strings)
-- `SHARED`(containing all strings that are shared between iOS and Android).
-
-Each leaf node in a collection is either a `COPY` group or an `ACCESSIBILITY` group. The required structure of both groups is explained below:
+Imagine we are sorting this array of numbers, represented as strings:
+```javascript
+['12.4', '1.62', '3.35']
 ```
-<COLLECTION NAME>:
-  Feature:
-    Screen:
-      Element:
-        COPY:
-          en: "Translation for English speakers"
-          nl: "Vertaling voor Nederlandstaligen"
-        ACCESSIBILITY:
-          HINT|LABEL|VALUE:
-            en: "Accessibility for English speakers"
-            nl: "Toegankelijkheid voor Nederlandstaligen"
-      AnotherElement:
-        COPY:
-          ZERO|ONE|OTHER:
-            en: "Plural translation for English speakers"
-            nl: "Meervoudige vertaling voor Nederlandstaligen"
-        ...
-      ...
-    ...
-  ...
-...
+Sorting them with no compare function would place `'12.4'` before `'3.35'`, so we need such a function:
+```javascript
+['12.4', '1.62', '3.35'].sort((a, b) => parseFloat(a) - parseFloat(b));
+```
+This works!
+
+The only drawback is that `parseFloat` is called twice every time our compare function is used, resulting in 6 `parseFloat` calls in this example (4 if the original order were optimal).
+
+A dozen `parseFloat` calls is fine. However, next time we might be sorting names. _Lucia Ávila_ would like to appear amidst the other **A**s, and we have to correctly handle [diacritics](https://en.wikipedia.org/wiki/Diacritic). _Amelie de Wit_ would like to appear amidst the other **W**s, and we have to detect [tussenvoegsels](https://en.wikipedia.org/wiki/Tussenvoegsel). And the number of calls to the compare function grows loglinearly with the number of names. As our preprocessing becomes more expensive and our arrays become longer, this could produce perceivable hiccups.
+
+`mapsort` reduces the number of times an element is preprocessed to 1:
+```javascript
+mapSort(
+	['12.4', '1.62', '3.35'],
+	parseFloat,
+	(a, b) => a - b
+);
 ```
 
-## Retrieving the Localicipe
+# Installation
 
-If you are working with a team, you probably want to store your Localicipe in a Git repository and manage changes like you handle changes to your source code. Localicious supports that workflow. Simply create a repository that hosts your Localicipe. Then, in the root of the source repository of your Android or iOS project, you add the following `LocaliciousConfig.yaml`:
-
-```
-source:
-  git:
-    url: 'https://github.com/localicious/localicious-test.git'
-languages:
-  - en
-  - nl
-outputTypes:
-  - IOS
-collections:
-  - IOS
-  - SHARED
+Install `mapsort` using npm or Yarn and import the function:
+```javascript
+import mapSort from 'mapsort';
 ```
 
-To retrieve the latest version of the file in your repository, simply run `localicious install`. localicious also supports specifying a specific Git branch (by adding `:branch`).
-
-## Converting the Localicipe
-
-Using the `render` command, a Localicipe can be converted into platform specific outputs. Here's an overview on how the command works:
-
-**Syntax**
-
-`localicious render <localicipe path> <output path>`
-
-**Options**
-
-`--outputTypes/-ot` (required)
-- The platform/language for which the output files will be generated (`Localized.strings` for iOS, `strings.xml` for Android, `strings.json` for JS).
-- Available options are: `ios`, `android` or `js`
-
-`--collections/-c` (required)
-- The collections, defined in the Localicipe, that should be included into the output.
-
-`--languages/-l` (required)
-- The languages that should be included into the output.
-
-Consider the following Localicipe:
-
+Alternatively, include `mapsort` through unpkg:
+```html
+<script src="https://unpkg.com/mapsort@^1.0.8"></script>
 ```
----
-# Strings that are used in Android only
-ANDROID:
-  Checkout:
-    OrderOverview:
-      Total:
-        COPY:
-          en: 'Total price: %1{{s}}'  # This placeholder will expand to %1$@ on iOS and %1$s on Android
-          nl: 'Totaal: %1{{s}}'
-# Strings that are used in iOS only
-IOS:
-  Settings:
-    PushPermissionsRequest:
-      Title:
-        COPY:
-          en: 'Stay up to date'
-          nl: 'Blijf op de hoogte'
-# Strings that are shared between Android and iOS
-SHARED:
-  Delivery:
-    Widget:
-      Title:
-        COPY:
-          en: "Help"
-          nl: "Help"
-      SubTitle:
-        COPY:
-          ZERO:
-            en: '%1{{d}} Pending order'
-            nl: '%1{{d}} Lopende bestelling'
-          ONE:
-            en: '%1{{d}} Pending order'
-            nl: '%1{{d}} Lopende bestelling'
-          OTHER:
-            en: '%1{{d}} Pending Orders'
-            nl: '%1{{d}} Lopende bestellingen'
+This alternative makes the function available at `window.mapSort`.
+
+# Usage
+
+``` javascript
+const sortedArray = mapSort(
+	array,
+	element => {
+		// Return the version of "element" which is ideal for
+		// sorting. This version is passed to the compare
+		// function below.
+	},
+	(a, b) => {
+		// (Optional.) Return a negative number if a comes
+		// before b; a positive number if b comes before a; or
+		// 0 if they are equal.
+	}
+);
 ```
 
-By running the following localicious command:
+## Notes
 
-`localicious render ./copy.yaml ./output_path --outputTypes android --collections ANDROID,SHARED --languages en`
+* Contrary to [`[].sort`][mdn-sort], this library **does not sort in-place**. It returns a new, sorted array. The original array is left untouched.
+* This library maps each element of your array to a "sortable" version but returns a sorted array containing the originals. I.e. in the example above `['1.62', '3.35', '12.4']` is returned; not `[1.62, 3.35, 12.4]`.
+* This library [probably][stable-sorting] performs stable sorting.
 
-We can generate a strings.xml file for Android with the English translations provided:
+# License (X11/MIT)
+Copyright (c) 2019-2021 Pimm "de Chinchilla" Hogeling, Edo Rivai
 
-```
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-  <string name="Checkout.OrderOverview.Total.COPY">Total price: %1$s</string>
-  <string name="Delivery.Widget.Title.COPY">Help</string>
-  <plurals name="Delivery.Widget.SubTitle.COPY">
-    <item quantity="zero">%1$d Pending order</item>
-    <item quantity="one">%1$d Pending order</item>
-    <item quantity="other">%1$d Pending Orders</item>
-  </plurals>
-</resources>
-```
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-A similar file with the Dutch translations will be created as well if we request localicious to do so:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-`localicious render ./copy.yaml ./output_path --outputTypes android --collections ANDROID,SHARED --languages en,nl`
-
-By changing the destination output type, like so:
-
-`localicious render ./copy.yaml ./output_path --outputTypes ios --collections IOS,SHARED --languages en`
-
-the following Localizable.strings file will be generated for iOS:
-
-```
-"Settings.PushPermissionsRequest.Title.COPY" = "Stay up to date";
-"Delivery.Widget.Title.COPY" = "Help";
-"Delivery.Widget.SubTitle.COPY.ZERO" = "%1$d Pending order";
-"Delivery.Widget.SubTitle.COPY.ONE" = "%1$d Pending order";
-"Delivery.Widget.SubTitle.COPY.OTHER" = "%1$d Pending Orders";
-```
-
-## Validating
-
-Whenever we make changes to the Localicipe, it is important to verify that the format of the file is still correct.
-Using the `validate` command, a Localicipe can be validated.
-
-**Syntax**
-
-`localicious validate <localicipe path> <output path>`
-
-**Options**
-
-`--collections/-c` (required)
-- The collections, defined in the Localicipe, that should be validated.
-
-`--required-languages/-l` (required)
-- The languages that are required in the provided Localicipe.
-
-`--optional-languages/-o`
-- The languages that are optional in the provided Localicipe.
+**The Software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement. in no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the Software or the use or other dealings in the Software.**
 
 
-Imagine that we change the file in the previous example and add another entry for iOS:
-
-```
-Settings:
-  PushPermissionsRequest:
-    Subtitle:
-      COPY
-        en: 'Stay up to date'
-```
-
-Using the validation feature, we can validate whether the structure of the file is still correct after the change:
-
-`localicious validate ./copy.yaml --collections IOS --required-languages en,nl`
-
-Since we forgot to add a Dutch localization for the `Settings.PushPermissionsRequest.Subtitle.COPY` key, this will fail:
-
-```
-❌ Your Localicipe contains some issues.
-```
-
-localicious also supports the concept of optional languages. If we were to run the validator as follows:
-
-`localicious validate ./copy.yaml --collections IOS --required-languages en --optional-languages nl`
-
-the above file would pass validation even without the Dutch translation missing for some entries.
-
-## Migration
-
-Read all migration details in our [Migration Guide](MIGRATION.md).
+[mdn-sort]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
+[stable-sorting]: https://github.com/Pimm/mapsort/blob/master/documentation/stable-sorting.md
