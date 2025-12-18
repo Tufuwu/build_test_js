@@ -1,0 +1,16 @@
+@require 'settings/breakpoints'
+
+$header-margin-bottom = -28px
+
+.content
+    height 245px
+    text-align center
+    padding-bottom -($header-margin-bottom)
+    margin-bottom $header-margin-bottom
+
+    +small-screen()
+        height 190px
+
+.header
+    max-width 512px
+    margin 0 auto

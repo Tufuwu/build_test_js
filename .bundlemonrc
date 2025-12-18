@@ -1,0 +1,80 @@
+{
+  "baseDir": "./build",
+  "files": [
+    {
+      "path": "img/*"
+    },
+    {
+      "path": "mesinfos/*"
+    },
+    {
+      "path": "public/*"
+    },
+    {
+      "path": "screenshots/**/*.png"
+    },
+    {
+      "path": "services/autogroups/banks.js"
+    },
+    {
+      "path": "services/budgetAlerts/banks.js"
+    },
+    {
+      "path": "services/categorization/banks.js"
+    },
+    {
+      "path": "services/konnectorAlerts/banks.js"
+    },
+    {
+      "path": "services/linkMyselfToAccounts/banks.js"
+    },
+    {
+      "path": "services/onOperationOrBillCreate/banks.js"
+    },
+    {
+      "path": "services/recurrence/banks.js"
+    },
+    {
+      "path": "cozy-bar.bundle.js"
+    },
+    {
+      "path": "index.html"
+    },
+    {
+      "path": "main.bundle.js"
+    },
+    {
+      "path": "main-banks.<hash>.min.css"
+    },
+    {
+      "path": "vendors.bundle.js"
+    },
+    {
+      "path": "vendors-banks.<hash>.<hash>.min.css"
+    },
+    {
+      "path": "*.png"
+    },
+    {
+      "path": "*.svg"
+    },
+    {
+      "path": "*.jpg"
+    }
+  ],
+  "groups": [
+    {
+      "path": "app/**"
+    },
+    {
+      "path": "services/**"
+    },
+    {
+      "path": "vendors/**"
+    },
+    {
+      "path": "img/**"
+    }
+  ],
+  "reportOutput": ["github"]
+}

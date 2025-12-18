@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Title should display children 1`] = `
+<ForwardRef
+  className="Title"
+  variant="h4"
+>
+  content
+</ForwardRef>
+`;
+
+exports[`Title should extend className 1`] = `
+<ForwardRef
+  className="Title noPaddingBottom"
+  variant="h4"
+>
+  content
+</ForwardRef>
+`;
+
+exports[`Title should handle theme 1`] = `
+<DumbCozyTheme
+  ignoreItself={true}
+  variant="inverted"
+>
+  <Title>
+    content
+  </Title>
+</DumbCozyTheme>
+`;
