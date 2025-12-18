@@ -1,162 +1,379 @@
-<p align="center">
-   <img width="300" src="./logo.png"/>
+# express-joi-validation
 
-   <br/>
+![TravisCI](https://travis-ci.org/evanshortiss/express-joi-validation.svg)
+[![Coverage Status](https://coveralls.io/repos/github/evanshortiss/express-joi-validation/badge.svg?branch=master)](https://coveralls.io/github/evanshortiss/express-joi-validation?branch=master)
+[![npm version](https://badge.fury.io/js/express-joi-validation.svg)](https://www.npmjs.com/package/express-joi-validation)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](http://www.typescriptlang.org/)
+[![npm downloads](https://img.shields.io/npm/dm/express-joi-validation.svg?style=flat)](https://www.npmjs.com/package/express-joi-validation)
+[![Known Vulnerabilities](https://snyk.io//test/github/evanshortiss/express-joi-validation/badge.svg?targetFile=package.json)](https://snyk.io//test/github/evanshortiss/express-joi-validation?targetFile=package.json)
 
-   <a href="https://www.ebay.com">
-      <img src="https://img.shields.io/badge/ebay-open%20source-01d5c2.svg" alt="ebay open source"/>
-   </a>
-   <a href="https://img.shields.io/github/license/eBay/arc.svg">
-      <img src="https://img.shields.io/github/license/eBay/arc.svg" alt="MIT licensed"/>
-   </a>
-   <a href="https://travis-ci.org/eBay/arc">
-      <img src="https://travis-ci.org/eBay/arc.svg?branch=master" alt="travisci build"/>
-   </a>
-   <a href="https://codecov.io/gh/eBay/arc">
-     <img src="https://codecov.io/gh/eBay/arc/branch/master/graph/badge.svg" alt="Codecov" />
-   </a>
-   <a href="https://www.npmjs.com/package/arc-resolver">
-      <img src="https://img.shields.io/npm/v/arc-resolver.svg" alt="npm version"/>
-   </a>
-   <a href="http://npm-stat.com/charts.html?package=arc-resolver">
-      <img src="https://img.shields.io/npm/dm/arc-resolver.svg" alt="downloads"/>
-   </a>
-</p>
+A middleware for validating express inputs using Joi schemas. Features include:
 
----
+* TypeScript support.
+* Specify the order in which request inputs are validated.
+* Replaces the incoming `req.body`, `req.query`, etc and with the validated result 
+* Retains the original `req.body` inside a new property named `req.originalBody`.
+. The same applies for headers, query, and params using the `original` prefix,
+e.g `req.originalQuery`
+* Chooses sensible default Joi options for headers, params, query, and body.
+* Uses `peerDependencies` to get a Joi instance of your choosing instead of
+using a fixed version.
 
-`arc` uses “flags” and a file naming convention to generate and serve a bundle that contains only the resources used by the requesting environment. This allows building web applications that serve only the code necessary for multiple device types, locales, brands - _all from a single codebase_.
+## Quick Links
 
-The flexibility of `arc` enables diverging components only when necessary. It works for both client + server and is not bound to any specific framework.
+* [API](#api)
+* [Usage (JavaScript)](#usage-javascript)
+* [Usage (TypeScript)](#usage-typescript)
+* [Behaviours](#behaviours)
+  * [Joi Versioning](#joi-versioning)
+  * [Validation Ordering](#validation-ordering)
+  * [Error Handling](#error-handling)
+  * [Joi Options](#joi-options)
+  * [Custom Express Error Handler](#custom-express-error-handler)
 
-## How it works
+## Install
 
-`arc` adapts files based on a filenaming convension:
+You need to install `joi` with this module since it relies on it in
+`peerDependencies`.
 
-```webidl
-style.css
-style[mobile].css
-style[mobile+android].css
+```
+npm i express-joi-validation joi --save
 ```
 
-However, you write your application as though the flagged version of files did not exist:
+## Example
+A JavaScript and TypeScript example can be found in the `example/` folder of
+this repository.
 
-```css
-@import url('./style.css');
+## Usage (JavaScript)
+
+```js
+const Joi = require('joi')
+const app = require('express')()
+const validator = require('express-joi-validation').createValidator({})
+
+const querySchema = Joi.object({
+  name: Joi.string().required()
+})
+
+app.get('/orders', validator.query(querySchema), (req, res) => {
+  // If we're in here then the query was valid!  
+  res.end(`Hello ${req.query.name}!`)
+})
 ```
 
-If both the `mobile` and `android` flags are set, when bundling the css, `style[mobile+android].css` will replace `style.css` in the output bundle. If only the `mobile` flag is set, `style[mobile].css` will be used.
+## Usage (TypeScript)
 
-### More on flags
+For TypeScript a helper `ValidatedRequest` and
+`ValidatedRequestWithRawInputsAndFields` type is provided. This extends the
+`express.Request` type and allows you to pass a schema using generics to
+ensure type safety in your handler function.
 
-- Read how to set flags in the documentation for each [supported environment](#supported-environments).
+```ts
+import * as Joi from 'joi'
+import * as express from 'express'
+import {
+  ContainerTypes,
+  // Use this as a replacement for express.Request
+  ValidatedRequest,
+  // Extend from this to define a valid schema type/interface
+  ValidatedRequestSchema,
+  // Creates a validator that generates middlewares
+  createValidator
+} from 'express-joi-validation'
 
-- Read more about defining [flags in filenames](./packages/arc-resolver/README.md#defining-flags).
+const app = express()
+const validator = createValidator()
 
-## Use cases
+const querySchema = Joi.object({
+  name: Joi.string().required()
+})
 
-### Multiple platforms
+interface HelloRequestSchema extends ValidatedRequestSchema {
+  [ContainerTypes.Query]: {
+    name: string
+  }
+}
 
-For example, swap out a header component based on the user's device type:
-
-```webidl
-header[mobile].js
-header[desktop].js
+app.get(
+  '/hello',
+  validator.query(querySchema),
+  (req: ValidatedRequest<HelloRequestSchema>, res) => {
+    // Woohoo, type safety and intellisense for req.query!
+    res.end(`Hello ${req.query.name}!`)
+  }
+)
 ```
 
-Then, in your React component:
+You can minimise some duplication by using [joi-extract-type](https://github.com/TCMiranda/joi-extract-type/).
 
-```jsx
-import Header from "./header.js";
+_NOTE: this does not work with Joi v16+ at the moment. See [this issue](https://github.com/TCMiranda/joi-extract-type/issues/23)._
 
-export default () => (
-   <Header/>
+```ts
+import * as Joi from 'joi'
+import * as express from 'express'
+import {
+  // Use this as a replacement for express.Request
+  ValidatedRequest,
+  // Extend from this to define a valid schema type/interface
+  ValidatedRequestSchema,
+  // Creates a validator that generates middlewares
+  createValidator
+} from 'express-joi-validation'
+
+// This is optional, but without it you need to manually generate
+// a type or interface for ValidatedRequestSchema members
+import 'joi-extract-type'
+
+const app = express()
+const validator = createValidator()
+
+const querySchema = Joi.object({
+  name: Joi.string().required()
+})
+
+interface HelloRequestSchema extends ValidatedRequestSchema {
+  [ContainerTypes.Query]: Joi.extractType<typeof querySchema>
+
+  // Without Joi.extractType you would do this:
+  // query: {
+  //   name: string
+  // }
+}
+
+app.get(
+  '/hello',
+  validator.query(querySchema),
+  (req: ValidatedRequest<HelloRequestSchema>, res) => {
+    // Woohoo, type safety and intellisense for req.query!
+    res.end(`Hello ${req.query.name}!`)
+  }
+)
+```
+
+## API
+
+### Structure
+
+* module (express-joi-validation)
+  * [createValidator(config)](#createvalidatorconfig)
+    * [query(options)](#validatorqueryschema-options)
+    * [body(options)](#validatorbodyschema-options)
+    * [headers(options)](#validatorheadersschema-options)
+    * [params(options)](#validatorparamsschema-options)
+    * [response(options)](#validatorresponseschema-options)
+    * [fields(options)](#validatorfieldsschema-options)
+
+### createValidator(config)
+Creates a validator. Supports the following options:
+
+* passError (default: `false`) - Passes validation errors to the express error
+hander using `next(err)` when `true`
+* statusCode (default: `400`) - The status code used when validation fails and
+`passError` is `false`.
+
+#### validator.query(schema, [options])
+Creates a middleware instance that will validate the `req.query` for an
+incoming request. Can be passed `options` that override the config passed
+when the validator was created.
+
+Supported options are:
+
+* joi - Custom options to pass to `Joi.validate`.
+* passError - Same as above.
+* statusCode - Same as above.
+
+#### validator.body(schema, [options])
+Creates a middleware instance that will validate the `req.body` for an incoming
+request. Can be passed `options` that override the options passed when the
+validator was created.
+
+Supported options are the same as `validator.query`.
+
+#### validator.headers(schema, [options])
+Creates a middleware instance that will validate the `req.headers` for an
+incoming request. Can be passed `options` that override the options passed
+when the validator was created.
+
+Supported options are the same as `validator.query`.
+
+#### validator.params(schema, [options])
+Creates a middleware instance that will validate the `req.params` for an
+incoming request. Can be passed `options` that override the options passed
+when the validator was created.
+
+Supported options are the same as `validator.query`.
+
+#### validator.response(schema, [options])
+Creates a middleware instance that will validate the outgoing response.
+Can be passed `options` that override the options passed when the instance was
+created.
+
+Supported options are the same as `validator.query`.
+
+#### validator.fields(schema, [options])
+Creates a middleware instance that will validate the fields for an incoming
+request. This is designed for use with `express-formidable`. Can be passed
+`options` that override the options passed when the validator was created.
+
+The `instance.params` middleware is a little different to the others. It _must_
+be attached directly to the route it is related to. Here's a sample:
+
+```js
+const schema = Joi.object({
+  id: Joi.number().integer().required()
+});
+
+// INCORRECT
+app.use(validator.params(schema));
+app.get('/orders/:id', (req, res, next) => {
+  // The "id" parameter will NOT have been validated here!
+});
+
+// CORRECT
+app.get('/orders/:id', validator.params(schema), (req, res, next) => {
+  // This WILL have a validated "id"
+})
+```
+
+Supported options are the same as `validator.query`.
+
+## Behaviours
+
+### Joi Versioning
+This module uses `peerDependencies` for the Joi version being used.
+This means whatever `joi` version is in the `dependencies` of your
+`package.json` will be used by this module.
+
+
+### Validation Ordering
+Validation can be performed in a specific order using standard express
+middleware behaviour. Pass the middleware in the desired order.
+
+Here's an example where the order is headers, body, query:
+
+```js
+route.get(
+  '/tickets',
+  validator.headers(headerSchema),
+  validator.body(bodySchema),
+  validator.query(querySchema),
+  routeHandler
 );
 ```
 
-### Internationalization (i18n)
+### Error Handling
+When validation fails, this module will default to returning a HTTP 400 with
+the Joi validation error as a `text/plain` response type.
 
-For example, swap out a content bundle based on the user's locale:
+A `passError` option is supported to override this behaviour. This option
+forces the middleware to pass the error to the express error handler using the
+standard `next` function behaviour.
 
-```webidl
-content[de].json
-content[en].json
-content[es].json
-content[fr].json
+See the [Custom Express Error Handler](#custom-express-error-handler) section
+for an example.
+
+### Joi Options
+It is possible to pass specific Joi options to each validator like so:
+
+```js
+route.get(
+  '/tickets',
+  validator.headers(
+    headerSchema,
+    {
+      joi: {convert: true, allowUnknown: true}
+    }
+  ),
+  validator.body(
+    bodySchema,
+    {
+      joi: {convert: true, allowUnknown: false}
+    }
+  )
+  routeHandler
+);
 ```
 
-Then, in your Marko component:
+The following sensible defaults for Joi are applied if none are passed:
 
-```marko
-import content from "./content.json";
+#### Query
+* convert: true
+* allowUnknown: false
+* abortEarly: false
 
-<h1>${content.welcomeMessage}</h1>
+#### Body
+* convert: true
+* allowUnknown: false
+* abortEarly: false
+
+#### Headers
+* convert: true
+* allowUnknown: true
+* stripUnknown: false
+* abortEarly: false
+
+#### Route Params
+* convert: true
+* allowUnknown: false
+* abortEarly: false
+
+#### Fields (with express-formidable)
+* convert: true
+* allowUnknown: false
+* abortEarly: false
+
+
+## Custom Express Error Handler
+
+```js
+const validator = require('express-joi-validation').createValidator({
+  // This options forces validation to pass any errors the express
+  // error handler instead of generating a 400 error
+  passError: true
+});
+
+const app = require('express')();
+const orders = require('lib/orders');
+
+app.get('/orders', validator.query(require('./query-schema')), (req, res, next) => {
+  // if we're in here then the query was valid!
+  orders.getForQuery(req.query)
+    .then((listOfOrders) => res.json(listOfOrders))
+    .catch(next);
+});
+
+// After your routes add a standard express error handler. This will be passed the Joi
+// error, plus an extra "type" field so we can tell what type of validation failed
+app.use((err, req, res, next) => {
+  if (err && err.error && err.error.isJoi) {
+    // we had a joi error, let's return a custom 400 json response
+    res.status(400).json({
+      type: err.type, // will be "query" here, but could be "headers", "body", or "params"
+      message: err.error.toString()
+    });
+  } else {
+    // pass on to another error handler
+    next(err);
+  }
+});
 ```
 
-### Branding
-
-For example, swap out a logo based on the brand the user is visiting:
-
-```webidl
-logo[ebay].svg
-logo[gumtree].svg
-logo[vivanuncious].svg
-```
-
-Then, in your `.html` file:
-
-```html
-<img src="./logo.svg"/>
-```
-
-### Experimentation
-
-For example, swap out a component based on the user's participation in an experiment:
-
-```webidl
-date-picker/
-   date-picker.component.css
-   date-picker.component.html
-   date-picker.component.ts
-date-picker[date_experiment_a]/
-   date-picker.component.css
-   date-picker.component.html
-   date-picker.component.ts
-```
-
-Then, in your Angular module:
+In TypeScript environments `err.type` can be verified against the exported
+`ContainerTypes`:
 
 ```ts
-import { NgModule } from '@angular/core';
-import { DatePickerComponent } from './date-picker/date-picker.component';
+import { ContainerTypes } from 'express-joi-validation'
 
-@NgModule({
-  declarations: [
-    DatePickerComponent
-  ]
+app.use((err: any|ExpressJoiError, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  // ContainerTypes is an enum exported by this module. It contains strings
+  // such as "body", "headers", "query"...
+  if (err && err.type in ContainerTypes) {
+    const e: ExpressJoiError = err
+    // e.g "you submitted a bad query paramater"
+    res.status(400).end(`You submitted a bad ${e.type} paramater`)
+  } else {
+    res.status(500).end('internal server error')
+  }
 })
-export class MyModule { }
 ```
 
-## Supported environments
-
-Please refer to the linked documentation for using `arc` in each environment:
-
-- Node 8+ ([`arc-server`](./packages/arc-server))
-- Webpack 4+ ([`arc-webpack`](./packages/arc-webpack))
-- Lasso 3+ ([`arc-lasso`](./packages/arc-lasso))
-
-## Additional resources
-
-### Connie & Michael on `arc 1.0` @ Fluent O'Reilly Conf 2017:
-
-- [Session abstract](https://conferences.oreilly.com/fluent/fl-ca/public/schedule/detail/58976)    
-- [Recorded video](https://vimeo.com/229162833/c2727d5436)
-
-### Example apps
-
-- [Simple Server](./packages/example-arc-server)
-- [Isomorphic Koa + Marko + Webpack]() TODO
-- [Isomorphic Express + Marko + Lasso]() TODO
-- [Isomorphic Express + React + Webpack]() TODO
-- [Client-only React + Webpack + `arc-static-server`]() TODO
