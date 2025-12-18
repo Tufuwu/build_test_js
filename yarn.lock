@@ -6169,11 +6169,12 @@ cozy-harvest-lib@^6.7.3:
     react-markdown "^4.2.2"
     uuid "^3.3.2"
 
-cozy-intent@1.16.1:
-  version "1.16.1"
-  resolved "https://registry.yarnpkg.com/cozy-intent/-/cozy-intent-1.16.1.tgz#ec75d4eff6db966998b6881580319134c9aec7bd"
-  integrity sha512-5Gl9a+kYicX1xV4s0P3BdAOwfjgrRvTubRKvT2EVIT7rwK0puPwQDidLFf3bbPtdJAtwjdWh/OHEuQ0HqK1gTw==
+cozy-intent@2.30.1:
+  version "2.30.1"
+  resolved "https://registry.yarnpkg.com/cozy-intent/-/cozy-intent-2.30.1.tgz#f10136ee9e7fca0c37ff06f467f159b565689ab9"
+  integrity sha512-aQkQJOBF5qk9l1PJ9ZnkxVDNk0lEJs/m4SsJ6b7P0rpTineR5md9D74lpkwK49FZKqaXyL4+CDdX2rxNw1R50Q==
   dependencies:
+    cozy-minilog "^3.10.0"
     post-me "0.4.5"
 
 cozy-interapp@^0.5.4:
@@ -6204,6 +6205,13 @@ cozy-logger@^1.9.0:
   dependencies:
     chalk "^2.4.2"
     json-stringify-safe "5.0.1"
+
+cozy-minilog@^3.10.0:
+  version "3.10.0"
+  resolved "https://registry.yarnpkg.com/cozy-minilog/-/cozy-minilog-3.10.0.tgz#78f085af818a909e216df711c12aee4477e947bd"
+  integrity sha512-85rzrYnCnNk3D2/2PGd+O4tugA3FG+m/t0+eB/mkSSUMR7yqWdnRIcD6ukFwGgLgIuptDa3Gos++2yoPLiKBWA==
+  dependencies:
+    microee "0.0.6"
 
 cozy-sharing@^14.1.0:
   version "14.1.0"
