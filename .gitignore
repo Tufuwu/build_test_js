@@ -1,12 +1,2 @@
-*.log
-*swp
-yarn-error.log
-yarn.lock
-package-lock.json
-
-# Dependency directories
+.idea
 node_modules
-vendor
-
-# Coverage directory used by tools like istanbul
-coverage

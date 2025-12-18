@@ -1,283 +1,240 @@
-[![NPM version][npm-image]][npm-url]
-[![Build Status][travis-image]][travis-url]
-[![Coverage Status][coverage-image]][coverage-url]
+# json-caching-proxy ![Build Status](https://github.com/sonyseng/json-caching-proxy/actions/workflows/node.js.yml/badge.svg) [![NPM Version](http://img.shields.io/npm/v/json-caching-proxy.svg?style=flat)](https://www.npmjs.org/package/json-caching-proxy) [![NPM Downloads](https://img.shields.io/npm/dm/json-caching-proxy.svg?style=flat)](https://www.npmjs.org/package/json-caching-proxy)
 
-# Rickshaw
+Node caching HTTP proxy built on top of [express-http-proxy](https://github.com/villadora/express-http-proxy). Persists requests and responses to an in-memory HAR-like data structure based on [HAR1.2](http://www.softwareishard.com/blog/har-12-spec/) . Caches JSON content-type responses by default with the ability to cache an entire site; including content-types describing images. Useful for testing front end code, mocking api, and saving the cache to a HAR file which can be used for further tests.
 
-Rickshaw is a JavaScript toolkit for creating interactive time series graphs, developed at [Shutterstock](http://www.shutterstock.com)
+## Installation
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-## Table of Contents
+Requires Node >= 14
 
-- [Getting Started](#getting-started)
-- [Install](#install)
-  - [Dependencies](#dependencies)
-- [Rickshaw.Graph](#rickshawgraph)
-      - [element](#element)
-      - [series](#series)
-      - [renderer](#renderer)
-      - [width](#width)
-      - [height](#height)
-      - [min](#min)
-      - [max](#max)
-      - [padding](#padding)
-      - [interpolation](#interpolation)
-      - [stack](#stack)
-  - [Methods](#methods)
-      - [render()](#render)
-      - [configure()](#configure)
-      - [onUpdate(f)](#onupdatef)
-- [Extensions](#extensions)
-- [Rickshaw.Color.Palette](#rickshawcolorpalette)
-    - [Color Schemes](#color-schemes)
-    - [Interpolation](#interpolation)
-- [Rickshaw and Cross-Browser Support](#rickshaw-and-cross-browser-support)
-- [Minification](#minification)
-- [Development](#development)
-- [Contributing](#contributing)
-- [Authors](#authors)
-- [License](#license)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-
-## Getting Started
-
-Getting started with a simple graph is straightforward.  Here's the gist:
-
-```javascript
-var graph = new Rickshaw.Graph( {
-  element: document.querySelector('#graph'),
-  series: [
-    {
-      color: 'steelblue',
-      data: [ { x: 0, y: 23}, { x: 1, y: 15 }, { x: 2, y: 79 } ]
-    }, {
-      color: 'lightblue',
-      data: [ { x: 0, y: 30}, { x: 1, y: 20 }, { x: 2, y: 64 } ]
-    }
-  ]
-} );
-
-graph.render();
+Command line tool:
 ```
-See the [overview](https://shutterstock.github.io/rickshaw/), [tutorial](http://shutterstock.github.com/rickshaw/tutorial/introduction.html), and [examples](http://shutterstock.github.com/rickshaw/examples/) for more.
-
-## Install
-
-In the browser, manually add `rickshaw.min.js` and `rickshaw.min.css` in the document head.
-
-Alternatively, you can install Rickshaw using [Bower](https://bower.io/) or [npm](https://npmjs.com).
-
-```sh
-# With bower
-bower install rickshaw
-# With npm
-npm install --save rickshaw
+$ npm install -g json-caching-proxy
 ```
 
-### Dependencies
-
-Rickshaw relies on the fantastic [D3 visualization library](http://mbostock.github.com/d3/) to do lots of the heavy lifting for stacking and rendering to SVG.
-
-Some extensions require [jQuery](http://jquery.com) and [jQuery UI](http://jqueryui.com), but for drawing some basic graphs you'll be okay without.
-
-Rickshaw uses [jsdom](https://github.com/tmpvar/jsdom) to run unit tests in Node to be able to do SVG manipulation. As of the jsdom 7.0.0 release, jsdom requires Node.js 4 or newer [jsdom changelog](https://github.com/tmpvar/jsdom/blob/master/Changelog.md#700). If you want to run the tests on your machine, and you don't have access to a version of node >= 4.0, you can `npm install jsdom@3`  so that you can run the tests using the [3.x branch of jsdom](https://github.com/tmpvar/jsdom/tree/3.x).
-
-## Rickshaw.Graph
-
-A Rickshaw graph.  Send an `element` reference, `series` data, and optionally other properties to the constructor before calling `render()` to point the graph.  A listing of properties follows.  Send these as arguments to the constructor, and optionally set them later on already-instantiated graphs with a call to `configure()`
-
-##### element
-
-A reference to an HTML element that should hold the graph.
-
-##### series
-
-Array of objects containing series data to plot.  Each object should contain `data` at a minimum, a sorted array of objects each with x and y properties.  Optionally send a `name` and `color` as well.  Some renderers and extensions may also support additional keys.
-
-##### renderer
-
-A string containing the name of the renderer to be used.  Options include `area`, `stack`, `bar`, `line`, and `scatterplot`.  Defaults to `line`. Also see the `multi` meta renderer in order to support different renderers per series.
-
-##### width
-
-Width of the graph in pixels.  Falls back to the width of the `element`, or defaults to 400 if the element has no width.
-
-##### height
-
-Height of the graph in pixels.  Falls back to the height of the `element`, or defaults to 250 if the element has no height.
-
-##### min
-
-Lower value on the Y-axis, or `auto` for the lowest value in the series.  Defaults to 0.
-
-##### max
-
-Highest value on the Y-axis.  Defaults to the highest value in the series.
-
-##### padding
-
-An object containing any of `top`, `right`, `bottom`, and `left` properties specifying a padding percentage around the extrema of the data in the graph.  Defaults to 0.01 on top for 1% padding, and 0 on other sides. Padding on the bottom only applies when the `yMin` is either negative or `auto`.
-
-##### interpolation
-
-Line smoothing / interpolation method (see [D3 docs](https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-line_interpolate)); notable options:
-
-  * `linear`: straight lines between points
-  * `step-after`: square steps from point to point
-  * `cardinal`: smooth curves via cardinal splines (default)
-  * `basis`: smooth curves via B-splines
-
-##### stack
-
-Allows you to specify whether series should be stacked while in the context of stacking renderers (area, bar, etc).  Defaults to `stack: 'true'`. To unstack, `unstack: 'true'`.
-
-### Methods
-
-Once you have instantiated a graph, call methods below to get pixels on the screen, change configuration, and set callbacks.
-
-##### render()
-
-Draw or redraw the graph.
-
-##### configure()
-
-Set properties on an instantiated graph.  Specify any properties the constructor accepts, including `width` and `height` and `renderer`.  Call `render()` to redraw the graph and reflect newly-configured properties.
-
-##### onUpdate(f)
-
-Add a callback to run when the graph is rendered
-
-
-## Extensions
-
-Once you have a basic graph, extensions let you add functionality.  See the [overview](https://shutterstock.github.io/rickshaw/) and [examples](http://shutterstock.github.com/rickshaw/examples/) listing for more.
-
-* __Rickshaw.Graph.Legend__ - add a basic legend
-
-* __Rickshaw.Graph.HoverDetail__ - show details on hover
-
-* __Rickshaw.Graph.JSONP__ - get data via a JSONP request
-
-* __Rickshaw.Graph.Annotate__ - add x-axis annotations
-
-* __Rickshaw.Graph.RangeSlider__ - dynamically zoom on the x-axis with a slider
-
-* __Rickshaw.Graph.RangeSlider.Preview__ - pan and zoom via graphical preview of entire data set
-
-* __Rickshaw.Graph.Axis.Time__ - add an x-axis and grid lines with time labels
-
-* __Rickshaw.Graph.Axis.X__ - add an x-axis and grid lines with arbitrary labels
-
-* __Rickshaw.Graph.Axis.Y__ - add a y-axis and grid lines
-
-* __Rickshaw.Graph.Axis.Y.Scaled__ - add a y-axis with an alternate scale
-
-* __Rickshaw.Graph.Behavior.Series.Highlight__ - highlight series on legend hover
-
-* __Rickshaw.Graph.Behavior.Series.Order__ - reorder series in the stack with drag-and-drop
-
-* __Rickshaw.Graph.Behavior.Series.Toggle__ - toggle series on and off through the legend
-
-
-## Rickshaw.Color.Palette
-
-Rickshaw comes with a few color schemes. Instantiate a palette and specify a scheme name, and then call color() on the palette to get each next color.
-
-```javascript
-var palette = new Rickshaw.Color.Palette( { scheme: 'spectrum2001' } );
-
-palette.color() // => first color in the palette
-palette.color() // => next color in the palette...
+Programmatic:
+```
+$ npm install -D json-caching-proxy
 ```
 
-Optionally, to palette.color() can take a numeric argument to specify which color from the palette should be used (zero-indexed).  This can be helpful when assigning a color to series of a plot with particular meaning:
-
-```javascript
-var palette = new Rickshaw.Color.Palette( { scheme: 'colorwheel' } );
-
-palette.color(0) // => first color in the palette - red in this example
-palette.color(2) // => third color in the palette - light blue
-```
-
-#### Color Schemes
-
-  * classic9
-  * colorwheel
-  * cool
-  * munin
-  * spectrum14
-  * spectrum2000
-  * spectrum2001
-
-#### Interpolation
-
-For graphs with more series than palettes have colors, specify an `interpolatedStopCount` to the palette constructor.
-
-## Rickshaw and Cross-Browser Support
-
-This library works in modern browsers and Internet Explorer 9+.
-
-Rickshaw relies on the HTMLElement#classList API, which isn't natively supported in Internet Explorer 9.  Rickshaw adds support by including a shim which implements the classList API by extending the HTMLElement prototype.  You can disable this behavior if you like, by setting `RICKSHAW_NO_COMPAT` to a true value before including the library.
-
-## Minification
-
-If your project uses minification, you will need to give a hint to the minifier to leave variables named `$super` named `$super`.  For example, with uglify on the command line:
+## Command line usage
 
 ```
-$ uglify-js --reserved-names "$super" rickshaw.js > rickshaw.min.js
+  Usage: json-caching-proxy [options]
+
+  Options:
+
+    -h, --help                   output usage information
+    -V, --version                output the version number
+    -c, --config [path]          load a config file of options. Command line args will be overridden
+    -u, --url [url]              remote server (e.g. https://network:8080)
+    -p, --port [number]          port for the local proxy server
+    -H, --har [path]             load entries from a HAR file and hydrate the cache
+    -b, --bust [list]            a list of cache busting query params to ignore. (e.g. --bust _:cacheSlayer:time:dc)
+    -e, --exclude [regex]        exclude specific routes from cache, (e.g. --exclude "GET /api/keep-alive/.*")
+    -S, --excludeStatus [regex]  exclude specific status from cache, (e.g. --excludeStatus "503|404")
+    -a, --all                    cache everything from the remote server (Default is to cache just JSON responses)
+    -P, --disablePlayback        disables cache playback
+    -R, --disableRecord          disables recording to cache
+    -C, --cmdPrefix [prefix]     change the prefix for the proxy's web admin endpoints
+    -I, --header [header]        change the response header property for identifying cached responses
+    -l, --log                    print log output to console
+    -t, --timeout                change the timeout for proxy server
+    -d, --deleteCookieDomain     remove the Domain portion of all cookies
+    -o, --overrideCors [url]     override Access-Control-Allow-Origin
+    -z, --useCorsCredentials     set Access-Control-Allow-Credentials to true
+
 ```
 
-Or a sample configuration with `grunt-contrib-uglify`:
+#### Example - basic JSON caching with output
+```
+$ json-caching-proxy -u http://remote:8080 -l
+```
 
-```javascript
-uglify: {
-  options: {
-    mangle: { except: ["$super"] }
-  }
+#### Example - bypassing CORS when proxying to a 3rd party api server
+```
+$ json-caching-proxy -u http://cors-api.example.com -o localhost:9000 -z
+```
+This use case occurs when developing a browser application against an api server on a different host with CORS restrictions.
+In this example we might be running a dev server that's hosting a frontend application on http://localhost:9000 and there is
+browser javascript that needs to fetch from http://cors-api.example.com. The `-z` option tells the proxy to set up auth headers
+in case the code uses cookies or tokens (e.g. Bearer tokens)
+
+#### Example - hydrating the cache
+```
+$ json-caching-proxy -u http://remote:8080 -p 3001 -H chromeDevTools.har -l
+```
+You may have a HAR file that was generated elsewhere (e.g. Chrome Developer tools). You can load this file and initialize the cache
+
+#### Example - advanced arguments
+```
+$ json-caching-proxy -u http://remote:8080 -p 3001 -b time:dc -e '/keepalive' -H hydrate.har -a -l
+```
+
+* Routes requests to `http://remote:8080`
+* Runs the proxy on port `3001` on the host machine
+* Removes matching query parameters `time` or `dc`. (e.g. /rest/status?time=1234567). `:` is the delimiter
+* Excludes any `/keepalive` requests from the proxy. Any valid js regular expression works here
+* Loads an existing HAR file and hydrates the cache. Supports any HAR file that conforms to HAR spec 1.2
+* Caches everything. This includes JSON as well as other content-types such as images. It's essentially a site backup.
+* Logs output to the console
+
+#### Example - loading options from a config file
+
+```js
+/* Complete list of config.json options for the caching proxy */
+
+{
+  "remoteServerUrl": "http://wikimapia.org",
+  "proxyPort": 3001,
+  "inputHarFile": "./test/test.har",
+  "cacheEverything": true,
+  "cacheBustingParams": ["_", "dc", "cacheSlayer"],
+  "excludedRouteMatchers": ["/*.js", "/*.png"],
+  "excludedStatusMatchers": ["503", "404"],
+  "showConsoleOutput": true,
+  "dataPlayback": true,
+  "dataRecord": true,
+  "commandPrefix": "proxy",
+  "proxyHeaderIdentifier": "proxy-cache-playback",
+  "proxyTimeout": 500000,
+  "deleteCookieDomain": true,
+  "overrideCors": "localhost:8080",
+  "useCorsCredentials": true
 }
 ```
+```
+$ json-caching-proxy --config config.json
+```
 
-## Development
+## Programmatic Usage
 
-For building, we use [Node](http://nodejs.org) and [npm](http://npmjs.org). Running `npm run build` or `make` should get you going with any luck.
+```js
+const JsonCachingProxy = require('json-caching-proxy');
 
-After doing a build you can run the tests with the command: `npm test`
+// Complete list of options
+let jsonCachingProxy = new JsonCachingProxy({
+    remoteServerUrl: 'http://localhost:8080',
+    proxyPort: 3001,
+    harObject: null,
+    commandPrefix: 'proxy',
+    proxyHeaderIdentifier: 'caching-proxy-playback',
+    middlewareList: [{ route: '/browser-sync', handle: (req, res, next) => res.send('bypass proxy')}],
+    excludedRouteMatchers: [new RegExp('/site/*.js')],
+    excludedStatusMatchers: [new RegExp('503|404')],
+    cacheBustingParams: ['time', 'dc'],
+    cacheEverything: false,
+    dataPlayback: true,
+    dataRecord: true,
+    showConsoleOutput: false,
+    proxyTimeout: 500000,
+    deleteCookieDomain: true,
+    overrideCors: "localhost:8080",
+    useCorsCredentials: true
+});
 
-For more available options see the [package.json](package.json) scripts section.
+jsonCachingProxy.start();
+```
 
+#### Example - passing in a HAR object
+If you have a method of generating a HAR object, the proxy can load the HAR entries and hydrate the cache. The proxy has a commandline
+utility for loading HAR files but you may want to load your own or modify the objects before passing them into the proxy. More info can be found
+here: [HAR 1.2 spec](http://www.softwareishard.com/blog/har-12-spec/)
 
-## Contributing
+```js
+// Example HAR object
+let harObject = {
+  log: {
+    version: '1.2',
+    creator: {
+      name: npmPackage.name,
+      version: npmPackage.version
+    },
+    entries: [{
+      request: {
+        startedDateTime: '',
+        method: 'GET',
+        url: '/test',
+        cookies: [],
+        headers: [],
+        queryString: [],
+        headersSize: -1,
+        bodySize: -1
+      },
+      response: {
+        status: 200,
+        cookies: [],
+        headers: [],
+        content: {
+          size: -1,
+          mimeType: 'application/json; charset=utf-8',
+          text: '{"a":1,"b":"Some Value"}',
+          encoding: 'utf8'
+        },
+        headersSize: -1,
+        bodySize: -1
+      }
+    },
+      {
+        request: {
+          startedDateTime: '',
+          method: 'GET',
+          url: '/another',
+          cookies: [],
+          headers: [],
+          queryString: [],
+          headersSize: -1,
+          bodySize: -1
+        },
+        response: {
+          status: 200,
+          cookies: [],
+          headers: [],
+          content: {
+            size: -1,
+            mimeType: 'application/json; charset=utf-8',
+            text: '{"a":1,"b":"Some Value"}',
+            encoding: 'utf8'
+          },
+          headersSize: -1,
+          bodySize: -1
+        }
+      }]
+  }
+};
+```
 
-Pull requests are always welcome!  Please follow a few guidelines:
+#### Example - using special middleware
+Bypasses the remote server and allows your own middleware to be executed:
+```js
+let middlewareList = [
+  { route: '/what', handle: (req, res, next) => res.send('what') },
+  { route: '/hello', handle: (req, res, next) => res.send('hello') }
+];
+```
 
-- Please don't include updated versions of `rickshaw.js` and `rickshaw.min.js`.  Just changes to the source files will suffice.
-- Add a unit test or two to cover the proposed changes
-- Do as the Romans do and stick with existing whitespace and formatting conventions (i.e., tabs instead of spaces, etc)
-- Consider adding a simple example under `examples/` that demonstrates any new functionality
+#### Example - excluding specific routes
+You can specify a list of regular expressions to match against. Currently supports matching against the `method` and `uri`:
+```js
+excludedRouteMatchers: [new RegExp('/site/*.js'), new RegExp('GET /site/*.gif'), new RegExp('POST /account/666')]
+```
 
-Please note that all interactions with Shutterstock follow the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
+#### Example - cache busting
+Many times, there are cache busting query strings that are appended to GET requests, you may specify a list of these
+query string names. The proxy will ignore these parameters when building the cache. Otherwise every request will be
+different
+```js
+cacheBustingParams: ['time', 'dc', 'cacheSlayer', '_']
+```
 
-## Authors
-
-This library was developed by David Chester, Douglas Hunter, and Silas Sewell at [Shutterstock](http://www.shutterstock.com)
-
+## Controlling the Proxy
+Once the proxy has started on a port (e.g. 3001), you may point your browser to the following urls to affect the state of the proxy:
+```
+http://localhost:3001/proxy/playback?enabled=[true|false] - Start/Stop replaying cached requests.
+http://localhost:3001/proxy/record?enabled=[true|false] - Start/Stop recording request/responses to the cache.
+http://localhost:3001/proxy/har - Download cache to json-caching-proxy.har
+http://localhost:3001/proxy/clear - Empty the in-memory cache.
+```
 
 ## License
 
-Copyright (C) 2011-2020 by Shutterstock Images, LLC
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-[npm-image]: https://img.shields.io/npm/v/rickshaw.svg?style=flat-square
-[npm-url]: https://npmjs.org/package/rickshaw
-[travis-image]: https://travis-ci.org/shutterstock/rickshaw.svg?branch=master
-[travis-url]: https://travis-ci.org/shutterstock/rickshaw
-[coverage-image]: https://coveralls.io/repos/github/shutterstock/rickshaw/badge.svg?branch=master
-[coverage-url]: https://coveralls.io/github/shutterstock/rickshaw
+MIT
