@@ -1,73 +1,45 @@
-# node-portfinder [![CI](https://github.com/http-party/node-portfinder/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/http-party/node-portfinder/actions/workflows/ci.yml)
+# fs-monkey
 
-## Installation
+[![][npm-img]][npm-url] [![][travis-badge]][travis-url]
 
-``` bash
-  $ npm install portfinder
+Monkey-patches for filesystem related things.
+
+  - Rewrite `require` function to load Node's modules from memory.
+  - Or rewrite the whole `fs` filesystem module.
+
+## Install
+
+```shell
+npm install --save fs-monkey
 ```
 
-## Usage
-The `portfinder` module has a simple interface:
+## Terms
 
-``` js
-  var portfinder = require('portfinder');
-
-  portfinder.getPort(function (err, port) {
-    //
-    // `port` is guaranteed to be a free port
-    // in this scope.
-    //
-  });
-```
-
-Or with promise (if `Promise`s are supported) :
-
-``` js
-  const portfinder = require('portfinder');
-
-  portfinder.getPortPromise()
-    .then((port) => {
-        //
-        // `port` is guaranteed to be a free port
-        // in this scope.
-        //
-    })
-    .catch((err) => {
-        //
-        // Could not get a free port, `err` contains the reason.
-        //
-    });
-```
-
-If `portfinder.getPortPromise()` is called on a Node version without Promise (<4), it will throw an Error unless [Bluebird](http://bluebirdjs.com/docs/getting-started.html) or any Promise pollyfill is used.
-
-### Ports search scope
-
-By default `portfinder` will start searching from `8000` and scan until maximum port number (`65535`) is reached.
-
-You can change this globally by setting:
+An *fs-like* object is an object that implements methods of Node's
+[filesystem API](https://nodejs.org/api/fs.html).
+It is denoted as `vol`:
 
 ```js
-portfinder.setBasePort(3000);    // default: 8000
-portfinder.setHighestPort(3333); // default: 65535
+let vol = {
+    readFile: () => { /* ... */ },
+    readFileSync: () => { /* ... */ },
+    // etc...
+}
 ```
 
-or by passing optional options object on each invocation:
 
-```js
-portfinder.getPort({
-    port: 3000,    // minimum port
-    stopPort: 3333 // maximum port
-}, callback);
-```
+## Reference
 
-## Run Tests
-``` bash
-  $ npm test
-```
+ - [`patchFs`](./docs/api/patchFs.md) - rewrites Node's filesystem module `fs` with *fs-like* object `vol`
+ - [`patchRequire`](./docs/api/patchRequire.md) - rewrites `require` function, patches Node's `module` module to use a given *fs-like* object for module loading
 
-#### Author: [Charlie Robbins][0]
-#### Maintainer: [Erik Trom][1]
-#### License: MIT/X11
-[0]: http://nodejitsu.com
-[1]: https://github.com/eriktrom
+
+[npm-img]: https://img.shields.io/npm/v/fs-monkey.svg
+[npm-url]: https://www.npmjs.com/package/fs-monkey
+[travis-url]: https://travis-ci.org/streamich/fs-monkey
+[travis-badge]: https://travis-ci.org/streamich/fs-monkey.svg?branch=master
+
+
+## License
+
+[Unlicense](./LICENSE) - public domain.
