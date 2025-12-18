@@ -1,76 +1,149 @@
-# Keshi
+# vue-jwt-mongo
 
-[![Keshi on NPM](https://img.shields.io/npm/v/keshi.svg)](https://www.npmjs.com/package/keshi)
-[![CI](https://github.com/sekoyo/keshi/actions/workflows/ci.yml/badge.svg)](https://github.com/sekoyo/keshi/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/dubov94/vue-jwt-mongo/blob/master/LICENSE)
+[![Coverage](https://codecov.io/gh/dubov94/vue-jwt-mongo/branch/master/graph/badge.svg)](https://codecov.io/gh/dubov94/vue-jwt-mongo)
 
-Keshi is a tiny in-memory cache for Node and the browser that is especially suited to storing Promises (e.g. caching fetch requests).
+A [package](https://www.npmjs.com/package/vue-jwt-mongo) for bootstrapping a simple [JSON Web Token](https://jwt.io/)-based authentication system using [Vue.js](https://vuejs.org/), [MongoDB](https://www.mongodb.com/) and [Express.js](https://expressjs.com/).
 
-```js
-import Keshi from 'keshi'
-// or
-const Keshi = require('keshi')
+## Installation
+
+```bash
+npm install vue-jwt-mongo --save
 ```
 
-<h2>Usage</h2>
+## Server
 
-```js
-const cache = new Keshi()
+```javascript
+const app = require('express')()
 
-const user = await cache.resolve(
-  'user',
-  () => fetch('https://myapi.com/user').then(r => r.json()),
-  '5mins'
-)
+const vjmServer = require('vue-jwt-mongo').Server({
+  mongoUrl: 'mongodb://localhost/db',
+  jwtSecret: 'shhh'
+})
 ```
 
-What this will do:
+### Options
 
-- Fetch the user from the API as it doesn't have it in cache.
-- If called again within 30 minutes it will return the cached user.
-- If called after 30 minutes it will fetch the user again and re-cache.
+* `mongoUrl` (__mandatory__): an address of the Mongo database.
+  * See [`mongoose.createConnection`](http://mongoosejs.com/docs/api.html#index_Mongoose-createConnection) for details.
+* `jwtSecret` (__mandatory__): a secret key for token generation.
+  * One can get such a key [here](https://www.grc.com/passwords.htm).
+  * See [`jsonwebtoken.sign`](https://www.npmjs.com/package/jsonwebtoken#jwtsignpayload-secretorprivatekey-options-callback) for details.
+* `userModelName`: a name for the [mongoose](http://mongoosejs.com) model storing encoded user credentials.
+  * Defaults to `'User'`.
+* `jwtExpiresIn`: token expiration time in seconds.
+  * Defaults to `7 * 24 * 60 * 60` (one week).
+  * See [`jsonwebtoken.sign`](https://www.npmjs.com/package/jsonwebtoken#jwtsignpayload-secretorprivatekey-options-callback) for details.
 
-Keshi automatically cleans up expired items.
+### Endpoints
 
-<h2>API</h2>
+#### registerHandler
 
-#### `cache.resolve<T>(key: string, getValue: () => T | Promise<T>, expiresIn?: number | string) => Promise<T>`
+Expects `{ username, password }` in the request body. Returns an empty response.
 
-```ts
-function getCachedUser() {
-  return cache.resolve(
-    'user',
-    () => fetch('https://myapi.com/user').then(r => r.json()),
-    '5mins' // Anything 'ms' package accepts or milliseconds as a number. Omit for no expiry.
-  )
-}
-
-const user1 = await getCachedUser() // First time caches the promise and returns it
-const user2 = await getCachedUser() // Second time returns the first promise if within 5mins
+The password is salted and hashed via [passport-local-mongoose](https://npmjs.com/package/passport-local-mongoose).
+```javascript
+app.post('/auth/register', vjmServer.registerHandler)
 ```
 
-You can use plain values but they must still be awaited:
+#### loginHandler
 
-```ts
-const plainValue = await cache.resolve('mynumber', () => 5, '10mins')
-console.log(plainValue) // prints 5
+Expects `{ username, password }` in the request body. Returns a string &mdash; the token.
+
+```javascript
+app.post('/auth/login', vjmServer.loginHandler)
 ```
 
-#### `cache.delete(key: string, matchStart?: boolean)`
+#### refreshHandler
 
-Explicitly delete a cached object.
+Expects an empty request body and `Authorization: Bearer {token}` as one of the HTTP headers. Returns a string with a new token if the original token is valid.
 
-Note: expired objects are automatically cleanup up.
-
-If `true` is passed for `matchStart` then any cache _starting_ with the `key` will be deleted:
-
-```js
-cache.del(`project.${projectId}.`, true) // Delete all caches under this projectId
+```javascript
+app.post('/auth/refresh', vjmServer.refreshHandler)
 ```
 
-#### `cache.clear()`
+### Protector
 
-Clear the whole cache.
+`jwtProtector` ensures that the incoming request has a valid token. Expects `Authorization: Bearer {token}` as one of the HTTP headers.
 
-#### `cache.teardown()`
+```javascript
+app.get('/protected', vjmServer.jwtProtector, (request, response) => {
+    console.log(request.user.username)
+})
+ ```
 
-A stale cache cleanup interval is running in the background. If your cache doesn't last the lifetime of your application then you should call teardown.
+## Client
+
+```javascript
+Vue.use(require('vue-resource'))
+Vue.use(require('vue-jwt-mongo').Client, {
+  /* options, if any */
+})
+```
+
+### Options
+
+* `registerEndpoint`: the server's endpoint for registration requests.
+  * Defaults to `'/auth/register'`.
+* `loginEndpoint`: the server's endpoint for authentication requests.
+  * Defaults to `'/auth/login'`.
+* `refreshEndpoint`: the server's endpoint for refreshing the token.
+  * Defaults to `'/auth/refresh'`.
+* `storageKey`: a [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) key used for saving the token.
+  * Defaults to `'jsonwebtoken'`.
+* `bearerLexem`: a lexem prepending tokens in [`Authorization`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Authorization) headers.
+  * Defaults to `'Bearer '` (extra space intended).
+
+### Requests
+
+### Authentication
+
+All of the following requests return [vue-resource](https://github.com/pagekit/vue-resource) Promises, so one can get an idea of the callback structure [here](https://github.com/pagekit/vue-resource/blob/master/docs/http.md#response).
+
+```javascript
+this.$auth.register('login', 'password')
+```
+
+```javascript
+this.$auth.logIn('login', 'password')
+```
+
+```javascript
+this.$auth.refresh()
+```
+
+### Authorization
+If `bearer: true` is passed then `Authorization: Bearer {token}` is added as a [header](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Authorization).
+
+```javascript
+this.$http.get('/protected', { bearer: true }).then(response => {
+    console.log(response)
+})
+```
+
+### Token
+
+#### isLoggedIn
+
+Returns `true` if the saved token is valid and `false` otherwise.
+
+```javascript
+let isLoggedIn = this.$auth.isLoggedIn()
+```
+
+#### getToken
+
+Returns a string if the saved token is valid and `null` otherwise.
+
+```javascript
+this.$auth.getToken()
+```
+
+#### logOut
+
+Purges the saved token.
+
+```javascript
+this.$auth.logOut()
+```
+
