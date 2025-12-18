@@ -1,0 +1,151 @@
+# The following data is used to provide hardcoded data for the resource-listing
+# UI such as the tiles, quicklinks etc. This data isn't automatically derived
+# and is only (currently) used for the static-site UI. For sources beyond "core"
+# (e.g. groups, community), if we want to customise the display it makes more
+# sense to store this information in the bucket or repo, respectively, and then
+# send it in the API response from the server. 
+
+
+# Quick links are displayed in the header part of a pathogen group (e.g. "flu"
+# or "dengue"). They are displayed in order, as space allows. They act as a
+# shortcut to access the resource defined by their "name".
+coreQuickLinks:
+  # flu quick links taken from tiles on (now removed) /influenza, dropping yam (no seqs) and h5nx instead of h5n1
+  - name: 'seasonal-flu/h3n2/ha/2y'
+    display: 'h3n2/ha/2y'
+  - name: 'seasonal-flu/h1n1pdm/ha/2y'
+    display: 'h1n1pdm/ha/2y'
+  - name: 'seasonal-flu/vic/ha/2y'
+    display: 'vic/ha/2y'
+  - name: 'avian-flu/h5n1/ha/2y'
+    display: 'h5n1/ha/2y'
+  - name: 'avian-flu/h5nx/ha/2y'
+    display: 'h5nx/ha/2y'
+  - name: 'avian-flu/h7n9/ha/all-time'
+    display: 'h7n9/ha'
+  - name: 'avian-flu/h9n2/ha/all-time'
+    display: 'h9n2/ha'
+  - name: 'rsv/a/genome'
+    display: 'RSV/A'
+  - name: 'rsv/b/genome'
+    display: 'RSV/B'
+  # There is an (undocumented) special case to allow a group-level link to a
+  # page for that pathogen. We've only really built out these pages for one
+  # pathogen (SC2) and we may never expand these to other pathogens. Or we
+  # might, and we can revisit the UI to expose them in which case.
+  - groupName: 'ncov'
+    display: '[SARS-CoV-2 main page]'
+    name: 'sars-cov-2'
+  - name: 'ncov/gisaid/21L/global/6m'
+    display: '21L/global/6m (GISAID)'
+  # note that open/21L doesn't exist
+  - name: 'ncov/gisaid/global/6m'
+    display: 'global/6m (GISAID)'
+  - name: 'ncov/open/global/6m'
+    display: 'global/6m (open data)'
+
+coreGroupDisplayNames:
+  "avian-flu": avian-flu (influenza)
+  "seasonal-flu": seasonal-flu (influenza)
+  WNV: WNV (West Nile Virus)
+  ncov: ncov (SARS-CoV-2)
+  mpox: mpox
+
+
+# Tiles must define a filter query which is a list of dataset name "words"
+# (where words are joined by "/" to form the URL path) as well as a PNG image
+# which is relative to static-site/static/pathogen_images.
+# These will be displayed in alphabetical order by name.
+coreTiles:
+  - name: SARS-CoV-2
+    img: ncov_freq.png
+    filters:
+      - ncov
+  - name: Seasonal influenza
+    img: seasonal_flu_freq.png
+    filters:
+      - seasonal-flu
+  - name: Avian influenza
+    img: h5n1_map.png
+    filters:
+      - avian-flu
+  - name: Mpox
+    img: mpox_tree.png
+    filters:
+      - mpox
+  - name: RSV
+    img: rsv_tree.png
+    filters:
+      - rsv
+  - name: Dengue
+    img: dengue_tree.png
+    filters:
+      - dengue
+  - name: Ebola
+    img: ebola_map.png
+    filters:
+      - ebola
+  - name: Measles
+    img: measles_tree.png
+    filters:
+      - measles
+  - name: Zika
+    img: zika_tree.png
+    filters:
+      - zika
+  - name: Mumps
+    img: mumps_tree.png
+    filters:
+      - mumps
+  - name: Enterovirus
+    img: enterovirus_d68_tree.png
+    filters:
+      - enterovirus
+  - name: Rabies
+    img: rabies_tree.png
+    filters:
+      - rabies
+  - name: Oropouche
+    img: oropouche_map.png
+    filters:
+      - oropouche
+  - name: Lassa
+    img: lassa_map.png
+    filters:
+      - lassa
+  - name: Seasonal CoV
+    img: seasonal_cov_tree.png
+    filters:
+      - seasonal-cov
+  - name: Tuberculosis
+    img: tb_tree.png
+    filters:
+      - tb
+  - name: West Nile Virus
+    img: wnv_map.png
+    filters:
+      - WNV
+  - name: SARS-CoV-2 (Nextclade)
+    img: nextclade_sars_cov_2_tree.png
+    filters:
+      - nextclade
+  - name: Yellow Fever Virus
+    img: yellow_fever_tree.png
+    filters:
+      - yellow-fever
+  - name: HMPV
+    img: hmpv_tree.png
+    filters:
+      - hmpv
+  - name: Rubella
+    img: rubella_tree.png
+    filters:
+      - rubella
+  - name: Nipah
+    img: nipah_tree.png
+    filters:
+      - nipah
+  - name: Norovirus
+    img: norovirus_map.png
+    filters:
+      - norovirus

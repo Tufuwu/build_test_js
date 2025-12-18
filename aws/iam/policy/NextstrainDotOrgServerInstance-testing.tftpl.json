@@ -1,0 +1,71 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SingleTenantBucketActions",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": [
+        "arn:aws:s3:::nextstrain-data",
+        "arn:aws:s3:::nextstrain-staging"
+      ]
+    },
+    {
+      "Sid": "MultitenantBucketActions",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::nextstrain-groups"
+      ],
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "blab/*",
+            "test/*",
+            "test-private/*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "MultitenantBucketObjectActions",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::nextstrain-groups/blab/*",
+        "arn:aws:s3:::nextstrain-groups/test/*",
+        "arn:aws:s3:::nextstrain-groups/test-private/*"
+      ]
+    },
+    {
+      "Sid": "CognitoUserPoolActions",
+      "Effect": "Allow",
+      "Action": [
+        "cognito-idp:AdminAddUserToGroup",
+        "cognito-idp:AdminRemoveUserFromGroup",
+        "cognito-idp:ListUsersInGroup"
+      ],
+      "Resource": [
+        "arn:aws:cognito-idp:us-east-1:827581582529:userpool/${COGNITO_USER_POOL_ID}"
+      ]
+    },
+    {
+      "Sid": "GetResourcesIndex",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::nextstrain-inventories/resources.json.gz",
+        "arn:aws:s3:::nextstrain-inventories/resources/*.json.gz"
+      ]
+    }
+  ]
+}

@@ -1,32 +1,22 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
-
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+on: [push, pull_request]
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  test:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
-
-      # Runs a single command using the runners shell
-      - name: setup
-        run: npm install
-        
-      # Runs a single command using the runners shell
-      - name: tests
-        run: npm test
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "16"
+      - run: node --version
+      # configure AWS to run dev server necessary for `npm run test:ci`
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          aws-access-key-id: ${{ secrets.DEV_SERVER_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEV_SERVER_AWS_SECRET_ACCESS_KEY }}
+      - run: aws sts get-caller-identity
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm run test:ci

@@ -1,0 +1,219 @@
+[
+  {
+    "name": "Fetch core Nextstrain dataset (seasonal-flu/h3n2/ha/2y)",
+    "url": "/charon/getDataset?prefix=/seasonal-flu/h3n2/ha/2y",
+    "expectStatusCode": 200,
+    "responseIsJson": true,
+    "__comment": "We could define JSON schemas for each API and validate the response here"
+  },
+  {
+    "name": "Check that the dataset request for /seasonal-flu redirects to a specific dataset",
+    "url": "/charon/getDataset?prefix=/seasonal-flu",
+    "expectStatusCode": 307,
+    "responseIsJson": false,
+    "redirectsTo": "/charon/getDataset?prefix=seasonal-flu%2Fh3n2%2Fha%2F2y"
+  },
+  {
+    "name": "/flu URLs are not redirected in the charon API (but they are in the RESTful API)",
+    "url": "/charon/getDataset?prefix=/flu",
+    "expectStatusCode": 404,
+    "responseIsJson": false
+  },
+  {
+    "name": "Check that the main getAvailable API call returns a JSON",
+    "url": "/charon/getAvailable",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Check getSourceInfo API for a community (GitHub) URL",
+    "url": "/charon/getSourceInfo?prefix=/community/jameshadfield/scratch",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Check getDataset API call for a community source with no default datasets returns 404",
+    "url": "/charon/getDataset?prefix=/community/jameshadfield/scratch",
+    "expectStatusCode": 404
+  },
+  {
+    "name": "Check that getAvailable API call for a community source with datasets lists them",
+    "url": "/charon/getAvailable?prefix=/community/jameshadfield/scratch",
+    "expectStatusCode": 200
+  },
+  {
+    "name": "Check that getAvailable API call for a community source with only narratives works",
+    "url": "/charon/getAvailable?prefix=/community/nextstrain/community-test@narratives-only",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Check that getSourceInfo API call for a non-existent community source 404s",
+    "url": "/charon/getSourceInfo?prefix=/community/jameshadfield/doesntexist",
+    "expectStatusCode": 404
+  },
+  {
+    "name": "Check that getDataset works for a community build (Auspice v2 JSON)",
+    "url": "/charon/getDataset?prefix=/community/jameshadfield/scratch/placentalia",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Check that getDataset works for a community build (Auspice v1 JSON)",
+    "url": "/charon/getDataset?prefix=/community/jameshadfield/scratch/ct",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Check getSourceInfo API for a (public) nextstrain groups splash page",
+    "url": "/charon/getSourceInfo?prefix=/groups/blab/",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Check getSourceInfo API for a (private) nextstrain groups splash page",
+    "url": "/charon/getSourceInfo?prefix=/groups/test-private/",
+    "expectStatusCode": 401
+  },
+  {
+    "name": "Check getAvailable API for a (public) nextstrain group",
+    "url": "/charon/getAvailable?prefix=/groups/blab/",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Check getDatset API for a (public) nextstrain group dataset",
+    "url": "/charon/getDataset?prefix=/groups/blab/sars-like-cov",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Check getDatset API for a dataset which doesn't exist returns 404",
+    "url": "/charon/getDataset?prefix=/ncov/doesntExist",
+    "expectStatusCode": 404
+  },
+  {
+    "name": "Check getDataset API for sidecar file tip-frequencies",
+    "url": "/charon/getDataset?prefix=/seasonal-flu/h3n2/ha/2y&type=tip-frequencies",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Fetch dataset using /fetch URLs (from S3 staging bucket)",
+    "url": "/charon/getDataset?prefix=/fetch/staging.nextstrain.org/seasonal-flu_h3n2_ha_2y.json",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Fetch dataset with a malformed API call",
+    "url": "/charon/getDataset",
+    "expectStatusCode": 400
+  },
+  {
+    "name": "Fetch dataset which doesn't exist",
+    "url": "/charon/getDataset?prefix=/ncov/XXXX-XX-XX",
+    "expectStatusCode": 404
+  },
+  {
+    "name": "Check getDataset API for non-existing a sidecar file tip-frequencies which doesn't exist",
+    "__comment": "Auspice only makes such a request if the dataset JSON indicates that the frequency panel is to be displayed",
+    "url": "/charon/getDataset?prefix=/ncov/2020-01-23&type=tip-frequencies",
+    "expectStatusCode": 404
+  },
+  {
+    "name": "Fetch sidecar file using /fetch URLs (root-sequence JSON from S3 staging bucket)",
+    "url": "/charon/getDataset?prefix=/fetch/staging.nextstrain.org/seasonal-flu_h3n2_ha_2y.json&type=root-sequence",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Fetch narrative using /fetch URLs (from nextstrain/narratives GitHub repo)",
+    "url": "/charon/getNarrative?prefix=/fetch/narratives/raw.githubusercontent.com/nextstrain/narratives/master/intro-to-narratives.md&type=md",
+    "expectStatusCode": 200
+  },
+  {
+    "name": "Fetch (core) narrative",
+    "__comment": "This fetch will fetch data from a GitHub repo (where our core narratives live)",
+    "url": "/charon/getNarrative?prefix=/narratives/ncov/sit-rep/2020-05-15&type=md",
+    "expectStatusCode": 200,
+    "responseIsJson": false
+  },
+  {
+    "name": "Fetch narrative without specifying a type (invalid request)",
+    "url": "/charon/getNarrative?prefix=/narratives/ncov/sit-rep/2020-05-15",
+    "expectStatusCode": 400
+  },
+  {
+    "name": "Fetch narrative which doesn't exist",
+    "url": "/charon/getNarrative?prefix=/narratives/ncov/sit-rep/XXXX-XX-XX&type=md",
+    "expectStatusCode": 404
+  },
+  {
+    "name": "Attempt to access a private Nextstrain Group when not logged in",
+    "url": "/charon/getAvailable?prefix=/groups/test-private",
+    "expectStatusCode": 401
+  },
+  {
+    "name": "Get Source Info for a group which doesn't exist",
+    "url": "/charon/getSourceInfo?prefix=/groups/doesntexist",
+    "expectStatusCode": 404
+  },
+  {
+    "name": "Getting Source Info for the core nextstrain source",
+    "__comment": "Used by the (customized) auspice splash page to list datasets",
+    "url": "/charon/getSourceInfo?prefix=/zika",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Getting Source Info for the staging nextstrain source",
+    "url": "/charon/getSourceInfo?prefix=/staging",
+    "expectStatusCode": 200,
+    "responseIsJson": true
+  },
+  {
+    "name": "Unknown charon address should 404",
+    "url": "/charon/unknown",
+    "expectStatusCode": 404
+  },
+  {
+    "name": "Underscores aren't permitted for core datasets",
+    "url": "/charon/getDataset?prefix=/seasonal-flu/h3n2_ha_2y",
+    "expectStatusCode": 400
+  },
+  {
+    "name": "Underscores aren't permitted for staging datasets",
+    "url": "/charon/getDataset?prefix=/staging/seasonal-flu/h3n2_ha_2y",
+    "expectStatusCode": 400
+  },
+  {
+    "name": "Underscores aren't permitted for community datasets (but in repo is ok)",
+    "url": "/charon/getDataset?prefix=/community/nextstrain/enterovirus_d68/genome_2022-02-18",
+    "expectStatusCode": 400
+  },
+  {
+    "name": "Underscores aren't permitted for group datasets",
+    "url": "/charon/getDataset?prefix=/groups/blab/ncov_19B",
+    "expectStatusCode": 400
+  },
+  {
+    "name": "Underscores aren't permitted for core narratives",
+    "url": "/charon/getNarrative?prefix=/narratives/ncov_sit-rep/2020-08-14",
+    "expectStatusCode": 400
+  },
+  {
+    "name": "Underscores aren't permitted for staging narratives",
+    "url": "/charon/getNarrative?prefix=/staging/narratives/test_fixture/intro-to-narratives",
+    "expectStatusCode": 400
+  },
+  {
+    "name": "Underscores aren't permitted for community narratives (but in repo is ok)",
+    "url": "/charon/getNarrative?prefix=/community/narratives/nextstrain/community-test/nested_intro-to-narratives",
+    "expectStatusCode": 400
+  },
+  {
+    "name": "Underscores aren't permitted for group narratives",
+    "url": "/charon/getNarrative?prefix=/groups/blab/narratives/test_fixture",
+    "expectStatusCode": 400
+  }
+]
