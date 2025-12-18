@@ -1,34 +1,41 @@
 {
-  "name": "universalify",
-  "version": "2.0.0",
-  "description": "Make a callback- or promise-based function support both promises and callbacks.",
-  "keywords": [
-    "callback",
-    "native",
-    "promise"
-  ],
-  "homepage": "https://github.com/RyanZim/universalify#readme",
-  "bugs": "https://github.com/RyanZim/universalify/issues",
-  "license": "MIT",
-  "author": "Ryan Zimmerman <opensrc@ryanzim.com>",
-  "files": [
-    "index.js"
-  ],
+  "name": "node-red-contrib-spreadsheet-in",
+  "version": "0.6.0",
+  "description": "This package provides Node-RED nodes to read data from spreadsheet (Excel, ODS, etc.) file.",
+  "main": "node.js",
+  "scripts": {
+    "test": "mocha \"test/**/*_spec.js\""
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RyanZim/universalify.git"
+    "url": "git+https://github.com/sakai-to/node-red-contrib-spreadsheet-in.git"
   },
-  "scripts": {
-    "test": "standard && nyc --reporter text --reporter lcovonly tape test/*.js | colortape"
+  "keywords": [
+    "node-red",
+    "spreadsheet",
+    "excel"
+  ],
+  "author": "sakai.to",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/sakai-to/node-red-contrib-spreadsheet-in/issues"
+  },
+  "homepage": "https://github.com/sakai-to/node-red-contrib-spreadsheet-in#readme",
+  "node-red": {
+    "nodes": {
+      "book": "book.js",
+      "sheet": "sheet.js",
+      "cell": "cell.js",
+      "sheet-to-json": "sheet-to-json.js"
+    }
+  },
+  "dependencies": {
+    "xlsx": ">=0.11.2"
   },
   "devDependencies": {
-    "colortape": "^0.1.2",
-    "coveralls": "^3.0.1",
-    "nyc": "^15.0.0",
-    "standard": "^14.3.1",
-    "tape": "^5.0.1"
-  },
-  "engines": {
-    "node": ">= 10.0.0"
+    "mocha": "^8.2.1",
+    "node-red": "^1.2.6",
+    "node-red-node-test-helper": "^0.2.5",
+    "should": "^13.2.3"
   }
 }
