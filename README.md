@@ -1,237 +1,133 @@
-# check-dependencies
+# dmn-js-properties-panel
 
-> Checks if currently installed npm/bower dependencies are installed in the exact same versions that are specified in package.json/bower.json
+[![CI](https://github.com/bpmn-io/dmn-js-properties-panel/workflows/CI/badge.svg)](https://github.com/bpmn-io/dmn-js-properties-panel/actions?query=workflow%3ACI)
 
-[![GitHub build](https://img.shields.io/github/workflow/status/mgol/check-dependencies/CI?style=flat-square)](https://github.com/mgol/check-dependencies/actions)
-[![AppVeyor build](https://img.shields.io/appveyor/build/mgol/check-dependencies/master?style=flat-square)](https://ci.appveyor.com/project/mgol/check-dependencies)
-[![Version](https://img.shields.io/npm/v/check-dependencies.svg?style=flat-square)](http://npm.im/check-dependencies)
-[![Downloads](https://img.shields.io/npm/dm/check-dependencies.svg?style=flat-square)](http://npm-stat.com/charts.html?package=check-dependencies)
-[![MIT License](https://img.shields.io/npm/l/check-dependencies.svg?style=flat-square)](http://opensource.org/licenses/MIT)
+This is properties panel extension for [dmn-js](https://github.com/bpmn-io/dmn-js).
 
-## Installation
+![dmn-js-properties-panel screenshot](./docs/screenshot.png "Screenshot of the dmn-js editor + the properties panel")
 
-To install the package and add it to your `package.json`, invoke:
+## Features
 
-```shell
-npm install check-dependencies --save-dev
-```
+The properties panel allows users to edit invisible DMN properties in a convenient way.
 
-## Rationale
+Some of the features are:
 
-When dependencies are changed in `package.json` (or `bower.json`), whether it's a version bump or a new package, one can forget to invoke `npm install` (or `bower install`) and continue using the application, possibly encountering errors caused by obsolete package versions. To avoid it, use the `check-dependencies` module at the top of the entry point of your application; it will inform about not up-to-date setup and optionally install the dependencies.
+* Edit element ids and names
+* Edit execution related [Camunda](http://camunda.org) properties
+* Redo and undo (plugs into the [dmn-js](https://github.com/bpmn-io/dmn-js) editing cycle)
 
-Another option would be to always invoke `npm install` (or `bower install`) at the top of the main file but it can be slow and `check-dependencies` is fast.
 
 ## Usage
 
-Once the package has been installed, it may be used via:
+Provide two HTML elements, one for the properties panel and one for the DMN diagram:
 
-### CLI
-
-```bash
-$ check-dependencies
+```html
+<div class="modeler">
+  <div id="canvas"></div>
+  <div id="properties"></div>
+</div>
 ```
 
-All options from the [API](#api) except `log` and `error` can be passed to the CLI, example:
+Bootstrap [dmn-js](https://github.com/bpmn-io/dmn-js) with the properties panel, and a [properties provider](./lib/provider):
 
-```bash
-$ check-dependencies --verbose --package-manager bower --scope-list dependencies
-```
+```javascript
+import DmnModeler from 'dmn-js/lib/Modeler';
 
-Options accepting array values in the API (like [`scopeList`](#scopelist)) should have each value passed individually, example:
+import {
+  DmnPropertiesPanelModule,
+  DmnPropertiesProviderModule,
+} from 'dmn-js-properties-panel';
 
-```bash
-$ check-dependencies --scope-list dependencies --scope-list devDependencies
-```
-
-### API
-
-```js
-require('check-dependencies')(config, callback);
-```
-
-where `callback` is invoked upon completion and `config` is a configuration object.
-
-`callback` is invoked with the object containing fields:
-
-```js
-{
-    status: number,      // 0 if successful, 1 otherwise
-    depsWereOk: boolean, // true if dependencies were already satisfied
-    log: array,          // array of logged messages
-    error: array,        // array of logged errors
-}
-```
-
-The function returns a promise so passing a callback is not necessary; instead you can do:
-
-```js
-require('check-dependencies')(config).then(function (output) {
-    /* handle output */
+var dmnModeler = new DmnModeler({
+  drd: {
+    propertiesPanel: {
+      parent: '#properties'
+    },
+    additionalModules: [
+      DmnPropertiesPanelModule,
+      DmnPropertiesProviderModule
+    ]
+  },
+  container: '#canvas'
 });
 ```
 
-The promise should never fail.
 
-There is a synchronous alternative -- the following code:
+### Dynamic Attach/Detach
 
-```js
-var output = require('check-dependencies').sync(config);
+You may attach or detach the properties panel dynamically to any element on the page, too:
+
+```javascript
+var propertiesPanel = dmnJS.get('propertiesPanel');
+
+// detach the panel
+propertiesPanel.detach();
+
+// attach it to some other element
+propertiesPanel.attachTo('#other-properties');
 ```
 
-will assign to `output` the same object that would otherwise be passed to the `callback` in the asynchronous scenario.
 
-The `config` object may have the following fields:
+### Use with Camunda properties
 
-#### packageManager
+In order to be able to edit [Camunda](https://camunda.org) related properties, use the [camunda properties provider](./lib/provider/camunda).
+In addition, you need to define the `camunda` namespace via [camunda-dmn-moddle](https://github.com/camunda/camunda-dmn-moddle).
 
-Package manager to check against. Possible values: `'npm'`, `'bower'`. (Note: for `bower` you need to have the `bower` package installed either globally or locally in the same project in which you use `check-dependencies`).
+```javascript
+import DmnModeler from 'dmn-js/lib/Modeler';
+import {
+  DmnPropertiesPanelModule,
+  DmnPropertiesProviderModule,
+  CamundaPropertiesProviderModule
+} from 'dmn-js-properties-panel';
 
-Type: `string`
 
-Default: `'npm'`
+// use Camunda properties provider
+import CamundaPropertiesProvider from 'src/provider/camunda';
 
-#### packageDir
+// a descriptor that defines Camunda related DMN 1.1 XML extensions
+import camundaModdleDescriptor from 'camunda-dmn-moddle/resources/camunda';
 
-Path to the directory containing `package.json` or `bower.json`.
-
-Type: `string`
-
-Default: the closest directory containing `package.json` or `bower.json` (depending on `packageManager` specified) when going up the tree, starting from the current one
-
-#### onlySpecified
-
-Ensures all installed dependencies are specified in `package.json` or `bower.json`.
-
-NOTE: Don't use this option with npm 3.0.0 or newer as it deduplicates the file dependency tree by default so `check-dependencies` will think many modules are excessive whereas in fact they will not.
-
-Type: `boolean`
-
-Default: `false`
-
-#### install
-
-Installs packages if they don't match. With the `onlySpecified` option enabled prune excessive packages as well.
-
-Type: `boolean`
-
-Default: `false`
-
-#### scopeList
-
-The list of keys in `package.json` or `bower.json` where to look for package names & versions.
-
-Type: `array`
-
-Default: `['dependencies', 'devDependencies']`
-
-#### optionalScopeList
-
-The list of keys in `package.json` or `bower.json` where to look for _optional_ package names & versions. An optional package is not required to be installed but if it's installed, it's supposed to match the specified version range.
-
-This list is also consulted when using `onlySpecified: true`.
-
-Type: `array`
-
-Default: `['optionalDependencies']`
-
-#### checkCustomPackageNames
-
-By default, check-dependencies will skip version check for custom package names, but will still check to see if they are installed. For example:
-
-```js
-    "dependencies": {
-      "specialSemver059": "semver#0.5.9"
-    }
-```
-
-If checkCustomPackageNames is enabled, check-dependencies will parse the version number (after the hash) for custom package names and check it against the version of the installed package of the same name.
-
-Type: `boolean`
-
-Default: `false`
-
-#### checkGitUrls
-
-By default, check-dependencies will skip version check for packages whose version contains the full repository path. For example:
-
-```js
-    "dependencies": {
-      "semver": "https://github.com/npm/node-semver.git#0.5.9"
-    }
-```
-
-If checkGitUrls is enabled, check-dependencies will parse the version number (after the path to the git repository and the hash) and check it against the version of the installed package.
-
-Type: `boolean`
-
-Default: `false`
-
-#### verbose
-
-Prints messages to the console.
-
-Type: `boolean`
-
-Default: `false`
-
-#### log
-
-A function logging debug messages (applies only if `verbose: true`).
-
-Type: `function`
-
-Default: `console.log.bind(console)`
-
-#### error
-
-A function logging error messages (applies only if `verbose: true`).
-
-Type: `function`
-
-Default: `console.error.bind(console)`
-
-## Usage Examples
-
-The most basic usage:
-
-```js
-require('check-dependencies')(callback);
-```
-
-This will check packages' versions and report an error to `callback` if packages' versions are mismatched.
-
-The following:
-
-```js
-require('check-dependencies')(
-    {
-        install: true,
-        verbose: true,
+var dmnModeler = new DmnModeler({
+  drd: {
+    propertiesPanel: {
+      parent: '#properties'
     },
-    callback,
-);
+    additionalModules: [
+      DmnPropertiesPanelModule,
+      DmnPropertiesProviderModule,
+      CamundaPropertiesProviderModule
+    ]
+  },
+  container: '#canvas'
+  // make camunda prefix known for import, editing and export
+  moddleExtensions: {
+    camunda: camundaModdleDescriptor
+  }
+});
+
+...
 ```
 
-will install mismatched ones and call `callback`.
 
-The following two examples:
+## Additional Resources
 
-```js
-require('check-dependencies')(callback);
-require('check-dependencies')({}, callback);
+* [Issue tracker](https://github.com/bpmn-io/dmn-js-properties-panel)
+* [Forum](https://forum.bpmn.io)
+
+
+## Development
+
+### Running the tests
+
+```bash
+npm install
+
+export TEST_BROWSERS=Chrome
+npm run all
 ```
 
-behave in the same way - `callback` is invoked upon completion; if there was an error, it's passed as a parameter to `callback`.
-
-## Supported Node.js versions
-
-This project aims to support all Node.js versions supported upstream (see [Release README](https://github.com/nodejs/Release/blob/master/README.md) for more details).
-
-## Contributing
-
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using `npm test`.
 
 ## License
 
-Copyright (c) Michał Gołębiowski-Owczarek. Licensed under the MIT license.
+MIT

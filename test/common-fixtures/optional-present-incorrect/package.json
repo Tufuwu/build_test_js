@@ -1,6 +1,0 @@
-{
-    "private": true,
-    "optionalDependencies": {
-        "a": "~1.2.0"
-    }
-}
