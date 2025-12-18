@@ -1,39 +1,130 @@
-# jQuery classList plugin
+# npm-bump
 
-Re-implementation of jQuery class manipulation methods that utilizes the `classList` interface.
+> A better `npm version major|minor|patch`
 
-Compatible with jQuery 1.9+.
+<!--
+[![Build Status](https://travis-ci.org/mgol/npm-bump.svg?branch=main)](https://travis-ci.org/mgol/npm-bump)
+[![Build status](https://ci.appveyor.com/api/projects/status/3lddln8y5hvn5pq0/branch/main?svg=true)](https://ci.appveyor.com/project/mgol/npm-bump/branch/main)
+-->
+
+## Installation
+
+To install invoke:
+
+```shell
+npm install -g npm-bump
+```
+
+You now have the `npm-bump` binary available.
+
+If you want to use it as a module, invoke:
+
+```shell
+npm install npm-bump --save
+```
 
 ## Rationale
 
-The DOM spec defines [the `classList` interface](https://dom.spec.whatwg.org/#dom-element-classlist), allowing for adding/removing/toggling classes or checking if an element contains a specified class using built-in methods as opposed to manually parsing the `className` field where classes are separated by spaces.
+The aim of this module is to keep a repository in a state where if the `version` value in `package.json` points to a stable version, it's a tagged commit that was published to npm. Since one can add Git endpoints as packages' "versions", this allows to quickly check if an installed dependency uses a pre-release or a stable version.
 
-A couple of test suites comparing both implementations:
+## Usage
 
-1. https://jsperf.com/classlist-v-old-way/18 - small (10) number of classes
-2. https://jsperf.com/classlist-v-old-way/19 - large (100) number of classes
+Once the package has been installed, it may be used from the terminal:
 
-jQuery currently doesn't utilize this interface, one of the reasons being it's not supported by Internet Explorer 9 and it doesn't work on SVGs even in IE 11.
+```shell
+npm-bump releaseType
+```
 
-## Browser support
+where `releaseType` is one of: `major`, `minor` and `patch`.
 
-Note: in browsers that don't fully support the `classList` interface (e.g. all IE & Android Browser) the plugin falls back to the built-in jQuery implementation so it doesn't break them.
+To use as a module, do the following:
 
-The following browsers can utilize full functionality of this plugin:
+```js
+var npmBump = require('npm-bump');
+npmBump(releaseType);
+```
 
-1. Chrome (for desktop & Android), Edge, Firefox, Opera: Current -1, Current
-2. Safari 7.0+
-3. iOS 7.0+
+You can check the version of `npm-bump` via:
 
-"Current -1, Current" denotes that the current stable version of the browser and the version that preceded it are supported. For example, if the current version of a browser is 24.x, we support the 24.x and 23.x versions.
+```shell
+npm-bump --version
+```
 
-In fact the code will work in many older versions, too, but they are not actively tested.
+Regardless of using the package as a binary or a module, invoking the above code will result in:
 
-## Caveats
+1. Creating a new commit that increases the project version to the nearest stable one having a larger `major`/`minor`/`patch` than currently.
+2. Tagging the commit with a specified version.
+3. Creating a new commit with an increased patch version and the `-pre` suffix added.
+4. Asking the user to do a final check and proceed or rollback.
 
-Supported browsers with the jQuery classList plugin pass the whole jQuery test suite with a few minor exceptions:
- 
-1. [A few tests](https://github.com/mgol/jquery/commit/11f440c3c8ce869bd79dd0ec716247b4380170dc) that check for extra whitespaces in the `class` attribute or the presence of the `class` attribute are failing. This is mostly because in Safari up to version 9.x and in current Firefox & Chrome (at the time of writing this section) [`classList` update steps](https://dom.spec.whatwg.org/#concept-DTL-update) are not performed correctly and there is no way to control that behavior via the `classList` interface. Relevant bug reports:
-    1. Chrome: https://crbug.com/600964
-    2. Firefox: https://bugzilla.mozilla.org/show_bug.cgi?id=869788
-2. In Safari 7 passing the same class to `classList.add` in multiple parameters results in duplicated class names in the `class` attribute which makes another few tests fail. However, `classList.remove` removes all duplicated classes so this shouldn't be a problem unless you're parsing the `className` attribute directly by yourself. This has been fixed in Safari 8.
+If the user goes along, the new version gets published and created commits and tags pushed to the `origin` remote. Otherwise, all the changes are reversed.
+
+Until the user gives the final green light, everything happens locally and is fully reversible.
+
+### Pre-releases
+
+If you supply `releaseType` other than `major`/`minor`/`patch`, it will be treated as a pre-release identifier and a proper pre-release version will be tagged & published. Such a version will be published with an npm tag equal to the identifier. For example, if your package is currently at version `1.0.0-pre`, the following command:
+
+```shell
+npm-bump beta
+```
+
+will publish a version `1.0.0-beta.0` under the tag `beta` and bump the version to `1.0.0-beta.1-pre`.
+
+## Options
+
+You can optionally pass the remote name and the branch name to be used, in addition to a prefix to be applied to the version bump commit message. By default the remote is assumed to be `origin` and the branch: `main`.
+
+You can also provide the `access` option with the `public` or `private` value to declare whether the package should be public or private. When not provided, it uses default npm behavior: scoped packages are private & unscoped ones - public.
+
+To customize, do the following:
+
+1. When using from shell:
+
+```shell
+npm-bump minor --remote origin --branch main --prefix "[no-ci]" --access public
+```
+
+or:
+
+```shell
+npm-bump minor -r origin -b main -p "[no-ci]" ---access public
+```
+
+Run:
+
+```shell
+npm-bump --help
+```
+
+or:
+
+```shell
+npm-bump -h
+```
+
+to see the full information about accepted options.
+
+2. When using as a library:
+
+```js
+var npmBump = require('npm-bump').custom({
+    remote: 'origin',
+    branch: 'main',
+    prefix: '[no-ci]',
+    access: 'public',
+});
+npmBump(minor);
+```
+
+## Supported Node.js versions
+
+This project aims to support all Node.js versions supported upstream with the exception of those in maintenance mode (see [Release README](https://github.com/nodejs/Release/blob/main/README.md) for more details).
+
+## Contributing
+
+In lieu of a formal style guide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using `npm test`.
+
+## License
+
+Copyright (c) 2014 Michał Gołębiowski-Owczarek. Licensed under the MIT license.
