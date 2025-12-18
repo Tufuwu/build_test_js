@@ -1,4 +1,0 @@
-nextstrain-sphinx-theme >=2022.5
-recommonmark
-sphinx
-sphinx-markdown-tables

@@ -1,1 +1,0 @@
-../variable-COGNITO_USER_POOL_ID.tf
