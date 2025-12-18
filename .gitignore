@@ -1,2 +1,8 @@
-node_modules/
-npm-debug.log
+/node_modules
+/.serverless
+.env
+.env.staging
+.env.production
+.DS_Store
+
+/redirect_rules.json

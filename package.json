@@ -1,36 +1,15 @@
 {
-  "name": "postcss-pseudo-classes",
-  "version": "0.4.0",
-  "description": "PostCSS plugin to convert pseudo-classes to classes for testing purposes",
-  "keywords": [
-    "postcss",
-    "css",
-    "postcss-plugin",
-    "css test",
-    "pseudo classes"
-  ],
-  "author": "Giuseppe Gurgone",
+  "name": "www-redirect",
+  "version": "1.0.0",
+  "main": "src/redirect.js",
+  "repository": "git@github.com:grrr-amsterdam/host-redirect-microservice.git",
+  "author": "Harmen Janssen <harmen@grrr.nl>",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/giuseppeg/postcss-pseudo-classes.git"
-  },
-  "bugs": {
-    "url": "https://github.com/giuseppeg/postcss-pseudo-classes/issues"
-  },
-  "homepage": "https://github.com/giuseppeg/postcss-pseudo-classes",
-  "peerDependencies": {
-    "postcss": "^8.0.0"
+  "scripts": {
+    "test": "node test/redirect.js"
   },
   "devDependencies": {
-    "ava": "^2.0.0",
-    "eslint": "^6.0.0",
-    "postcss": "^8.4.31"
-  },
-  "scripts": {
-    "test": "ava test/test.js && eslint *.js test/*.js"
-  },
-  "files": [
-    "index.js"
-  ]
+    "serverless": "^1.44.1",
+    "serverless-dotenv-plugin": "https://github.com/harmenjanssen/serverless-dotenv-plugin/"
+  }
 }

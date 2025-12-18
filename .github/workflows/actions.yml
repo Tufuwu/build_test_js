@@ -1,29 +1,42 @@
-name: Test
+name: CI
+
 on:
   push:
     branches:
-      - main
-  pull_request:
-permissions:
-  contents: read
+      - "**"
+
 jobs:
-  test:
+  ci:
+    name: CI
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version:
-          - 20
-          - 18
-    name: Node.js ${{ matrix.node-version }} Quick
+
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v4
-      - name: Install Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: npm
-      - name: Install dependencies
-        run: npm install --frozen-lockfile --ignore-scripts --ignore-engines
-      - name: Run unit tests
-        run: npm test
+          node-version: "16"
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
+      - run: yarn install
+      - run: echo "{}" > redirect_rules.json
+      - run: yarn run test
+
+  notification:
+    name: Slack notification
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [ci]
+
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    steps:
+      - name: Send notification
+        uses: edge/simple-slack-notify@master
+        with:
+          channel: "#ci"
+          username: CI
+          status: ${{ (contains(needs.*.result, 'cancelled') && 'cancelled') || (contains(needs.*.result, 'failure') && 'failure') || 'success' }}
+          success_text: ":octocat: <${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}|Build #${env.GITHUB_RUN_NUMBER}> of *${env.GITHUB_REPOSITORY}@${{ github.ref_name }}* by *${env.GITHUB_ACTOR}* completed successfully."
+          failure_text: ":octocat: <${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}|Build #${env.GITHUB_RUN_NUMBER}> of *${env.GITHUB_REPOSITORY}@${{ github.ref_name }}* by *${env.GITHUB_ACTOR}* failed."
+          cancelled_text: ":octocat: <${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}|Build #${env.GITHUB_RUN_NUMBER}> of *${env.GITHUB_REPOSITORY}@${{ github.ref_name }}* by *${env.GITHUB_ACTOR}* was cancelled."
