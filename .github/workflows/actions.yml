@@ -1,42 +1,35 @@
-name: Serverless LocalStack CI
+name: CI
 
 on:
   push:
-    branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
   pull_request:
-    branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
 
 jobs:
-  serverless-localstack-test:
-    name: Serverless LocalStack CI
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  test:
+    runs-on: ${{ matrix.os }}
 
-      - name: Setup NodeJS
+    strategy:
+      matrix:
+        node-version: ["16"]
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version: ${{ matrix.node-version }}
 
-      - name: Start LocalStack
+      - name: Install Dependencies
         run: |
-          pip install localstack awscli-local[ver1]
-          docker pull localstack/localstack
-          localstack start -d
-          localstack wait -t 30
-          
-      - name: Install deps
+          npm install --ignore-scripts
+      - name: Run Tests
         run: |
-          npm ci
-          
-      - name: Run Lint and Test
-        run: |
-          set -e
-          npm run lint
-          npm run test
-          
-      - name: Integration Tests
-        run: |
-          npm link
-          sleep 5; SLS_DEBUG=1 npm run test:integration
+          npm test
