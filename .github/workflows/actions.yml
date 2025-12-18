@@ -2,19 +2,18 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   test:
-    name: Test on Node.js ${{ matrix.node-version }}
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: true
       matrix:
         node-version: ["16"]
-      fail-fast: false
 
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +21,14 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
+          cache: 'npm'
           node-version: ${{ matrix.node-version }}
 
-      - name: Run Tests
-        run: node test/test
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run test:coverage
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2

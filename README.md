@@ -1,288 +1,273 @@
-![bignumber.js](https://raw.githubusercontent.com/MikeMcl/bignumber.js/gh-pages/bignumberjs.png)
+# React Redux Loading Bar
 
-A JavaScript library for arbitrary-precision decimal and non-decimal arithmetic.
+[![npm version](https://img.shields.io/npm/v/react-redux-loading-bar.svg?style=flat-square)](https://www.npmjs.com/package/react-redux-loading-bar)
+[![build status](https://github.com/mironov/react-redux-loading-bar/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/mironov/react-redux-loading-bar/actions/workflows/ci.yml)
+[![coverage status](https://coveralls.io/repos/github/mironov/react-redux-loading-bar/badge.svg?branch=master)](https://coveralls.io/github/mironov/react-redux-loading-bar?branch=master)
+[![npm downloads](https://img.shields.io/npm/dm/react-redux-loading-bar.svg?style=flat)](https://www.npmjs.com/package/react-redux-loading-bar)
 
-[![npm version](https://img.shields.io/npm/v/bignumber.js.svg)](https://www.npmjs.com/package/bignumber.js)
-[![npm downloads](https://img.shields.io/npm/dw/bignumber.js)](https://www.npmjs.com/package/bignumber.js)
+A React component that provides Loading Bar (aka Progress Bar) for long running tasks.
 
-<br />
+![Demo GIF](http://d.pr/i/JbwN+)
 
-## Features
+Consists of:
 
-- Integers and decimals
-- Simple API but full-featured
-- Faster, smaller, and perhaps easier to use than JavaScript versions of Java's BigDecimal
-- 8 KB minified and gzipped
-- Replicates the `toExponential`, `toFixed`, `toPrecision` and `toString` methods of JavaScript's Number type
-- Includes a `toFraction` and a correctly-rounded `squareRoot` method
-- Supports cryptographically-secure pseudo-random number generation
-- No dependencies
-- Wide platform compatibility: uses JavaScript 1.5 (ECMAScript 3) features only
-- Comprehensive [documentation](http://mikemcl.github.io/bignumber.js/) and test set
+* React component — displays loading bar and simulates progress
+* Redux reducer — manages loading bar's part of the store
+* (optional) Redux middleware — automatically shows and hides Loading Bar for actions with promises
 
-![API](https://raw.githubusercontent.com/MikeMcl/bignumber.js/gh-pages/API.png)
+## Examples
 
-If a smaller and simpler library is required see [big.js](https://github.com/MikeMcl/big.js/).
-It's less than half the size but only works with decimal numbers and only has half the methods.
-It also has fewer configuration options than this library, and does not allow `NaN` or `Infinity`.
+See [Demo](http://mironov.github.io/react-redux-loading-bar/) or its [source code](https://github.com/mironov/react-redux-loading-bar/tree/gh-pages/src).
 
-See also [decimal.js](https://github.com/MikeMcl/decimal.js/), which among other things adds support for non-integer powers, and performs all operations to a specified number of significant digits.
-
-## Load
-
-The library is the single JavaScript file *bignumber.js* or ES module *bignumber.mjs*.
-
-### Browser
-
-```html
-<script src='path/to/bignumber.js'></script>
-```
-
-> ES module
-
-```html
-<script type="module">
-import BigNumber from './path/to/bignumber.mjs';
-```
-
-> Get a minified version from a CDN:
-
-```html
-<script src='https://cdn.jsdelivr.net/npm/bignumber.js@9.3.0/bignumber.min.js'></script>
-```
-
-### [Node.js](http://nodejs.org)
+## Installation
 
 ```bash
-npm install bignumber.js
+npm install --save react-redux-loading-bar
 ```
 
-```javascript
-const BigNumber = require('bignumber.js');
+## Usage
+
+Mount the `LoadingBar` component anywhere in your application:
+
+```jsx
+import LoadingBar from 'react-redux-loading-bar'
+
+export default class Header extends React.Component {
+  render() {
+    return (
+      <header>
+        <LoadingBar />
+      </header>
+    )
+  }
+}
 ```
 
-> ES module
+Good news is that it doesn't include any positioning. You can attach it to the top of any block or the whole page.
 
-```javascript
-import BigNumber from "bignumber.js";
+You can even include multiple loading bars on the same page, that will render independently. They need to be provided with
+a scope so that you can adjust them independently.
+
+```jsx
+import LoadingBar from 'react-redux-loading-bar'
+
+export default class Header extends React.Component {
+  render() {
+    return (
+      <header>
+        <LoadingBar />
+      </header>
+      <section>
+        <LoadingBar scope="sectionBar" />
+      </section>
+    )
+  }
+}
 ```
 
-### [Deno](https://deno.land/)
+Install the reducer to the store:
 
-```javascript
-// @deno-types="https://raw.githubusercontent.com/mikemcl/bignumber.js/v9.3.0/bignumber.d.mts"
-import BigNumber from 'https://raw.githubusercontent.com/mikemcl/bignumber.js/v9.3.0/bignumber.mjs';
+```jsx
+import { combineReducers } from 'redux'
+import { loadingBarReducer } from 'react-redux-loading-bar'
 
-// @deno-types="https://unpkg.com/bignumber.js@latest/bignumber.d.mts"
-import { BigNumber } from 'https://unpkg.com/bignumber.js@latest/bignumber.mjs';
+const reducer = combineReducers({
+  // app reducers
+  loadingBar: loadingBarReducer,
+})
 ```
 
-## Use
+## Usage with [`redux-promise-middleware`](https://github.com/pburtchaell/redux-promise-middleware)
 
-The library exports a single constructor function, [`BigNumber`](http://mikemcl.github.io/bignumber.js/#bignumber), which accepts a value of type Number, String or BigNumber,
+Apply middleware to automatically show and hide loading bar on actions with promises:
 
-```javascript
-let x = new BigNumber(123.4567);
-let y = BigNumber('123456.7e-3');
-let z = new BigNumber(x);
-x.isEqualTo(y) && y.isEqualTo(z) && x.isEqualTo(z);      // true
+```jsx
+import { createStore, applyMiddleware } from 'redux'
+import { loadingBarMiddleware } from 'react-redux-loading-bar'
+import rootReducer from './reducers'
+
+const store = createStore(
+  rootReducer,
+  // promise middleware
+  applyMiddleware(loadingBarMiddleware())
+)
 ```
 
-To get the string value of a BigNumber use [`toString()`](http://mikemcl.github.io/bignumber.js/#toS) or [`toFixed()`](http://mikemcl.github.io/bignumber.js/#toFix). Using `toFixed()` prevents exponential notation being returned, no matter how large or small the value.
+## Usage with custom suffixes or alternative promise middleware
 
-```javascript
-let x = new BigNumber('1111222233334444555566');
-x.toString();                       // "1.111222233334444555566e+21"
-x.toFixed();                        // "1111222233334444555566"
+You can configure promise type suffixes that are used in your project:
+
+```jsx
+import { createStore, applyMiddleware } from 'redux'
+import { loadingBarMiddleware } from 'react-redux-loading-bar'
+import rootReducer from './reducers'
+
+const store = createStore(
+  rootReducer,
+  applyMiddleware(
+    loadingBarMiddleware({
+      promiseTypeSuffixes: ['REQUEST', 'SUCCESS', 'FAILURE'],
+    })
+  )
+)
 ```
 
-If the limited precision of Number values is not well understood, it is recommended to create BigNumbers from String values rather than Number values to avoid a potential loss of precision.
+## Usage with custom scope (for multiple loading bars)
 
-*In all further examples below, `let`, semicolons and `toString` calls are not shown. If a commented-out value is in quotes it means `toString` has been called on the preceding expression.*
+```jsx
+import { createStore, applyMiddleware } from 'redux'
+import { loadingBarMiddleware } from 'react-redux-loading-bar'
+import rootReducer from './reducers'
 
-```javascript
-// Precision loss from using numeric literals with more than 15 significant digits.
-new BigNumber(1.0000000000000001)         // '1'
-new BigNumber(88259496234518.57)          // '88259496234518.56'
-new BigNumber(99999999999999999999)       // '100000000000000000000'
-
-// Precision loss from using numeric literals outside the range of Number values.
-new BigNumber(2e+308)                     // 'Infinity'
-new BigNumber(1e-324)                     // '0'
-
-// Precision loss from the unexpected result of arithmetic with Number values.
-new BigNumber(0.7 + 0.1)                  // '0.7999999999999999'
+const store = createStore(
+  rootReducer,
+  applyMiddleware(
+    loadingBarMiddleware({
+      scope: 'sectionBar',
+    })
+  )
+)
 ```
 
-When creating a BigNumber from a Number, note that a BigNumber is created from a Number's decimal `toString()` value not from its underlying binary value. If the latter is required, then pass the Number's `toString(2)` value and specify base 2.
+If you're not using `redux-promise-middleware` or any other promise middleware, you can skip installing the `loadingBarMiddleware()` and dispatch `SHOW`/`HIDE` actions manually. The other option is to write your own middleware that will be similar to the [bundled one](https://github.com/mironov/react-redux-loading-bar/blob/master/src/loading_bar_middleware.js).
 
-```javascript
-new BigNumber(Number.MAX_VALUE.toString(2), 2)
+## Usage without middleware
+
+You can dispatch `SHOW`/`HIDE` actions wherever you want by importing the corresponding action creators:
+
+```jsx
+import { showLoading, hideLoading } from 'react-redux-loading-bar'
+
+dispatch(showLoading())
+// do long running stuff
+dispatch(hideLoading())
 ```
 
-BigNumbers can be created from values in bases from 2 to 36. See [`ALPHABET`](http://mikemcl.github.io/bignumber.js/#alphabet) to extend this range.
+You need to dispatch `HIDE` as many times as `SHOW` was dispatched to make the bar disappear. In other words, the loading bar is shown until all long running tasks complete.
 
-```javascript
-a = new BigNumber(1011, 2)          // "11"
-b = new BigNumber('zz.9', 36)       // "1295.25"
-c = a.plus(b)                       // "1306.25"
+## Usage without middleware but with scope
+
+You need to provide the scope to the actions:
+
+```jsx
+import { showLoading, hideLoading } from 'react-redux-loading-bar'
+
+dispatch(showLoading('sectionBar'))
+// do long running stuff
+dispatch(hideLoading('sectionBar'))
 ```
 
-*Performance is better if base 10 is NOT specified for decimal values. Only specify base 10 when you want to limit the number of decimal places of the input value to the current [`DECIMAL_PLACES`](http://mikemcl.github.io/bignumber.js/#decimal-places) setting.*
+## Usage with [`redux-saga`](https://github.com/redux-saga/redux-saga)
 
-A BigNumber is immutable in the sense that it is not changed by its methods.
+Install the `loadingBarReducer()` and mount Loading Bar in your application.
+You can import and dispatch `showLoading` and `hideLoading` from your sagas.
 
-```javascript
-0.3 - 0.1                           // 0.19999999999999998
-x = new BigNumber(0.3)
-x.minus(0.1)                        // "0.2"
-x                                   // "0.3"
+```jsx
+import { showLoading, hideLoading } from 'react-redux-loading-bar'
+
+export function* fetchData() {
+  try {
+    yield put(showLoading())
+    const payload = yield call(API, params)
+    // payload processing
+  } finally {
+    yield put(hideLoading())
+  }
+}
 ```
 
-The methods that return a BigNumber can be chained.
+## Usage with [`immutable-js`](https://github.com/facebook/immutable-js)
 
-```javascript
-x.dividedBy(y).plus(z).times(9)
-x.times('1.23456780123456789e+9').plus(9876.5432321).dividedBy('4444562598.111772').integerValue()
+You can change component import line if your top level redux store object is `immutable`.
+
+```jsx
+import { ImmutableLoadingBar as LoadingBar } from 'react-redux-loading-bar'
+
+// Mount LoadingBar component as usual
 ```
 
-Some of the longer method names have a shorter alias.
+## Usage with jQuery Ajax Requests
 
-```javascript
-x.squareRoot().dividedBy(y).exponentiatedBy(3).isEqualTo(x.sqrt().div(y).pow(3))    // true
-x.modulo(y).multipliedBy(z).eq(x.mod(y).times(z))                                   // true
+If you happen to use jQuery for Ajax requests, you can dispatch `SHOW`/`HIDE` actions on `ajaxStart`/`ajaxStop` global events:
+
+```jsx
+$(document).on('ajaxStart', this.props.actions.showLoading)
+$(document).on('ajaxStop', this.props.actions.hideLoading)
 ```
 
-As with JavaScript's Number type, there are [`toExponential`](http://mikemcl.github.io/bignumber.js/#toE), [`toFixed`](http://mikemcl.github.io/bignumber.js/#toFix) and [`toPrecision`](http://mikemcl.github.io/bignumber.js/#toP) methods.
+See [a demo](http://mironov.github.io/react-redux-loading-bar/?ajax) or checkout [the code](https://github.com/mironov/react-redux-loading-bar/blob/gh-pages/src/demo_ajax.js).
 
-```javascript
-x = new BigNumber(255.5)
-x.toExponential(5)                  // "2.55500e+2"
-x.toFixed(5)                        // "255.50000"
-x.toPrecision(5)                    // "255.50"
-x.toNumber()                        //  255.5
+## RTL (Right-To-Left) Layout
+
+Pass `direction="rtl"` to make Loading Bar simulate progress from right to left:
+
+```jsx
+<LoadingBar direction="rtl" />
 ```
 
- A base can be specified for [`toString`](http://mikemcl.github.io/bignumber.js/#toS).
+## Styling
 
-*Performance is better if base 10 is NOT specified, i.e. use `toString()` not `toString(10)`. Only specify base 10 when you want to limit the number of decimal places of the string to the current [`DECIMAL_PLACES`](http://mikemcl.github.io/bignumber.js/#decimal-places) setting.*
+You can apply custom styling right on the `LoadingBar` component. For example you can change the color and height of the loading bar:
 
- ```javascript
- x.toString(16)                     // "ff.8"
- ```
-
-There is a [`toFormat`](http://mikemcl.github.io/bignumber.js/#toFor) method which may be useful for internationalisation.
-
-```javascript
-y = new BigNumber('1234567.898765')
-y.toFormat(2)                       // "1,234,567.90"
+```jsx
+<LoadingBar style={{ backgroundColor: 'blue', height: '5px' }} />
 ```
 
-The maximum number of decimal places of the result of an operation involving division (i.e. a division, square root, base conversion or negative power operation) is set using the `set` or `config` method of the `BigNumber` constructor.
+Alternatively, you can specify your own CSS class.
 
-The other arithmetic operations always give the exact result.
+**Please note that will disable default styling (which is `background-color: red; height: 3px; position: absolute;`).**
 
-```javascript
-BigNumber.set({ DECIMAL_PLACES: 10, ROUNDING_MODE: 4 })
-
-x = new BigNumber(2)
-y = new BigNumber(3)
-z = x.dividedBy(y)                        // "0.6666666667"
-z.squareRoot()                            // "0.8164965809"
-z.exponentiatedBy(-3)                     // "3.3749999995"
-z.toString(2)                             // "0.1010101011"
-z.multipliedBy(z)                         // "0.44444444448888888889"
-z.multipliedBy(z).decimalPlaces(10)       // "0.4444444445"
+```jsx
+<LoadingBar className="loading" />
 ```
 
-There is a [`toFraction`](http://mikemcl.github.io/bignumber.js/#toFr) method with an optional *maximum denominator* argument
+Don't forget to set `height`, `background-color` and `position` for the `loading` class in your CSS files.
 
-```javascript
-y = new BigNumber(355)
-pi = y.dividedBy(113)               // "3.1415929204"
-pi.toFraction()                     // [ "7853982301", "2500000000" ]
-pi.toFraction(1000)                 // [ "355", "113" ]
+## Configure Progress Simulation
+
+You can change updateTime (by default 200ms), maxProgress (by default 90%) and progressIncrease (by default 5%):
+
+```jsx
+<LoadingBar updateTime={100} maxProgress={95} progressIncrease={10} />
 ```
 
-and [`isNaN`](http://mikemcl.github.io/bignumber.js/#isNaN) and [`isFinite`](http://mikemcl.github.io/bignumber.js/#isF) methods, as `NaN` and `Infinity` are valid `BigNumber` values.
+By default, the Loading Bar will only display if the action took longer than `updateTime` to finish. This helps keep things feeling snappy, and avoids the annoyingness of showing a Loading Bar for fractions of seconds. If you want to show Loading Bar even on quickly finished actions you can pass the `showFastActions` prop:
 
-```javascript
-x = new BigNumber(NaN)                                           // "NaN"
-y = new BigNumber(Infinity)                                      // "Infinity"
-x.isNaN() && !y.isNaN() && !x.isFinite() && !y.isFinite()        // true
+```jsx
+<LoadingBar showFastActions />
 ```
 
-The value of a BigNumber is stored in a decimal floating point format in terms of a coefficient, exponent and sign.
+## Reset progress
 
-```javascript
-x = new BigNumber(-123.456);
-x.c                                 // [ 123, 45600000000000 ]  coefficient (i.e. significand)
-x.e                                 // 2                        exponent
-x.s                                 // -1                       sign
-```
+You can dispatch the `resetLoading` action to ultimately hide Loading Bar even when multiple long running tasks are still in progress.
 
-For advanced usage, multiple BigNumber constructors can be created, each with its own independent configuration.
-
-```javascript
-// Set DECIMAL_PLACES for the original BigNumber constructor
-BigNumber.set({ DECIMAL_PLACES: 10 })
-
-// Create another BigNumber constructor, optionally passing in a configuration object
-BN = BigNumber.clone({ DECIMAL_PLACES: 5 })
-
-x = new BigNumber(1)
-y = new BN(1)
-
-x.div(3)                            // '0.3333333333'
-y.div(3)                            // '0.33333'
-```
-
-To avoid having to call `toString` or `valueOf` on a BigNumber to get its value in the Node.js REPL or when using `console.log` use
-
-```javascript
-BigNumber.prototype[require('util').inspect.custom] = BigNumber.prototype.valueOf;
-```
-
-For further information see the [API](http://mikemcl.github.io/bignumber.js/) reference in the *doc* directory.
-
-## Test
-
-The *test/modules* directory contains the test scripts for each method.
-
-The tests can be run with Node.js or a browser. For Node.js use
+## Tests
 
 ```bash
 npm test
 ```
 
-or
+## Contributing
 
-```bash
-node test/test
-```
+In lieu of a formal styleguide, take care to maintain the existing coding style.
+Add unit tests for any new or changed functionality. Lint and test your code.
 
-To test a single method, use, for example
+## Contributors (in chronological order)
 
-```bash
-node test/methods/toFraction
-```
+- [@mironov](https://github.com/mironov)
+- [@ThomasMarnet](https://github.com/ThomasMarnet)
+- [@hieuhlc](https://github.com/hieuhlc)
+- [@josefernand](https://github.com/josefernand)
+- [@greenpart](https://github.com/greenpart)
+- [@larrydahooster](https://github.com/larrydahooster)
+- [@janslow](https://github.com/janslow)
+- [@vitosamson](https://github.com/vitosamson)
+- [@seb0zz](https://github.com/seb0zz)
+- [@neogermi](https://github.com/neogermi)
+- [@MikeDevice](https://github.com/MikeDevice)
+- [@Kovensky](https://github.com/Kovensky)
+- [@dengbupapapa](https://github.com/dengbupapapa)
 
-For the browser, open *test/test.html*.
+To see what has changed in recent versions of Loading Bar, see the [CHANGELOG](https://github.com/mironov/react-redux-loading-bar/blob/master/CHANGELOG.md).
 
-## Minify
-
-To minify using, for example, [terser](https://github.com/terser/terser)
-
-```bash
-npm install -g terser
-```
-
-```bash
-terser big.js -c -m -o big.min.js
-```
-
-## Licence
-
-The MIT Licence.
-
-See [LICENCE](https://github.com/MikeMcl/bignumber.js/blob/master/LICENCE).
+Licensed MIT. Copyright 2016-current Anton Mironov.
