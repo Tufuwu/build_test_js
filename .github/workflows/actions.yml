@@ -1,34 +1,42 @@
-name: test
+name: Serverless LocalStack CI
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    types: [opened, synchronize]
+    branches: [ main ]
 
 jobs:
-  test:
+  serverless-localstack-test:
+    name: Serverless LocalStack CI
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
           node-version: "16"
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build:prod
-
-      - name: Test
-        run: npm run test:coverage
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v2
+      - name: Start LocalStack
+        run: |
+          pip install localstack awscli-local[ver1]
+          docker pull localstack/localstack
+          localstack start -d
+          localstack wait -t 30
+          
+      - name: Install deps
+        run: |
+          npm ci
+          
+      - name: Run Lint and Test
+        run: |
+          set -e
+          npm run lint
+          npm run test
+          
+      - name: Integration Tests
+        run: |
+          npm link
+          sleep 5; SLS_DEBUG=1 npm run test:integration
