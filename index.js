@@ -1,138 +1,127 @@
-'use strict';
-var SourceMapGenerator = require('source-map').SourceMapGenerator;
-
-function offsetMapping(mapping, offset) {
-  return { line: offset.line + mapping.line, column: offset.column + mapping.column };
+"use strict";
+var t0 = Date.now();
+if (process.env.NODE_ENV === "dev") {
+    // Load local env variables
+    require("./env");
 }
 
-function newlinesIn(src) {
-  if (!src) return 0;
-  var newlines = src.match(/\n/g);
+const express = require("express"),
+    bodyParser = require('body-parser'),
+    xhub = require('express-x-hub'),
+    Controller = require("./lib/controller");
 
-  return newlines ? newlines.length : 0;
-}
-
-function Generator(opts) {
-  opts = opts || {};
-  this.generator = new SourceMapGenerator({ file: opts.file || '', sourceRoot: opts.sourceRoot || '' });
-  this.sourcesContent = undefined;
-  this.opts = opts;
-}
-
-/**
- * Adds the given mappings to the generator and offsets them if offset is given
- *
- * @name addMappings
- * @function
- * @param sourceFile {String} name of the source file
- * @param mappings {Array{{Object}} each object has the form { original: { line: _, column: _ }, generated: { line: _, column: _ } }
- * @param offset {Object} offset to apply to each mapping. Has the form { line: _, column: _ }
- * @return {Object} the generator to allow chaining
- */
-Generator.prototype.addMappings = function (sourceFile, mappings, offset) {
-  var generator = this.generator;
-
-  offset = offset || {};
-  offset.line = offset.hasOwnProperty('line') ? offset.line : 0;
-  offset.column = offset.hasOwnProperty('column') ? offset.column : 0;
-
-  mappings.forEach(function (m) {
-    // only set source if we have original position to handle edgecase (see inline-source-map tests)
-    generator.addMapping({
-        source    :  m.original ? sourceFile : undefined
-      , original  :  m.original
-      , generated :  offsetMapping(m.generated, offset)
+function logArgs() {
+    var args = arguments;
+    process.nextTick(function() {
+        console.log.apply(console, args);
     });
-  });
-  return this;
-};
+}
 
-/**
- * Generates mappings for the given source, assuming that no translation from original to generated is necessary.
- *
- * @name addGeneratedMappings
- * @function
- * @param sourceFile {String} name of the source file
- * @param source {String} source of the file
- * @param offset {Object} offset to apply to each mapping. Has the form { line: _, column: _ }
- * @return {Object} the generator to allow chaining
- */
-Generator.prototype.addGeneratedMappings = function (sourceFile, source, offset) {
-  var mappings = []
-    , linesToGenerate = newlinesIn(source) + 1;
-
-  for (var line = 1; line <= linesToGenerate; line++) {
-    var location = { line: line, column: 0 };
-    mappings.push({ original: location, generated: location });
-  }
-
-  return this.addMappings(sourceFile, mappings, offset);
-};
-
-/**
- * Adds source content for the given source file.
- *
- * @name addSourceContent
- * @function
- * @param sourceFile {String} The source file for which a mapping is included
- * @param sourcesContent {String} The content of the source file
- * @return {Object} The generator to allow chaining
- */
-Generator.prototype.addSourceContent = function (sourceFile, sourcesContent) {
-  this.sourcesContent = this.sourcesContent || {};
-  this.sourcesContent[sourceFile] = sourcesContent;
-  return this;
-};
-
-/**
- * @name base64Encode
- * @function
- * @return {String} bas64 encoded representation of the added mappings
- */
-Generator.prototype.base64Encode = function () {
-  var map = this.toString();
-  if (Buffer.from) {
-    return Buffer.from(map).toString('base64');
-  }
-  return new Buffer(map).toString('base64');
-};
-
-/**
- * @name inlineMappingUrl
- * @function
- * @return {String} comment with base64 encoded representation of the added mappings. Can be inlined at the end of the generated file.
- */
-Generator.prototype.inlineMappingUrl = function () {
-  var charset = this.opts.charset || 'utf-8';
-  return '//# sourceMappingURL=data:application/json;charset=' + charset + ';base64,' + this.base64Encode();
-};
-
-Generator.prototype.toJSON = function () {
-  var map = this.generator.toJSON();
-  if (!this.sourcesContent) return map;
-
-  var toSourcesContent = (function (s) {
-    if (typeof this.sourcesContent[s] === 'string') {
-      return this.sourcesContent[s];
-    } else {
-      return null;
+function logResult(r, action) {
+    var err = r.error;
+    
+    // We're all good. Log outcome and exit.
+    if (!err) {
+        logArgs(`${r.id}: ${ action }`);
+        logArgs(r);
+        return;
     }
-  }).bind(this);
-  map.sourcesContent = map.sources.map(toSourcesContent);
-  return map;
-};
 
-Generator.prototype.toString = function () {
-  return JSON.stringify(this);
-};
+    // These are well understood error paths.
+    // They shouldn't trigger error messages.
+    // Log and exit.
+    if (err.noConfig || err.prMerged || err.raceCondition) {
+        logArgs(`${r.id}: ${ action } (${err.message})`);
+        return;
+    }
 
-Generator.prototype._mappings = function () {
-  return this.generator._mappings._array;
-};
+    // Those are reall issues.
+    // Log in details
+    logArgs(`${r.id}: ${ action } (${err.name}: ${err.message})`);
+    if (r.errorRenderingErrorMsg) {
+        logArgs(`    Additionally, triggered the following error while attempting to render the error msg to the client:
+    errorRenderingErrorMsg.name}: ${r.errorRenderingErrorMsg.message}`);
+    }
+    if (err.data) { logArgs(err.data) };
+    if (err.stack && process.env.DISPLAY_STACK_TRACES == "yes") { logArgs(err.stack) };
+    logArgs(r);
+}
 
-Generator.prototype.gen = function () {
-  return this.generator;
-};
+const controller = new Controller();
 
-module.exports = function (opts) { return new Generator(opts); };
-module.exports.Generator = Generator;
+const STARTUP_QUEUE = process.env.STARTUP_QUEUE;
+if (STARTUP_QUEUE) {
+    try {
+        let queue = JSON.parse(STARTUP_QUEUE);
+        if (queue && queue.length && typeof queue[0].id == "string") {
+            logArgs(`Processing queue : ${ STARTUP_QUEUE }`);
+            function next() {
+                var r = queue.pop();
+                if (r) {
+                    logArgs(`Processing queue : ${ r.id }`);
+                    controller.handlePullRequest(r).then(r => logResult(r, "startup-queue"), logArgs).then(next);
+                } else {
+                    logArgs("Startup queue processed");
+                }
+            }
+            next();
+        } else {
+            throw new Error();
+        }
+    } catch (e) {
+        logArgs(`Malformed queue ${STARTUP_QUEUE}`);
+    }
+} else {
+    logArgs("No startup queue present");
+}
+
+var app = express();
+app.use(xhub({ algorithm: 'sha1', secret: process.env.GITHUB_SECRET, limit: '5Mb' }));
+
+app.post('/github-hook', function (req, res, next) {
+    if (process.env.NODE_ENV != 'production' || req.isXHubValid()) {
+        res.send(new Date().toISOString());
+        var payload = req.body;
+        if (payload.issue_comment) { // Depends on increased app permission
+            logArgs("comment");
+        } else if (payload.issue) { // Also depends on increased app permission
+            logArgs("issue");
+        } else if (payload.pull_request) {
+            if (payload.sender && payload.sender.login == "pr-preview[bot]") {
+                logArgs("skipping auto-generated changes");
+            } else {
+                let action = payload.action
+                switch(action) {
+                    case "opened":
+                    case "edited":
+                    case "reopened":
+                    case "synchronize":
+                        controller.queuePullRequest(payload).then(r => logResult(r, action), logArgs);
+                }
+            }
+        } else {
+            logArgs("Unknown request", JSON.stringify(payload, null, 4));
+        }
+    } else {
+        logArgs("Unverified request", req);
+    }
+    next();
+});
+
+app.post('/config', bodyParser.urlencoded({ extended: false }), function (req, res, next) {
+    let params = req.body;
+    controller[params.validate ? "getUrl" : "pullRequestUrl"](req.body)
+        .then(
+            url => res.redirect(url),
+            err => {
+                res.status(400).send({ error: err.message });
+                logArgs(`${err.name}: ${err.message}\n${err.stack}`);
+            }
+        ).then(_ => next(), _ => next());
+});
+
+var port = process.env.PORT || 5000;
+app.listen(port, function() {
+    console.log("Express server listening on port %d in %s mode", port, app.settings.env);
+    console.log("App started in", (Date.now() - t0) + "ms.");
+});
