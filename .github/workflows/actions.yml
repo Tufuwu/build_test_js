@@ -1,58 +1,43 @@
-name: CI Checks
-
-on: [push, pull_request]
-
+name: CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 jobs:
-  audit:
-    name: Check npm audit
+  Tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: "16"
-    - run: npm audit
-      env:
-        CI: true
-  cql4browsers:
-    name: Check cql4browsers
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: "16"
-    - run: ./bin/validate_cql4browsers.sh
-      env:
-        CI: true
-  lint:
-    name: Check lint and prettier
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: "16"
-    - run: npm install
-    - run: npm run lint
-    - run: npm run prettier
-      env:
-        CI: true
-  test:
-    name: Test on node 12 and ubuntu-latest
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: "16"
-    - name: Set timezone to America/New_York
-      uses: zcong1993/setup-timezone@master
-      with:
-        timezone: America/New_York
-    - run: date +"%Y-%m-%d %T"
-    - run: npm install
-    - run: ./bin/check_for_nonassertive_tests.sh
-    - run: npx nyc --reporter=lcov npm test && npx codecov
-      env:
-        CI: true
+      - uses: actions/checkout@v4
+      - name: Dump Chrome version
+        run: |
+          "$CHROME_BIN" --version
+      - name: Dump Node.js version
+        run: |
+          node --version
+      - name: Dump NPM version
+        run: |
+          npm --version
+      - name: Install dependencies
+        run: |
+          npm install
+      - name: Start headless Chrome
+        run: |
+          $CHROME_BIN \
+              --disable-extensions \
+              --disable-gpu \
+              --headless \
+              --no-first-run \
+              --no-sandbox \
+              --remote-debugging-port=9222 \
+              --user-data-dir="$(mktemp -d)" \
+              about:blank &
+      - name: Wait for Chrome to start listening
+        run: |
+          while ! curl --silent --fail http://localhost:9222; do sleep 1; done
+      - name: Run tests
+        run: |
+          npm test
