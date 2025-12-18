@@ -10,7 +10,7 @@
   },
   "colors": {
     "expect": "always",
-    "error": false
+    "error": true
   },
   "commaSpace": {
     "expect": "always",
@@ -23,10 +23,7 @@
   "cssLiteral": "never",
   "customProperties": [],
   "depthLimit": 4,
-  "duplicates": {
-    "expect": true,
-    "error": true
-  },
+  "duplicates": false,
   "efficient": {
     "expect": "always",
     "error": true
@@ -55,11 +52,8 @@
     "expect": true,
     "error": true
   },
-  "mixins": ["top-padded","right-padded","bottom-padded","left-padded","vertically-padded","horizontally-padded","padded","top-spaced","right-spaced","bottom-spaced","left-spaced","vertically-spaced","horizontally-spaced","spaced","hide","reset"],
-  "namingConvention": {
-    "expect": "lowercase-dash",
-    "error": true
-  },
+  "mixins": ["hide","reset"],
+  "namingConvention": false,
   "namingConventionStrict": false,
   "none": {
     "expect": "never",
@@ -74,7 +68,7 @@
     "error": true
   },
   "placeholders": {
-    "expect": "always",
+    "expect": false,
     "error": true
   },
   "prefixVarsWithDollar": false,

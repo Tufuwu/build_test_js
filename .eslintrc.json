@@ -1,24 +1,19 @@
 {
   "extends": ["cozy-app/react"],
-  "plugins": ["import-alias"],
   "rules": {
+    "no-console": "off",
     "no-param-reassign": "error",
-    "promise/no-callback-in-promise": "error",
-    "import-alias/import-alias": [
-      "error",
-      {
-        "relativeDepth": 1,
-        "aliases": [
-          { "alias": "components", "matcher": "^components" },
-          { "alias": "config", "matcher": "^config" },
-          { "alias": "containers", "matcher": "^containers" },
-          { "alias": "locales", "matcher": "^locales" },
-          { "alias": "lib", "matcher": "^lib" },
-          { "alias": "styles", "matcher": "^styles" },
-          { "alias": "test", "matcher": "^test" }
-        ]
-      }
-    ]
+    "react/display-name": "off",
+    "react-hooks/exhaustive-deps": "error"
+  },
+  "globals": {
+    "mount": true,
+    "shallow": true
+  },
+  "settings": {
+    "react": {
+      "version": "16.5.2"
+    }
   },
   "parserOptions": {
     "project": "tsconfig.json"

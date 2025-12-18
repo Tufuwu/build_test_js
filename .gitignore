@@ -1,14 +1,13 @@
-# NPM
-node_modules/
-npm-debug.log
+node_modules
+package-lock.json
+build
+dist
+.changelog
 yarn-error.log
+coverage
 
-
-# Build
-build/
-
-# Stack
-storage/
+# Users Environment Variables
+.lock-wscript
 
 # OS generated files
 .DS_Store
@@ -20,33 +19,10 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
+.cache
+transpiled
 
-# Editors / IDEs
-.floo
-.flooignore
-
-
-# Mobile
-mobile/hooks
-mobile/platforms
-mobile/plugins
-mobile/www
-mobile/keys
-
-
-# fastlane
-mobile/fastlane/README.md
-mobile/fastlane/report.xml
-mobile/fastlane/Error*.png
-mobile/fastlane/Preview.html
-mobile/Preview.html
-
-# Coverage
-coverage/
-
-# Dev data
-cozy_dev.json
-
-# Default
-# /!\ KEEP THIS SECTION THE LAST ONE
-!.gitkeep
+# Generated files
+react/Icon/icons-sprite.js
+react/palette.js
+/screenshots

@@ -1,45 +1,60 @@
-name: CI/CD
-
+name: Build and Deploy Cozy-ui
 on:
-  pull_request:
   push:
-    branches:
-      - main
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
-      - '[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+'
-
+    branches: [ main ]
+  pull_request:
 env:
-  MATTERMOST_CHANNEL: '{"dev":"app---home","beta":"app---home,publication","stable":"app---home,publication"}'
-  MATTERMOST_HOOK_URL: ${{ secrets.MATTERMOST_HOOK_URL }}
-  REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
-  BUNDLEMON_PROJECT_ID: ${{ secrets.BUNDLEMON_PROJECT_ID }}
-
+  ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 jobs:
   build:
-    name: Build and publish
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - name: Install packages
+        run: yarn install --frozen-lockfile --ignore-optional
       - name: Lint
         run: yarn lint
-      - name: Test
-        run: yarn test
-      - name: Build
+      - name: Generate Sprite and Palette
+        run: yarn makeSpriteAndPalette
+      - name: Build JS
         run: yarn build
-      - name: BundleMon
-        uses: lironer/bundlemon-action@v1
-      - name: Set SSH for downcloud
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.DOWNCLOUD_SSH_KEY }}
-      - name: Publish
-        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
-        run: yarn run cozyPublish --yes
+      - name: Build CSS
+        run: yarn build:css:all
+      - name: Build docs
+        run: |
+          yarn build:doc:react
+          yarn build:doc:kss
+      - name: Tests without snapshots
+        run: yarn test:noSnapshots
+      - name: Tests snapshots
+        run: yarn test:snapshots
+      # - name: Bundlemon
+      #   run: yarn bundlemon
+      - name: Argos - Prepare env
+        run: |
+          yarn add puppeteer@"21.11.0" --dev --exact
+          mkdir ./screenshots
+      - name: Argos - Create desktop screenshots
+        run: yarn screenshots --mode react --viewport desktop --screenshot-dir ./screenshots/reactDesktop
+      - name: Argos - Create mobile screenshots
+        run: yarn screenshots --mode react --viewport 300x600 --screenshot-dir ./screenshots/reactMobile
+      - name: Argos - Create kss screenshots
+        run: yarn screenshots --mode kss --screenshot-dir ./screenshots/kss
+      - name: Argos - Upload all screenshots
+        run: |
+          UUID=$(uuidgen)
+          yarn argos:upload --parallel screenshots/reactDesktop/ --token $ARGOS_TOKEN  --parallel-total 3 --parallel-nonce $GITHUB_RUN_ID-${UUID} --ignore ''
+          yarn argos:upload --parallel screenshots/reactMobile/ --token $ARGOS_TOKEN  --parallel-total 3 --parallel-nonce $GITHUB_RUN_ID-${UUID} --ignore ''
+          yarn argos:upload --parallel screenshots/kss/ --token $ARGOS_TOKEN  --parallel-total 3 --parallel-nonce $GITHUB_RUN_ID-${UUID} --ignore ''
+      - name: Deploy
+        if: ${{ github.ref_name == 'master' }}
+        run: |
+          yarn deploy:doc --username cozycloud --email contact@cozycloud.cc --repo https://cozy-bot:$GH_TOKEN@github.com/cozy/cozy-ui.git
+          yarn semantic-release
