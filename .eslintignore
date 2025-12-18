@@ -1,3 +1,4 @@
-/test
-/packages/*/node_modules
-/packages/*/test
+.nyc_output/
+coverage/
+lib/
+node_modules/

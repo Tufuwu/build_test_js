@@ -1,184 +1,72 @@
-# inline-css [![npm](http://img.shields.io/npm/v/inline-css.svg?style=flat)](https://badge.fury.io/js/inline-css) ![Build Status](https://github.com/jonkemp/inline-css/actions/workflows/main.yml/badge.svg?branch=master) [![Coverage Status](https://coveralls.io/repos/jonkemp/inline-css/badge.svg?branch=master&service=github)](https://coveralls.io/github/jonkemp/inline-css?branch=master)
+# Rainbows :rainbow:
+A prototype of the Rainbows programming language
 
-[![NPM](https://nodei.co/npm/inline-css.png?downloads=true)](https://nodei.co/npm/inline-css/)
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fnfischer%2Frainbows-lang%2Fbadge%3Fref%3Dmain&style=flat-square)](https://actions-badge.atrox.dev/nfischer/rainbows-lang/goto?ref=main)
+[![Codecov](https://img.shields.io/codecov/c/github/nfischer/rainbows-lang/main.svg?style=flat-square&label=coverage)](https://codecov.io/gh/nfischer/rainbows-lang)
+[![Try online](https://img.shields.io/badge/try_it-online!-yellow.svg?style=flat-square)](https://nfischer.github.io/rainbows-lang/)
 
-> Inline your CSS properties into the `style` attribute in an html file. Useful for emails.
+*Because coding should be as easy as coloring in the lines, and programs should
+be as readable as coloring books* :art:
 
-Inspired by the [juice](https://github.com/Automattic/juice) library.
+To learn about the motivation, check out the original [one page design
+doc](doc/OnePager3v2.pdf).
 
-## Features
-- Uses [cheerio](https://github.com/cheeriojs/cheerio) instead of jsdom
-- Works on Windows
-- Preserves Doctype
-- Modular
-- Gets your CSS automatically through style and link tags
-- Functions return [A+ compliant](https://promisesaplus.com/) Promises
+Try out the [online live coding
+environment](https://nfischer.github.io/rainbows-lang/) and let me know what you
+think!
 
-## How It Works
+## Browser Compatibility
 
-This module takes html and inlines the CSS properties into the style attribute.
+I'm taking advantage of [css
+variables](https://developers.google.com/web/updates/2016/02/css-variables-why-should-you-care?hl=en),
+so your browser will need to support these. This should be fine for Chrome
+v49+, Firefox 29+, and Safari 9.1+. Also, there is no mobile support as of yet.
 
-`/path/to/file.html`:
-```html
-<html>
-<head>
-  <style>
-    p { color: red; }
-  </style>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <p>Test</p>
-</body>
-</html>
+If this project is not compatible with these browsers, please let me know. If
+you want to run the dev unit tests, you'll need NodeJS v6+.
+
+## Language features
+
+ - Types are specified by color
+ - JavaScript-inspired syntax
+ - Type inference
+ - Stricter typing than in Javascript
+ - Type hints for function APIs (a colorful underline serves to remind what type
+   the function will implicitly cast your values to)
+
+## [Live coding environment](https://nfischer.github.io/rainbows-lang/)
+
+ - Quickly cast things to a different type just by using the color slider
+ - Customize the color scheme by picking new colors for each type
+ - Type hints pop up when hovering over any identifier or literal
+ - Type errors display at the bottom of the editor
+
+Also, check out the [official vim
+plugin](https://github.com/nfischer/vim-rainbows)!
+
+## Soon to come
+
+ - The ability to hook into npm modules
+ - Alternatives for colorblindness and accessibility
+ - Object orientation and custom types
+ - Types for expressions will be shown by highlighting the surrounding
+   parentheses in the appropriate color
+
+## Contributing (help is appreciated!)
+
+The best way you can contribute right now is to help think of examples where
+Rainbows shines! If you have a short code snippet you think Rainbows would help
+make more readable, feel free to suggest it an issue or send a PR against [the
+examples list](src/rb-examples.js).
+
+## Building the project
+
+First, install it (**and the git submodule dependencies!**)
+
+```Bash
+$ git clone --recursive https://github.com/nfischer/rainbows-lang.git
+$ cd rainbows-lang/
+$ npm install
 ```
 
-`style.css`
-```css
-p {
-  text-decoration: underline;
-}
-```
-
-Output:
-```html
-<html>
-<head>
-</head>
-<body>
-  <p style="color: red; text-decoration: underline;">Test</p>
-</body>
-</html>
-```
-
-## What is this useful for ?
-
-- HTML emails. For a comprehensive list of supported selectors see
-[here](http://www.campaignmonitor.com/css/)
-- Embedding HTML in 3rd-party websites.
-- Performance. Downloading external stylesheets delays the rendering of the page in the browser. Inlining CSS speeds up this process because the browser doesn't have to wait to download an external stylesheet to start rendering the page.
-
-
-## Install
-
-Install with [npm](https://npmjs.org/package/inline-css)
-
-```
-npm install --save inline-css
-```
-
-## Usage
-
-```js
-var inlineCss = require('inline-css');
-var html = "<style>div{color:red;}</style><div/>";
-
-inlineCss(html, options)
-    .then(function(html) { console.log(html); });
-```
-
-## API
-
-### inlineCss(html, options)
-
-
-#### options.extraCss
-
-Type: `String`  
-Default: `""`
-
-Extra css to apply to the file.
-
-
-#### options.applyStyleTags
-
-Type: `Boolean`  
-Default: `true`
-
-Whether to inline styles in `<style></style>`.
-
-
-#### options.applyLinkTags
-
-Type: `Boolean`  
-Default: `true`
-
-Whether to resolve `<link rel="stylesheet">` tags and inline the resulting styles.
-
-
-#### options.removeStyleTags
-
-Type: `Boolean`  
-Default: `true`
-
-Whether to remove the original `<style></style>` tags after (possibly) inlining the css from them.
-
-
-#### options.removeLinkTags
-
-Type: `Boolean`  
-Default: `true`
-
-Whether to remove the original `<link rel="stylesheet">` tags after (possibly) inlining the css from them.
-
-#### options.url
-
-Type: `String`  
-Default: `filePath`
-
-How to resolve hrefs. **Required**.
-
-#### options.preserveMediaQueries
-
-Type: `Boolean`  
-Default: `false`
-
-Preserves all media queries (and contained styles) within `<style></style>` tags as a refinement when `removeStyleTags` is `true`. Other styles are removed.
-
-#### options.applyWidthAttributes
-
-Type: `Boolean`  
-Default: `false`
-
-Whether to use any CSS pixel widths to create `width` attributes on elements.
-
-#### options.applyTableAttributes
-
-Type: `Boolean`  
-Default: `false`
-
-Whether to apply the `border`, `cellpadding` and `cellspacing` attributes to `table` elements.
-
-#### options.removeHtmlSelectors
-
-Type: `Boolean`  
-Default: `false`
-
-Whether to remove the `class` and `id` attributes from the markup.
-
-#### options.codeBlocks
-
-Type: `Object`  
-Default: `{ EJS: { start: '<%', end: '%>' }, HBS: { start: '{{', end: '}}' } }`
-
-An object where each value has a `start` and `end` to specify fenced code blocks that should be ignored during parsing and inlining. For example, Handlebars (hbs) templates are `HBS: {start: '{{', end: '}}'}`. `codeBlocks` can fix problems where otherwise inline-css might interpret code like `<=` as HTML, when it is meant to be template language code. Note that `codeBlocks` is a dictionary which can contain many different code blocks, so don't do `codeBlocks: {...}` do `codeBlocks.myBlock = {...}`.
-
-### Special markup
-
-#### data-embed
-
-When a data-embed attribute is present on a <style></style> tag, inline-css will not inline the styles and will not remove the <style></style> tags.
-
-This can be used to embed email client support hacks that rely on css selectors into your email templates.
-
-### cheerio options
-
-Options to passed to [cheerio](https://github.com/cheeriojs/cheerio).
-
-## Contributing
-
-See the [CONTRIBUTING Guidelines](https://github.com/jonkemp/inline-css/blob/master/CONTRIBUTING.md)
-
-## License
-
-MIT © [Jonathan Kemp](http://jonkemp.com)
+Next, run it in the browser using `npm start`.

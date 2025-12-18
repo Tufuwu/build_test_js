@@ -1,0 +1,76 @@
+/* Take out the old codemirror styling */
+.cm-comment {
+  color: darkcyan !important;
+}
+.cm-variable, .cm-variable-2, .cm-keyword, .cm-s-default, .cm-def, .cm-atom {
+  color: grey !important;
+}
+
+/* /1* Rainbows default color scheme (evenly spaced in the spectrum) *1/ */
+/* :root { */
+/*   --string-color: hsl(340,  100%, 60%); */
+/*   --bool-color:   hsl(40,   100%, 60%); */
+/*   --list-color:   hsl(100,  100%, 60%); */
+/*   --float-color:  hsl(160,  100%, 60%); */
+/*   --int-color:    hsl(220,  100%, 60%); */
+/*   --dict-color:   hsl(280,  100%, 60%); */
+/* } */
+
+/* Rainbows default color scheme (custom-picked) */
+:root {
+  --bool-color:   hsl(60,   100%, 60%);
+  --string-color: #FF4F4F;
+  --int-color: #0084FF;
+  --float-color:  hsl(140,  100%, 60%);
+  --dict-color: #CE00CE;
+  --list-color: #00BA00;
+}
+
+/* standard Rainbows types */
+.rb-type-keyword {
+  font-style: italic !important;
+}
+.rb-type-bool {
+  color: var(--bool-color) !important;
+  font-weight: bold;
+}
+.rb-type-string {
+  color: var(--string-color) !important;
+  font-weight: bold;
+}
+.rb-type-int {
+  color: var(--int-color) !important;
+  font-weight: bold;
+}
+.rb-type-float {
+  color: var(--float-color) !important;
+  font-weight: bold;
+}
+.rb-type-dict {
+  color: var(--dict-color) !important;
+  font-weight: bold;
+}
+.rb-type-list {
+  color: var(--list-color) !important;
+  font-weight: bold;
+}
+
+/* For "underlining" arguments */
+.rb-arg-type-bool {
+  border-bottom: 0.2em solid var(--bool-color) !important;
+}
+.rb-arg-type-string {
+  border-bottom: 0.2em solid var(--string-color) !important;
+}
+.rb-arg-type-int {
+  border-bottom: 0.2em solid var(--int-color) !important;
+}
+.rb-arg-type-float {
+  border-bottom: 0.2em solid var(--float-color) !important;
+}
+.rb-arg-type-dict {
+  border-bottom: 0.2em solid var(--dict-color) !important;
+}
+.rb-arg-type-list {
+  border-bottom: 0.2em solid var(--list-color) !important;
+}

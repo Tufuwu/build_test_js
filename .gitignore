@@ -1,3 +1,9 @@
-node_modules
-coverage
-.nyc_output
+node_modules/
+coverage/
+.nyc_output/
+
+npm-debug.log
+
+# Any .rain files I'm testing out
+*.rain
+*.raint
