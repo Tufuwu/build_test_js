@@ -1,165 +1,129 @@
-# protocol-buffers
+![React JSX Highcharts](https://user-images.githubusercontent.com/2003804/40681848-2d0f5ce2-6382-11e8-8ce9-cd49c409ad2e.png)
 
-[Protocol Buffers](https://developers.google.com/protocol-buffers/) for Node.js
+[![Build Status](https://travis-ci.com/whawker/react-jsx-highcharts.svg?branch=master)](https://travis-ci.com/whawker/react-jsx-highcharts)
 
+[Highcharts](https://github.com/highcharts/highcharts) built with **proper React components**. More that just a simple wrapper - utilises the power of React props to create dynamic charts!
+
+React JSX Highcharts offers separate packages for each Highcharts product.
+
+##### [Highcharts](/packages/react-jsx-highcharts)
+
+##### [Highstock](/packages/react-jsx-highstock)
+
+##### [Highmaps](/packages/react-jsx-highmaps)
+
+## Why React JSX Highcharts?
+
+Unlike other React Highcharts wrapper libraries, **React JSX Highcharts** is designed to be dynamic - it is optimised for _interactive_ charts that need to adapt to business logic in your React application.
+
+Other Highcharts wrappers completely destroy and recreate the chart when the configuration options change, which is _very_ wasteful and inefficient.
+
+React JSX Highcharts uses a different approach. By providing React components for each Highcharts component, we can observe exactly which prop has changed and call the optimal Highcharts method behind the scenes. For example, if the `data` prop were to change on a `<Series />` component, React JSX Highcharts can follow Highcharts best practices and use the `setData` method rather than the more expensive `update`.
+
+React JSX Highcharts also enables you to write your _own_ Highcharts components, via its exposed hooks.
+
+## Installation
+
+```sh
+# Install the appropriate React JSX package
+npm install --save react-jsx-highcharts
+#               or react-jsx-highstock
+#               or react-jsx-highmaps
+
+# And the peer dependencies
+npm install --save react react-dom prop-types highcharts@^9.0.0
 ```
-npm install protocol-buffers
+
+## Licensing
+
+React JSX Highcharts is free to use, however **Highcharts** itself requires a license for **commercial** use. [Highcharts license FAQs](https://shop.highsoft.com/faq).
+
+## [Documentation](https://github.com/whawker/react-jsx-highcharts/wiki)
+
+## [Examples](https://codesandbox.io/s/github/whawker/react-jsx-highcharts-examples)
+
+## Getting started
+
+The intention of this library is to provide a very thin abstraction of Highcharts using React components. This has been achieved by passing Highcharts configuration options as component props.
+
+In the vast majority of cases, the name of the configuration option, and the name of the component prop are the same.
+
+#### Example
+
+`<Tooltip />` component
+
+```jsx
+<Tooltip padding={10} hideDelay={250} shape="square" split />
 ```
 
-[![build status](https://github.com/mafintosh/protocol-buffers/actions/workflows/test.yml/badge.svg)](https://github.com/mafintosh/protocol-buffers/actions/workflows/test.yml)
-![dat](http://img.shields.io/badge/Development%20sponsored%20by-dat-green.svg?style=flat)
+This corresponds to the Highcharts' [`tooltip`](http://api.highcharts.com/highcharts/tooltip) configuration of
 
-## Usage
-
-Assuming the following `test.proto` file exists
-
-```proto
-enum FOO {
-  BAR = 1;
+```js
+tooltip: {
+  enabled: true, // This is assumed when component is mounted
+  padding: 10,
+  hideDelay: 250,
+  shape: 'square',
+  split: true
 }
+```
 
-message Test {
-  required float num  = 1;
-  required string payload = 2;
+We aim to pass all configuration options using the same name, so we use [Highcharts' documentation](http://api.highcharts.com/highcharts) to figure out how to achieve the same with React JSX Highcharts.
+
+### Note:
+
+There are **two** exceptions to the above;
+
+#### Exception 1
+
+Where Highcharts **events** are concerned - instead of passing `events` as an object, we use the React convention _onEventName_.
+
+#### Example
+
+```jsx
+<SplineSeries
+  id="my-series"
+  data={myData}
+  onHide={this.handleHide}
+  onShow={this.handleShow}
+/>
+```
+
+This would correspond to the Highcharts configuration
+
+```js
+series: [
+  {
+    type: 'spline',
+    id: 'my-series',
+    data: myData,
+    events: { hide: this.handleHide, show: this.handleShow }
+  }
+];
+```
+
+#### Exception 2
+
+`text` configuration options are passed as a React child
+
+#### Example
+
+```jsx
+<Title>Some Text Here</Title>
+```
+
+This would correspond to the Highcharts configuration
+
+```js
+title: {
+  text: 'Some Text Here';
 }
-
-message AnotherOne {
-  repeated FOO list = 1;
-}
 ```
 
-Use the above proto file to encode/decode messages by doing
+## Acknowledgements
 
-``` js
-var protobuf = require('protocol-buffers')
+Thanks to [Recharts](https://github.com/recharts/recharts) for the inspiration of building charts with separate components.
 
-// pass a proto file as a buffer/string or pass a parsed protobuf-schema object
-var messages = protobuf(fs.readFileSync('test.proto'))
+Thanks to Highcharts themselves, obviously.
 
-var buf = messages.Test.encode({
-  num: 42,
-  payload: 'hello world'
-})
-
-console.log(buf) // should print a buffer
-```
-
-To decode a message use `Test.decode`
-
-``` js
-var obj = messages.Test.decode(buf)
-console.log(obj) // should print an object similar to above
-```
-
-Enums are accessed in the same way as messages
-
-``` js
-var buf = messages.AnotherOne.encode({
-  list: [
-    messages.FOO.BAR
-  ]
-})
-```
-
-Nested emums are accessed as properties on the corresponding message
-
-``` js
-var buf = message.SomeMessage.encode({
-  list: [
-    messages.SomeMessage.NESTED_ENUM.VALUE
-  ]
-})
-```
-
-See the [Google Protocol Buffers docs](https://developers.google.com/protocol-buffers/) for more information about the
-available types etc.
-
-## Compile to a file
-
-Since v4 you can now compile your schemas to a JavaScript file you can require from Node.
-This means you do not have runtime parse the schemas, which is useful if using in the browser or on embedded devices.
-It also makes the dependency footprint a lot smaller.
-
-``` sh
-# first install the cli tool
-npm install -g protocol-buffers
-
-# compile the schema
-protocol-buffers test.proto -o messages.js
-
-# then install the runtime dependency in the project
-npm install --save protocol-buffers-encodings
-```
-
-That's it! Then in your application you can simply do
-
-``` js
-var messages = require('./messages')
-
-var buf = messages.Test.encode({
-  num: 42
-})
-```
-
-The compilation functionality is also available as a JavaScript API for programmatic use:
-
-``` js
-var protobuf = require('protocol-buffers')
-
-// protobuf.toJS() takes the same arguments as protobuf()
-var js = protobuf.toJS(fs.readFileSync('test.proto'))
-fs.writeFileSync('messages.js', js)
-```
-
-## Performance
-
-This module is fast.
-
-It uses code generation to build as fast as possible encoders/decoders for the protobuf schema.
-You can run the benchmarks yourself by doing `npm run bench`.
-
-On my Macbook Air it gives the following results
-
-```
-Benchmarking JSON (baseline)
-  Running object encoding benchmark...
-  Encoded 1000000 objects in 2142 ms (466853 enc/s)
-
-  Running object decoding benchmark...
-  Decoded 1000000 objects in 970 ms (1030928 dec/s)
-
-  Running object encoding+decoding benchmark...
-  Encoded+decoded 1000000 objects in 3131 ms (319387 enc+dec/s)
-
-Benchmarking protocol-buffers
-  Running object encoding benchmark...
-  Encoded 1000000 objects in 2089 ms (478698 enc/s)
-
-  Running object decoding benchmark...
-  Decoded 1000000 objects in 735 ms (1360544 dec/s)
-
-  Running object encoding+decoding benchmark...
-  Encoded+decoded 1000000 objects in 2826 ms (353857 enc+dec/s)
-```
-
-Note that JSON parsing/serialization in node is a native function that is *really* fast.
-
-## Leveldb encoding compatibility
-
-Compiled protocol buffers messages are valid levelup encodings.
-This means you can pass them as `valueEncoding` and `keyEncoding`.
-
-``` js
-var level = require('level')
-var db = level('db')
-
-db.put('hello', {payload:'world'}, {valueEncoding:messages.Test}, function(err) {
-  db.get('hello', {valueEncoding:messages.Test}, function(err, message) {
-    console.log(message)
-  })
-})
-```
-
-## License
-
-MIT
+Thanks to @anajavi for all the help and support in maintaining this project.
