@@ -1,78 +1,152 @@
-# https-pem
+# aria-api
 
-Self-signed PEM key and certificate ready for use in your HTTPS server.
+[WAI-ARIA](https://www.w3.org/TR/wai-aria/) allows websites to provide
+additional semantics to assistive technologies. Roles and attributes can be set
+either explicitly (e.g. `<span role="link">click me</span>`) or implicitly
+(`<a href="//example.com">click me</a>` implicitly has the role "link").
 
-A dead simple way to get an HTTPS server running in development with no
-need to generate the self signed PEM key and certificate.
+While the implicit mappings make authoring accessible websites simpler, it
+makes the task of calculating an element's role and attributes more
+complicated. This library takes care of exactly that.
 
-[![Build status](https://travis-ci.org/watson/https-pem.svg?branch=master)](https://travis-ci.org/watson/https-pem)
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)
+## Install
 
-## Installation
+    npm install aria-api
 
-```
-npm install https-pem
-```
+This installation method works best if you use tools like webpack or
+browserify. There is also an UMD build included as `dist/aria.js`.
 
-**Warning:** Upon installation a private key and a self signed
-certificate will be generated inside `./node_modules/https-pem`. The
-certificate is valid for 365 days and no attempt have been made to make
-this secure in any way. I suggest only using this for testing and
-development where you just need an easy and quick way to run an HTTPS
-server with Node.js.
+# Usage
 
-## Example Usage
+    var aria = require('aria-api'):
 
-```js
-var https = require('https')
-var pem = require('https-pem')
+    aria.querySelector('landmark').forEach(landmark => {
+        if (!aria.matches(landmark, ':hidden')) {
+            var role = aria.getRole(landmark);
+            var name = aria.getName(landmark);
+            console.log(role, name);
+        }
+    });
 
-var server = https.createServer(pem, function (req, res) {
-  res.end('This is servered over HTTPS')
-})
+## getRole(element)
 
-server.listen(443, function () {
-  console.log('The server is running on https://localhost')
-})
-```
+Calculate an element's role.
 
-### Connecting
+Note that this will return only the most specific role. If you want to know
+whether an element *has* a role, use `matches()` instead.
 
-When connecting to an HTTPS server from Node.js that uses a self-signed
-certificate, `https.request` will normally emit an `error` and refuse to
-complete the reuqest. To get around that simply set the
-`rejectUnauthorized` option to `false`:
+## getAttribute(element, attribute)
 
-```js
-var opts = { rejectUnauthorized: false }
+Calculate the value of an element's attribute (state or property). The
+"aria-" prefix is not included in the attribute name.
 
-var req = https.request(opts, function (res) {
-  // ...
-})
+## getName(element)
 
-req.end()
-```
+Calculate an element's name according to the [Accessible Name and Description
+Computation](https://www.w3.org/TR/accname-aam-1.1/#mapping_additional_nd_te).
 
-If using `curl` to connect to a Node.js HTTPS server using a
-self-signed certificate, use the `-k` option:
+## getDescription(element)
 
-```
-curl -k https://localhost:443
-```
+Calculate an element's description according to the [Accessible Name and
+Description Computation](https://www.w3.org/TR/accname-aam-1.1/#mapping_additional_nd_te).
 
-## API
+## matches(element, selector)
 
-The `https-pem` module simply exposes an object with two properties:
-`key` and `cert`.
+Similar to [Element.matches()](https://developer.mozilla.org/en-US/docs/Web/API/Element/matches),
+this allows to check whether an element matches a selector. A selector can be
+any of the following:
 
-### `pem.key`
+-   `role`: Matches if the element has the specified role. This also works for
+    hierarchical roles such as "landmark".
+-   `:attribute`: Matches if the attribute is truthy. The "aria-" prefix is not
+    included in the attribute name.
+-   `[attribute="value"]`: Matches if the value of the attribute converted to
+    string equals the specified value.
 
-The private key (RSA).
+Note that combinations of selectors are **not supported** (e.g. `main link`,
+`link:hidden`, `:not(:hidden)`).  The single exception to this rule are
+comma-separated lists of roles, e.g. `link,button`.
 
-### `pem.cert`
+## querySelector(element, selector)
 
-The certificate.
+Similar to [Element.querySelector()](https://developer.mozilla.org/en-US/docs/Web/API/Element/querySelector).
+See `matches()` for details.
 
-## License
+## querySelectorAll(element, selector)
 
-MIT
+Similar to [Element.querySelectorAll()](https://developer.mozilla.org/en-US/docs/Web/API/Element/querySelectorAll).
+See `matches()` for details.
+
+## closest(element, selector)
+
+Similar to [Element.closest()](https://developer.mozilla.org/en-US/docs/Web/API/Element/closest).
+See `matches()` for details.
+
+## getParentNode(node)
+
+Similar to [Node.parentNode](https://developer.mozilla.org/en-US/docs/Web/API/Node/parentNode),
+but takes `aria-owns` into account.
+
+## getChildNodes(node)
+
+Similar to [Node.childNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node/childNodes),
+but takes `aria-owns` into account.
+
+# What is this for?
+
+First of all, I thought that something like this should exist. I currently use
+it for [a11y-outline](https://github.com/xi/a11y-outline/), a web extension
+that generates outlines based on WAI-ARIA roles.
+
+That said, this is what I think it could also be used for:
+
+-   Providing features based on the additional information provided by ARIA,
+    e.g. landmark navigation.
+-   Tools helping developers with improving accessibility.
+
+# Implemented standards
+
+-   [Accessible Rich Internet Applications 1.1](https://www.w3.org/TR/wai-aria-1.1/)
+-   [Core Accessibility API Mappings 1.1](https://www.w3.org/TR/core-aam-1.1/)
+-   [HTML Accessibility API Mappings 1.0](https://www.w3.org/TR/html-aam-1.0/)
+-   [WAI-ARIA Graphics Module 1.0](https://www.w3.org/TR/graphics-aria-1.0/)
+-   [Digital Publishing WAI-ARIA Module 1.0](https://www.w3.org/TR/dpub-aria-1.0/)
+-   [Accessible Name and Description Computation 1.1](https://www.w3.org/TR/accname-1.1/)
+
+I try to update the code whenever a new version of these specs becomes a
+recommendation.
+
+# Notes
+
+-   This is a pet project. I do not have the time to do extensive testing and
+    may skip some details now and then. I am happy to receive bug reports and
+    pull requests though.
+-   The standards are still in a very rough state. Many things are
+    unclear/undecided and therefore no browser really implements them. So
+    naturally, this library cannot really implement the standards either.
+-   This library does not do any validity checks. Invalid attributes or roles
+    will not produce any warnings.
+-   In order to calculate the "hidden" attribute,
+    [Window.getComputedStyle()](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle)
+    is called. This only seems to return reliable values if the element is
+    attached to `document`.
+-   Due to security restrictions it is not generally possible to inspect the
+    content of iframes, so they are ignored.
+
+# Related projects
+
+-   [Visual ARIA Bookmarklet](http://whatsock.com/training/matrices/visual-aria.htm):
+    Displays role, name, and description in any website. Maintained by one of
+    the editors of the [accname]() spec.
+-   [axe-core](https://github.com/dequelabs/axe-core/) and
+    [Accessibility Developer Tools](https://github.com/GoogleChrome/accessibility-developer-tools):
+    These are libraries for accessibility testing. They solve many of the same
+    issues as this library internally.
+-   [ARIA Query](https://github.com/A11yance/aria-query):
+    Information from the ARIA spec as JavaScript structures.
+-   [Accessibility Object Model](https://wicg.github.io/aom/):
+    Draft spec for exposing the accessibility tree to JavaScript.
+-   [chrome.automation](https://developer.chrome.com/extensions/automation):
+    A propriatary API that exposes the accessibility tree to JavaScript.
+-   [babelacc](https://xi.github.io/babelacc/):
+    A tool to compare the output of different libraries.

@@ -1,7 +1,18 @@
-'use strict'
+var query = require('./lib/query.js');
+var name = require('./lib/name.js');
+var atree = require('./lib/atree.js');
 
-var path = require('path')
-var fs = require('fs')
+module.exports = {
+	getRole: query.getRole,
+	getAttribute: query.getAttribute,
+	getName: name.getName,
+	getDescription: name.getDescription,
 
-exports.key = fs.readFileSync(path.join(__dirname, 'key.pem'))
-exports.cert = fs.readFileSync(path.join(__dirname, 'cert.pem'))
+	matches: query.matches,
+	querySelector: query.querySelector,
+	querySelectorAll: query.querySelectorAll,
+	closest: query.closest,
+
+	getParentNode: atree.getParentNode,
+	getChildNodes: atree.getChildNodes,
+};

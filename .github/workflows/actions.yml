@@ -1,19 +1,14 @@
-name: CI
-on:
-  push:
-    branches: ['main']
-  pull_request:
-    branches: ['*']
+on: [push]
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: ["16"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm install
-      - run: npm test
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+    - name: dependencies
+      run: npm install
+    - run: mkdir -p dist
+    - name: build
+      run: npx browserify index.js -o dist/aria.js -s aria
+    - name: test
+      run: npx mocha-headless-chrome -a no-sandbox -f test/index.html
