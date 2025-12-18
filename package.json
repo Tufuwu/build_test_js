@@ -1,75 +1,29 @@
 {
-  "name": "sails-hook-sequelize",
-  "version": "1.2.2",
-  "description": "Sails.js hook to use sequelize ORM",
-  "main": "index.js",
-  "sails": {
-    "isHook": true
-  },
-  "scripts": {
-    "lint": "node ./node_modules/.bin/eslint index.js test/*.js test/unit/*.js",
-    "lint:fix": "node ./node_modules/.bin/eslint --fix index.js test/*.js test/unit/*.js",
-    "test": "NODE_ENV=test nyc ./node_modules/mocha/bin/mocha --exit test/overall.test.js",
-    "cover": "nyc report",
-    "pretest": "cd ./test/fixtures/v0.11-app && npm i --prefix ./ && cd - && cd ./test/fixtures/v0.12-app && npm i --prefix ./ && cd -",
-    "posttest": "git checkout -- test/fixtures/v1.x-sqlite3-app/db/sequelize.sqlite && git checkout -- test/fixtures/v1.x-sequelize-waterline-app/db/sequelize.sqlite"
-  },
-  "nyc": {
-    "include": [
-      "index.js"
-    ],
-    "report-dir": "./coverage",
-    "temp-dir": "./coverage",
-    "reporter": [
-      "lcov",
-      "text-summary",
-      "html"
-    ]
-  },
-  "keywords": [
-    "sails",
-    "sequelize",
-    "orm"
-  ],
-  "author": "Gergely Munkacsy",
-  "contributors": [
-    "Konstantin Burkalev",
-    "Dmitry Demenchuk",
-    "Damien Marble",
-    "Abel M. Osorio"
-  ],
+  "name": "metalsmith-gzip",
+  "version": "1.1.0",
+  "author": "Ludovico Fischer",
   "license": "MIT",
-  "devDependencies": {
-    "coveralls": "^3.1.0",
-    "decache": "^4.6.0",
-    "eslint": "^7.1.0",
-    "istanbul": "^0.4.5",
-    "json3": "^3.3.3",
-    "minimatch": "^3.0.4",
-    "mocha": "^7.2.0",
-    "nyc": "^15.1.0",
-    "pg": "^8.2.1",
-    "pg-hstore": "^2.3.3",
-    "sails": "^1.2.4",
-    "sails-hook-orm": "^3.0.1",
-    "sails-memory": "^0.10.7",
-    "should": "^13.2.3",
-    "sqlite3": "^4.2.0",
-    "supertest": "^4.0.2"
+  "description": "A Metalsmith plugin to compress build files with gzip.",
+  "keywords": [
+    "metalsmith",
+    "plugin"
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "node test/index.js"
   },
   "dependencies": {
-    "continuation-local-storage": "^3.2.1",
-    "sequelize": "^5.21.11"
+    "async": "^3.0.1",
+    "micromatch": "^4.0.2"
   },
-  "directories": {
-    "test": "test"
+  "devDependencies": {
+    "tape": "^4.2.0",
+    "metalsmith": "^2.1.0"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:KSDaemon/sails-hook-sequelize.git"
+    "url": "https://github.com/ludovicofischer/metalsmith-gzip"
   },
-  "bugs": {
-    "url": "https://github.com/KSDaemon/sails-hook-sequelize/issues"
-  },
-  "homepage": "https://github.com/KSDaemon/sails-hook-sequelize"
+  "homepage": "https://github.com/ludovicofischer/metalsmith-gzip",
+  "bugs": "https://github.com/ludovicofischer/metalsmith-gzip/issues"
 }

@@ -1,126 +1,65 @@
-# sails-hook-sequelize
-Sails.js hook to use sequelize ORM
+# metalsmith-gzip 
 
-[![NPM version][npm-image]][npm-url]
-[![Build Status][gh-build-test-image]][gh-build-test-url]
-[![Code coverage][coveralls-image]][coveralls-url]
-[![MIT License][license-image]][license-url]
-[![Known Vulnerabilities][snyk-image]][snyk-url]
+A [Metalsmith](http://metalsmith.io) plugin that creates gzipped copies of the site's content. This is useful for website hosting on Amazon S3, where on the fly compression in the server is impossible.
 
-# Installation
-
-Install this hook with:
-
-```sh
-$ npm install sails-hook-sequelize --save
-```
-
-# Configuration
-
-`.sailsrc`
+## Installation
 
 ```
-{
-  "hooks": {
-    "orm": false,
-    "pubsub": false
-  }
-}
+$ npm install metalsmith-gzip
 ```
 
-Also you can set some parameters in `config/sequelize.js` to override defaults.
-
-```
-module.exports.sequelize = {
-    "clsNamespace": "myAppCLSNamespace",
-    "exposeToGlobal": true
-};
-```
-
-## Connections
-
-Sequelize connection.
-
-**Important note:** `dialect` keyword MUST be present in connection or connection.options.
+## Usage
 
 ```javascript
-somePostgresqlServer: {
-  user: 'postgres',
-  password: '',
-  database: 'sequelize',
-  dialect: 'postgres',
-  options: {
-    dialect: 'postgres',
-    host   : 'localhost',
-    port   : 5432,
-    logging: console.log        // or specify sails log level to use ('info', 'warn', 'verbose', etc)
-  }
-}
+var Metalsmith = require('metalsmith');
+var compress = require('metalsmith-gzip');
+
+var metalsmith = new Metalsmith(__dirname)
+  .use(compress());
+
 ```
 
-## Models
-
-Sequelize model definition `models/user.js`
+`metalsmith-gzip` will gzip a file if the extension matches this regular expression:
 
 ```javascript
-module.exports = {
-  attributes: {
-    name: {
-      type: Sequelize.STRING,
-      allowNull: false
-    },
-    age: {
-      type: Sequelize.INTEGER
-    }
-  },
-  associations: function() {
-    user.hasMany(image, {
-      foreignKey: {
-        name: 'owner',
-        allowNull: false
-      }
-    });
-  },
-  defaultScope: function() {
-    return {
-      include: [
-        {model: image, as: 'images'}
-      ]
-    }
-  },
-  options: {                                  // Options must exists (even if empty) in order to consider this model a Sequelize model
-    tableName: 'user',
-    classMethods: {},
-    instanceMethods: {},
-    hooks: {},
-    scopes: {},
-  },
-  connection: 'NotDefaultModelsConnection'    // Can be omitted, so default sails.config.models.connection will be used
-};
+/\.[html|css|js|json|xml|svg|txt]/
 ```
 
-# Contributors
-This project was originally created by Gergely Munkácsy (@festo).
-Now is maintained by Konstantin Burkalev (@KSDaemon).
+The choice of files to compress is loosely based on the [HTML5 Boilerplate server configuration](https://github.com/h5bp/server-configs-apache).
 
-# License
-[MIT](./LICENSE)
+### Customization
 
-Thanks JetBrains for support! Best IDEs for every language!
+Pass an options object to customize metalsmith-gzip behaviour. These are the available options keys:
 
-[![JetBrains](https://user-images.githubusercontent.com/458096/54276284-086cad00-459e-11e9-9684-47536d9520c4.png)](https://www.jetbrains.com/?from=wampy.js)
+`src` is a [multimatch](https://github.com/sindresorhus/multimatch) pattern which specifies which types of files to compress.
 
-[npm-url]: https://www.npmjs.com/package/sails-hook-sequelize
-[npm-image]: https://img.shields.io/npm/v/sails-hook-sequelize.svg?style=flat
+```javascript
+var metalsmith = new Metalsmith(__dirname)
+  .use(compress({src: ['**/*.js', '**/*.css']})); // only compresses JavaScript and CSS
 
-[gh-build-test-url]: https://github.com/KSDaemon/sails-hook-sequelize/actions/workflows/build-and-test.yml
-[gh-build-test-image]: https://github.com/KSDaemon/sails-hook-sequelize/actions/workflows/build-and-test.yml/badge.svg
+```
 
-[coveralls-url]: https://coveralls.io/github/KSDaemon/sails-hook-sequelize
-[coveralls-image]: https://img.shields.io/coveralls/KSDaemon/sails-hook-sequelize/master.svg?style=flat
+`gzip` is the same configuration object accepted by `zlib.createGzip` (http://nodejs.org/api/zlib.html#zlib_options). For example, you can set the compression level:
 
-[license-image]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-url]: http://opensource.org/licenses/MIT
+```javascript
+var metalsmith = new Metalsmith(__dirname)
+  .use(compress({
+    src: ['**/*.js', '**/*.css'],
+    gzip: {level: 6}
+}));
+```
 
-[snyk-image]: https://snyk.io/test/github/KSDaemon/sails-hook-sequelize/badge.svg?targetFile=package.json
-[snyk-url]: https://snyk.io/test/github/KSDaemon/sails-hook-sequelize?targetFile=package.json
+Add `overwrite: true` to replace files with the compressed version instead of creating a copy with the '.gz' extension:
+
+```javascript
+var metalsmith = new Metalsmith(__dirname)
+  .use(compress({overwrite: true});
+```
+
+### Deployment
+
+You need to create a script to upload the gzipped versions of the files to your preferred hosting provider yourself. Take care to serve the files with the correct Content-Encoding.
+
+## Acknowledgements
+
+This plugin was inspired by the [Middleman gzip extension](http://middlemanapp.com/advanced/file-size-optimization/).
