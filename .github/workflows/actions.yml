@@ -1,22 +1,26 @@
 name: CI
-
 on:
-  pull_request:
-  push:
-    branches: [main]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
+  - push
+  - pull_request
 jobs:
   test:
+    name: Node.js ${{ matrix.node-version }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 18
+          - 16
+          - 14
+          - 12
+          - 10
+          - 8
+          - 6
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "16"
-          cache: npm
-      - run: npm ci
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
       - run: npm test
