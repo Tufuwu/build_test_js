@@ -1,71 +1,59 @@
-[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=misund/hex-to-rgba)](https://dependabot.com)
+# play-sound
 
-`hex-to-rgba` turns an old-fashioned css hex color value string into an rgba() string.
+[![Downloads](https://img.shields.io/npm/dt/play-sound.svg)](https://npmjs.org/package/play-sound)
 
-Optionally pass in an alpha value. The passed alpha value will override any alpha value from 4- or 8-digit hexes. If you don't pass in an alpha value at all, we will default to an alpha value of 1 (completely opaque).
-
-Supports 3-, 4-, 6- and 8-digit hex values with or without a leading hash.
+Play sounds by shelling out to one of the available audio players.
 
 ## Installation
-```sh
-$ npm install --save hex-to-rgba
-```
-or
-```sh
-$ yarn add hex-to-rgba
-```
 
-## Usage
-```js
-import hexToRgba from 'hex-to-rgba';
+    npm install play-sound
 
-// Or if you're so inclined:
-// var hexToRgba = require("hex-to-rgba");
+## Examples
 
-hexToRgba('112233'); // "rgba(17, 34, 51, 1)"
-hexToRgba('#112233'); // "rgba(17, 34, 51, 1)"
-hexToRgba('112233', '0.5'); // "rgba(17, 34, 51, 0.5)"
-hexToRgba('#112233', 0.75); // "rgba(17, 34, 51, 0.75)"
+```javascript
+var player = require('play-sound')(opts = {})
 
-hexToRgba('11223344') // "rgba(17, 34, 51, 0.27)"
-hexToRgba('#11223344') // "rgba(17, 34, 51, 0.27)"
-hexToRgba('11223344', '0.5') // "rgba(17, 34, 51, 0.5)"
-hexToRgba('#11223344', 0.75) // "rgba(17, 34, 51, 0.75)"
+// $ mplayer foo.mp3 
+player.play('foo.mp3', function(err){
+  if (err) throw err
+})
 
-hexToRgba('123'); // "rgba(17, 34, 51, 1)"
-hexToRgba('#123'); // "rgba(17, 34, 51, 1)"
-hexToRgba('123', 0.2) // "rgba(17, 34, 51, 0.2)"
-hexToRgba('#123', 0.2) // "rgba(17, 34, 51, 0.2)"
+// { timeout: 300 } will be passed to child process
+player.play('foo.mp3', { timeout: 300 }, function(err){
+  if (err) throw err
+})
 
-hexToRgba('1234'); // "rgba(17, 34, 51, 0.27)"
-hexToRgba('#1234'); // "rgba(17, 34, 51, 0.27)"
-hexToRgba('1234', 0.5) // "rgba(17, 34, 51, 0.5)"
-hexToRgba('#1234', 0.75) // "rgba(17, 34, 51, 0.75)"
+// configure arguments for executable if any
+player.play('foo.mp3', { afplay: ['-v', 1 ] /* lower volume for afplay on OSX */ }, function(err){
+  if (err) throw err
+})
+
+// access the node child_process in case you need to kill it on demand
+var audio = player.play('foo.mp3', function(err){
+  if (err && !err.killed) throw err
+})
+audio.kill()
 ```
 
-## Signature
-`hexToRgba(hex, a=1)`
+## Options
 
-Returns an rgba() string. (examples: `'rgba(11, 22, 33, 1)'`, `'rgba(11, 22, 33, 0.5)'`)
+* `players` – List of available audio players to check. Default:
+  * [`mplayer`](https://www.mplayerhq.hu/)
+  * [`afplay`](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/afplay.1.html)
+  * [`mpg123`](http://www.mpg123.de/)
+  * [`mpg321`](http://mpg321.sourceforge.net/)
+  * [`play`](http://sox.sourceforge.net/)
+  * [`omxplayer`](https://github.com/popcornmix/omxplayer)
+  * [`aplay`](https://linux.die.net/man/1/aplay)
+  * [`cmdmp3`](https://github.com/jimlawless/cmdmp3)
+  * [`cvlc`](https://www.commandlinux.com/man-page/man1/cvlc.1.html)
+  * [`powershell`](https://docs.microsoft.com/en-us/powershell/)
+* `player` – Audio player to use (skips availability checks)
 
-## Parameters
-* `hex`: The hex color value to convert to rgba. (examples: `'123456'`, `'#123456'`, `'123'`, `'#123'`)
-* `a`: An alpha value to apply. (optional, default: 1) (examples: `'0.5'`, `0.25`)
+## Prior art
 
+* [play.js](https://github.com/Marak/play.js) - play sound files from node.js to your speakers
 
-## Contributing
-I appreciate your issues and PRs [on Github](https://github.com/misund/hex-to-rgba)!
+## License
 
-### Testing
-```
-yarn build && yarn test
-```
-
-### Releasing
-This project uses [np](https://github.com/sindresorhus/np).
-1. Make sure your changes are on main
-2. Run `yarn release`
-3. Follow the interactive release guide
-
-## Changelog
-See the [releases page on GitHub](https://github.com/misund/hex-to-rgba/releases).
+MIT
