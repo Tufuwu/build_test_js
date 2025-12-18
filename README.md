@@ -1,59 +1,51 @@
-# play-sound
+# JSNES Web UI
 
-[![Downloads](https://img.shields.io/npm/dt/play-sound.svg)](https://npmjs.org/package/play-sound)
+A React-based web UI for [JSNES](https://github.com/bfirsh/jsnes).
 
-Play sounds by shelling out to one of the available audio players.
+## Running in development
 
-## Installation
+    $ npm install
+    $ npm start
 
-    npm install play-sound
+## Building for production
 
-## Examples
+    $ npm run build
+
+The built app will be in `build/`.
+
+## Running tests
+
+    $ npm test
+
+## Formatting code
+
+All code must conform to [Prettier](https://prettier.io/) formatting. The test suite won't pass unless it does.
+
+To automatically format all your code, run:
+
+    $ npm run format
+
+## Embedding JSNES in your own app
+
+Unfortunately this isn't trivial at the moment. The best way is copy and paste code from this repository into a React app, then use the [`<Emulator>`](https://github.com/bfirsh/jsnes-web/blob/master/src/Emulator.js). [Here is a usage example.](https://github.com/bfirsh/jsnes-web/blob/d3c35eec11986412626cbd08668dbac700e08751/src/RunPage.js#L119-L125).
+
+A project for potential contributors (hello!): jsnes-web should be reusable and on NPM! It just needs compiling and bundling.
+
+## Adding roms
+
+Open `src/config.js` and add a new key to `config.ROMS`. For example:
 
 ```javascript
-var player = require('play-sound')(opts = {})
-
-// $ mplayer foo.mp3 
-player.play('foo.mp3', function(err){
-  if (err) throw err
-})
-
-// { timeout: 300 } will be passed to child process
-player.play('foo.mp3', { timeout: 300 }, function(err){
-  if (err) throw err
-})
-
-// configure arguments for executable if any
-player.play('foo.mp3', { afplay: ['-v', 1 ] /* lower volume for afplay on OSX */ }, function(err){
-  if (err) throw err
-})
-
-// access the node child_process in case you need to kill it on demand
-var audio = player.play('foo.mp3', function(err){
-  if (err && !err.killed) throw err
-})
-audio.kill()
+const config = {
+  ROMS: {
+    // ...
+    myrom: {
+      name: "My Rom",
+      description: <span>This is my own homebrew NES rom</span>,
+      url: "http://localhost:3000/roms/myrom/myrom.nes"
+    }
+  }
+}
 ```
 
-## Options
-
-* `players` – List of available audio players to check. Default:
-  * [`mplayer`](https://www.mplayerhq.hu/)
-  * [`afplay`](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/afplay.1.html)
-  * [`mpg123`](http://www.mpg123.de/)
-  * [`mpg321`](http://mpg321.sourceforge.net/)
-  * [`play`](http://sox.sourceforge.net/)
-  * [`omxplayer`](https://github.com/popcornmix/omxplayer)
-  * [`aplay`](https://linux.die.net/man/1/aplay)
-  * [`cmdmp3`](https://github.com/jimlawless/cmdmp3)
-  * [`cvlc`](https://www.commandlinux.com/man-page/man1/cvlc.1.html)
-  * [`powershell`](https://docs.microsoft.com/en-us/powershell/)
-* `player` – Audio player to use (skips availability checks)
-
-## Prior art
-
-* [play.js](https://github.com/Marak/play.js) - play sound files from node.js to your speakers
-
-## License
-
-MIT
+Then, add the ROM file as `public/roms/myrom/myrom.nes`. The ROM should now be available to play at http://localhost:3000/run/myrom
