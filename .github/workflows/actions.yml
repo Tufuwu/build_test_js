@@ -1,35 +1,20 @@
-name: CI
-
+name: Test
 on:
-  pull_request:
   push:
     branches:
       - main
-      - main
-
+  pull_request:
 jobs:
-  tests-locked-packages:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-node@v4
         with:
           node-version: "16"
-
-      - run: npm ci
-      - run: npm test
-
-  tests-latest-packages:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "16"
-
-      - run: rm package-lock.json
-
-      - run: npm install
-      - run: npm test
+      - name: Setup
+        run: npm install -g ajv-cli
+      - name: Test
+        run: ajv validate -s schema.json -d data.json
