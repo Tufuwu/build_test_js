@@ -1,78 +1,55 @@
-# Lambda@Edge hostname redirect
+# ShortcutsPreview
 
-Redirect any request to another hostname by using this function as Lambda@Edge.
+A multiplatform bot for showing the details of Shortcuts when linked by their iCloud URL.
 
-## Developed with ❤️ by [GRRR](https://grrr.nl)
+## Setup
 
-- GRRR is a [B Corp](https://grrr.nl/en/b-corp/)
-- GRRR has a [tech blog](https://grrr.tech/)
-- GRRR is [hiring](https://grrr.nl/en/jobs/)
-- [@GRRRTech](https://twitter.com/grrrtech) tweets
+You need to make a `config.json` in the root. Each service (such as `reddit` or `discord`) will have its own object for settings applying to that service, along with a `global` object that applies to all services. For example:
+
+```json
+{
+    "global": {
+        "enabled": true
+    },
+    "reddit": {
+        "credentials": {
+            "clientId": "h4yk4m821",
+            "clientSecret": "It's a secret to everybody."
+        }
+    },
+    "discord": {
+        "token": "insertyourtokenhere"
+	},
+	"telegram": {
+		"token": "insertyourothertokenhere"
+	}
+}
+```
+
+Since `global.enabled` is `true`, `reddit.enabled` and `discord.enabled` are also `true`. If you set `enabled` to `false` for a service, you can not use it.
 
 ## Usage
 
-Create a `.env` (and/or `.env.staging` and `.env.production` if you like, or any stage you'd like).  
-Note that the environment variables are used solely for deployment – a Lambda@Edge function cannot have environment variables.
+After starting the script, you can use it in Reddit and Discord, depending on if the service was properly set up. There are also hosted versions available.
 
-Deploy the function to your AWS environment, publish a version, and use the ARN of the specific version in a `Viewer Request` event handler. This can be configured under *Behaviors* in your CloudFront distribution.
+### Reddit
 
-The role that executes this function should have the permissions as described in [the AWS documentation](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-permissions.html).
+Allow the Reddit bot to detect posts by inviting the bot to the moderation team. It only uses the `posts` permission since it only needs it to sticky its preview comment, but it will work with no moderator permissions. The hosted version is [u/ShortcutsPreview](https://www.reddit.com/user/ShortcutsPreview/).
 
-## Configure
+Link posts with a iCloud URL linking to a shortcut will be previewed, in the form of a possibly-stickied comment.
 
-Create the file `redirect_rules.json`, in which you can add one or multiple host-mappings, like so:
+### Discord
 
-```js
-{
-  "rules": [
-    {
-      "origin": "www.example.com",
-      "target": "example.com"
-    },
-    {
-      "origin": "www.foo.com",
-      "target": "com.bar.www"
-    }
-  ]
-}
-```
+The Discord bot needs three permissions to work:
 
-The hostname will be replaced 1:1, no magic is involved.
+* Read Messages
+* Send Messages
+* Send Links
 
-### Cache lifetime
+You can invite the hosted version with the necessary permissions through [this link](https://discordapp.com/api/oauth2/authorize?client_id=492797846265921548&permissions=19456&scope=bot).
 
-Optionally, configure a `max-age` to determine the time this response will be cached:
+The first iCloud URL found in a message is previewed with an embed message.
 
-```js
-{
-  "rules": [
-    {
-      "origin": "www.example.com",
-      "target": "example.com",
-      "max-age": 86400
-    }
-  ]
-}
-```
+## Telegram
 
-The above would cache the redirect 1 day. If omitted, a `Cache-Control` header of `max-age=0` (meaning no cache) will be set.
-
-## Deploy
-
-You can use stages to deploy to `development`, `staging` and `production` (default: `development`).
-
-### Prerequisites
-
-1. You have the AWS cli tool installed.
-2. You have configured a profile for this service.
-3. You have created `.env.staging` and `.env.production` files, based on `.env.example` (or any stages you wish to deploy).
-4. Make sure the value for `AWS_PROFILE` in the applicable `.env` file corresponds to the profile you created in step 2.
-
-### Deploy a stage
-
-```
-npx serverless deploy --stage=staging --env=staging
-```
-
-Replace `staging` with any other stage, but make sure the corresponding `.env.{stage}` file exists.
-`.env` is used when stage = `development`, which is the default.
+You can add the hosted bot through [this link](https://t.me/ShortcutsPreview).

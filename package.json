@@ -1,15 +1,46 @@
 {
-  "name": "www-redirect",
-  "version": "1.0.0",
-  "main": "src/redirect.js",
-  "repository": "git@github.com:grrr-amsterdam/host-redirect-microservice.git",
-  "author": "Harmen Janssen <harmen@grrr.nl>",
-  "license": "MIT",
-  "scripts": {
-    "test": "node test/redirect.js"
-  },
-  "devDependencies": {
-    "serverless": "^1.44.1",
-    "serverless-dotenv-plugin": "https://github.com/harmenjanssen/serverless-dotenv-plugin/"
-  }
+	"name": "shortcutspreview",
+	"version": "1.4.0",
+	"description": "A multiplatform bot for showing the details of Shortcuts when linked by their iCloud URL.",
+	"main": "./src/index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"lint": "eslint \"./**/*.js\" --ignore-path .gitignore"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/haykam821/ShortcutsPreview.git"
+	},
+	"author": "haykam821",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/haykam821/ShortcutsPreview/issues"
+	},
+	"homepage": "https://github.com/haykam821/ShortcutsPreview#readme",
+	"dependencies": {
+		"debug": "^4.1.0",
+		"discord.js": "^11.4.2",
+		"markdown-escape": "^1.0.2",
+		"merge-deep": "^3.0.2",
+		"require-all": "^3.0.0",
+		"semver": "^7.3.5",
+		"shortcuts.js": "^3.0.1",
+		"snoostorm": "0.0.5",
+		"snoowrap": "^1.15.2",
+		"telegraf": "^3.38.0"
+	},
+	"devDependencies": {
+		"eslint": "^8.6.0",
+		"eslint-config-haykam": "^1.14.0"
+	},
+	"keywords": [
+		"shortcuts",
+		"apple",
+		"bot",
+		"discord",
+		"reddit"
+	],
+	"eslintConfig": {
+		"extends": "eslint-config-haykam"
+	}
 }
