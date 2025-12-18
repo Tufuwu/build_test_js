@@ -1,29 +1,34 @@
 name: CI
 on:
   push:
-    branches:
-      - main
+    branches: main
   pull_request:
-    branches:
-      - main
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ["16"]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: "16"
-      - name: Install
-        run: |
-          make install-checkstyle
-          sudo apt update
-          sudo apt install -qy gjs libgjs-dev
-      - name: Checkstyle
-        run: |
-          make checkstyle
-      - name: Tests
-        run: |
-          make test
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npm test
+      - name: Coveralls Parallel
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          flag-name: run-${{ matrix.node_version }}
+          parallel: true
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true
