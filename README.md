@@ -1,94 +1,190 @@
-# diff-match-patch
+# d3-funnel
 
-npm package for https://github.com/google/diff-match-patch
+[![npm](https://img.shields.io/npm/v/d3-funnel.svg?style=flat-square)](https://www.npmjs.com/package/d3-funnel)
+[![Build Status](https://img.shields.io/github/workflow/status/jakezatecky/d3-funnel/Build?style=flat-square)](https://github.com/jakezatecky/d3-funnel/actions/workflows/main.yml)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://raw.githubusercontent.com/jakezatecky/d3-funnel/master/LICENSE.txt)
 
-[![Build Status](https://img.shields.io/travis/JackuB/diff-match-patch/master.svg)](https://travis-ci.org/JackuB/diff-match-patch)
-[![Dependency Status](https://img.shields.io/david/JackuB/diff-match-patch.svg)](https://david-dm.org/JackuB/diff-match-patch)
-[![NPM version](https://img.shields.io/npm/v/diff-match-patch.svg)](https://www.npmjs.com/package/diff-match-patch)
-[![Known Vulnerabilities](https://snyk.io/test/github/JackuB/diff-match-patch/badge.svg)](https://snyk.io/test/github/JackuB/diff-match-patch) 
+**d3-funnel** is an extensible, open-source JavaScript library for rendering
+funnel charts using the [D3.js][d3] library.
 
-## Installation
+d3-funnel is focused on providing practical and visually appealing funnels
+through a variety of customization options. Check out the [examples page][examples]
+to get a showcasing of the several possible options.
 
-    npm install diff-match-patch
+# Installation
+
+To install this library, simply include both [D3.js][d3] and D3Funnel:
+
+``` html
+<script src="/path/to/d3.js"></script>
+<script src="/path/to/dist/d3-funnel.js"></script>
+```
+
+Alternatively, if you are using Webpack or Browserify, you can install the npm
+package and `import` the module. This will include a compatible version of
+D3.js for you:
+
+```
+npm install d3-funnel --save
+```
+
+``` javascript
+import D3Funnel from 'd3-funnel';
+```
+
+# Usage
+
+To use this library, you must create a container element and instantiate a new
+funnel chart. By default, the chart will assume the width and height of the
+parent container:
+
+``` html
+<div id="funnel"></div>
+
+<script>
+    const data = [
+        { label: 'Inquiries', value: 5000 },
+        { label: 'Applicants', value: 2500 },
+        { label: 'Admits', value: 500 },
+        { label: 'Deposits', value: 200 },
+    ];
+    const options = {
+        block: {
+            dynamicHeight: true,
+            minHeight: 15,
+        },
+    };
+
+    const chart = new D3Funnel('#funnel');
+    chart.draw(data, options);
+</script>
+```
+
+## Options
+
+| Option                 | Description                                                               | Type     | Default                 |
+| ---------------------- | ------------------------------------------------------------------------- | -------- | ----------------------- |
+| `chart.width`          | The width of the chart in pixels or a percentage.                         | mixed    | Container's width       |
+| `chart.height`         | The height of the chart in pixels or a percentage.                        | mixed    | Container's height      |
+| `chart.bottomWidth`    | The percent of total width the bottom should be.                          | number   | `1 / 3`                 |
+| `chart.bottomPinch`    | How many blocks to pinch on the bottom to create a funnel "neck".         | number   | `0`                     |
+| `chart.inverted`       | Whether the funnel direction is inverted (like a pyramid).                | bool     | `false`                 |
+| `chart.animate`        | The load animation speed in milliseconds.                                 | number   | `0` (disabled)          |
+| `chart.curve.enabled`  | Whether the funnel is curved.                                             | bool     | `false`                 |
+| `chart.curve.height`   | The curvature amount.                                                     | number   | `20`                    |
+| `chart.totalCount`     | Override the total count used in ratio calculations.                      | number   | `null`                  |
+| `block.dynamicHeight`  | Whether the block heights are proportional to their weight.               | bool     | `false`                 |
+| `block.dynamicSlope`   | Whether the block widths are proportional to their value decrease.        | bool     | `false`                 |
+| `block.barOverlay`     | Whether the blocks have bar chart overlays proportional to its weight.    | bool     | `false`                 |
+| `block.fill.scale`     | The background color scale as an array or function.                       | mixed    | `d3.schemeCategory10`   |
+| `block.fill.type`      | Either `'solid'` or `'gradient'`.                                         | string   | `'solid'`               |
+| `block.minHeight`      | The minimum pixel height of a block.                                      | number   | `0`                     |
+| `block.highlight`      | Whether the blocks are highlighted on hover.                              | bool     | `false`                 |
+| `label.enabled`        | Whether the block labels should be displayed.                             | bool     | `true`                  |
+| `label.fontFamily`     | Any valid font family for the labels.                                     | string   | `null`                  |
+| `label.fontSize`       | Any valid font size for the labels.                                       | string   | `'14px'`                |
+| `label.fill`           | Any valid hex color for the label color.                                  | string   | `'#fff'`                |
+| `label.format`         | Either `function(label, value)` or a format string. See below.            | mixed    | `'{l}: {f}'`            |
+| `tooltip.enabled`      | Whether tooltips should be enabled on hover.                              | bool     | `false`                 |
+| `tooltip.format`       | Either `function(label, value)` or a format string. See below.            | mixed    | `'{l}: {f}'`            |
+| `events.click.block`   | Callback `function(data)` for when a block is clicked.                    | function | `null`                  |
+
+### Label/Tooltip Format
+
+The option `label.format` can either be a function or a string. The following
+keys will be substituted by the string formatter:
+
+| Key     | Description                  |
+| ------- | ---------------------------- |
+| `'{l}'` | The block's supplied label.  |
+| `'{v}'` | The block's raw value.       |
+| `'{f}'` | The block's formatted value. |
+
+### Event Data
+
+Block-based events are passed a `data` object containing the following elements:
+
+| Key             | Type   | Description                           |
+| --------------- | ------ | ------------------------------------- |
+| index           | number | The index of the block.               |
+| node            | object | The DOM node of the block.            |
+| value           | number | The numerical value.                  |
+| fill            | string | The background color.                 |
+| label.raw       | string | The unformatted label.                |
+| label.formatted | string | The result of `options.label.format`. |
+| label.color     | string | The label color.                      |
+
+Example:
+
+``` javascript
+{
+    index: 0,
+    node: { ... },
+    value: 150,
+    fill: '#c33',
+    label: {
+        raw: 'Visitors',
+        formatted: 'Visitors: 150',
+        color: '#fff',
+    },
+},
+```
+
+### Overriding Defaults
+
+You may wish to override the default chart options. For example, you may wish
+for every funnel to have proportional heights. To do this, simply modify the
+`D3Funnel.defaults` property:
+
+``` javascript
+D3Funnel.defaults.block.dynamicHeight = true;
+```
+
+Should you wish to override multiple properties at a time, you may consider
+using [lodash's][lodash-merge] `_.merge` or [jQuery's][jquery-extend] `$.extend`:
+
+``` javascript
+D3Funnel.defaults = _.merge(D3Funnel.defaults, {
+    block: {
+        dynamicHeight: true,
+        fill: {
+            type: 'gradient',
+        },
+    },
+    label: {
+        format: '{l}: ${f}',
+    },
+});
+```
+
+## Advanced Data
+
+In the examples above, both `label` and `value` were just to describe a block
+within the funnel. A complete listing of the available options is included
+below:
+
+| Option          | Type   | Description                                                     | Example       |
+| --------------- | ------ | --------------------------------------------------------------- | ------------- |
+| label           | mixed  | **Required.** The label to associate with the block.            | `'Students'`  |
+| value           | number | **Required.** The value (or count) to associate with the block. | `500`         |
+| backgroundColor | string | A row-level override for `block.fill.scale`. Hex only.          | `'#008080'`   |
+| formattedValue  | mixed  | A row-level override for `label.format`.                        | `'USD: $150'` |
+| hideLabel       | bool   | Whether to hide the formatted label for this block.             | `true`        |
+| labelColor      | string | A row-level override for `label.fill`. Hex only.                | `'#333'`      |
 
 ## API
 
-[Source](https://github.com/google/diff-match-patch/wiki/API)
+Additional methods beyond `draw()` are accessible after instantiating the chart:
 
-### Initialization
+| Method      | Description                                     |
+| ----------- | ----------------------------------------------- |
+| `destroy()` | Removes the funnel and its events from the DOM. |
 
-The first step is to create a new `diff_match_patch` object. This object contains various properties which set the behaviour of the algorithms, as well as the following methods/functions:
+# License
 
-### diff_main(text1, text2) → diffs
+MIT license.
 
-An array of differences is computed which describe the transformation of text1 into text2. Each difference is an array (JavaScript, Lua) or tuple (Python) or Diff object (C++, C#, Objective C, Java). The first element specifies if it is an insertion (1), a deletion (-1) or an equality (0). The second element specifies the affected text.
-
-```diff_main("Good dog", "Bad dog") → [(-1, "Goo"), (1, "Ba"), (0, "d dog")]```
-
-Despite the large number of optimisations used in this function, diff can take a while to compute. The `diff_match_patch.Diff_Timeout` property is available to set how many seconds any diff's exploration phase may take. The default value is 1.0. A value of 0 disables the timeout and lets diff run until completion. Should diff timeout, the return value will still be a valid difference, though probably non-optimal.
-
-### diff_cleanupSemantic(diffs) → null
-
-A diff of two unrelated texts can be filled with coincidental matches. For example, the diff of "mouse" and "sofas" is `[(-1, "m"), (1, "s"), (0, "o"), (-1, "u"), (1, "fa"), (0, "s"), (-1, "e")]`. While this is the optimum diff, it is difficult for humans to understand. Semantic cleanup rewrites the diff, expanding it into a more intelligible format. The above example would become: `[(-1, "mouse"), (1, "sofas")]`. If a diff is to be human-readable, it should be passed to `diff_cleanupSemantic`.
-
-### diff_cleanupEfficiency(diffs) → null
-
-This function is similar to `diff_cleanupSemantic`, except that instead of optimising a diff to be human-readable, it optimises the diff to be efficient for machine processing. The results of both cleanup types are often the same.
-
-The efficiency cleanup is based on the observation that a diff made up of large numbers of small diffs edits may take longer to process (in downstream applications) or take more capacity to store or transmit than a smaller number of larger diffs. The `diff_match_patch.Diff_EditCost` property sets what the cost of handling a new edit is in terms of handling extra characters in an existing edit. The default value is 4, which means if expanding the length of a diff by three characters can eliminate one edit, then that optimisation will reduce the total costs.
-
-### diff_levenshtein(diffs) → int
-
-Given a diff, measure its Levenshtein distance in terms of the number of inserted, deleted or substituted characters. The minimum distance is 0 which means equality, the maximum distance is the length of the longer string.
-
-### diff_prettyHtml(diffs) → html
-
-Takes a diff array and returns a pretty HTML sequence. This function is mainly intended as an example from which to write ones own display functions.
-
-### match_main(text, pattern, loc) → location
-
-Given a text to search, a pattern to search for and an expected location in the text near which to find the pattern, return the location which matches closest. The function will search for the best match based on both the number of character errors between the pattern and the potential match, as well as the distance between the expected location and the potential match.
-
-The following example is a classic dilemma. There are two potential matches, one is close to the expected location but contains a one character error, the other is far from the expected location but is exactly the pattern sought after: `match_main("abc12345678901234567890abbc", "abc", 26)` Which result is returned (0 or 24) is determined by the `diff_match_patch.Match_Distance` property. An exact letter match which is 'distance' characters away from the fuzzy location would score as a complete mismatch. For example, a distance of '0' requires the match be at the exact location specified, whereas a threshold of '1000' would require a perfect match to be within 800 characters of the expected location to be found using a 0.8 threshold (see below). The larger Match_Distance is, the slower match_main() may take to compute. This variable defaults to 1000.
-
-Another property is `diff_match_patch.Match_Threshold` which determines the cut-off value for a valid match. If Match_Threshold is closer to 0, the requirements for accuracy increase. If Match_Threshold is closer to 1 then it is more likely that a match will be found. The larger Match_Threshold is, the slower match_main() may take to compute. This variable defaults to 0.5. If no match is found, the function returns -1.
-
-### patch_make(text1, text2) → patches
-
-### patch_make(diffs) → patches
-
-### patch_make(text1, diffs) → patches
-
-Given two texts, or an already computed list of differences, return an array of patch objects. The third form (text1, diffs) is preferred, use it if you happen to have that data available, otherwise this function will compute the missing pieces.
-
-### patch_toText(patches) → text
-
-Reduces an array of patch objects to a block of text which looks extremely similar to the standard GNU diff/patch format. This text may be stored or transmitted.
-
-### patch_fromText(text) → patches
-
-Parses a block of text (which was presumably created by the patch_toText function) and returns an array of patch objects.
-
-### patch_apply(patches, text1) → [text2, results]
-
-Applies a list of patches to text1. The first element of the return value is the newly patched text. The second element is an array of true/false values indicating which of the patches were successfully applied. [Note that this second element is not too useful since large patches may get broken up internally, resulting in a longer results list than the input with no way to figure out which patch succeeded or failed. A more informative API is in development.]
-
-The previously mentioned Match_Distance and Match_Threshold properties are used to evaluate patch application on text which does not match exactly. In addition, the `diff_match_patch.Patch_DeleteThreshold` property determines how closely the text within a major (~64 character) delete needs to match the expected text. If Patch_DeleteThreshold is closer to 0, then the deleted text must match the expected text more closely. If Patch_DeleteThreshold is closer to 1, then the deleted text may contain anything. In most use cases Patch_DeleteThreshold should just be set to the same value as Match_Threshold.
-
-
-## Usage
-```javascript
-import DiffMatchPatch from 'diff-match-patch';
-
-const dmp = new DiffMatchPatch();
-const diff = dmp.diff_main('dogs bark', 'cats bark');
-
-// You can also use the following properties:
-DiffMatchPatch.DIFF_DELETE = -1;
-DiffMatchPatch.DIFF_INSERT = 1;
-DiffMatchPatch.DIFF_EQUAL = 0;
-```
-
-## License
-
-  http://www.apache.org/licenses/LICENSE-2.0
+[d3]: http://d3js.org/
+[examples]: http://jakezatecky.github.io/d3-funnel/
+[jQuery-extend]: https://api.jquery.com/jquery.extend/
+[lodash-merge]: https://lodash.com/docs#merge
