@@ -1,14 +1,18 @@
-.project
-.settings
-*~
-*.diff
-*.patch
-*.sizecache.json
 .DS_Store
-node_modules
-bower_components
-.idea/
+node_modules/
+dist/
+npm-debug.log
+yarn-error.log
 
-# Ignore everything in dist folder except for eslint config
-/dist/*
-!/dist/.eslintrc.json
+build/.rpt2_cache
+tests/coverage
+/coverage
+
+
+# Editor directories and files
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
