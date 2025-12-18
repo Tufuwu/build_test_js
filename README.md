@@ -1,149 +1,162 @@
-# vue-jwt-mongo
+<p align="center">
+   <img width="300" src="./logo.png"/>
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/dubov94/vue-jwt-mongo/blob/master/LICENSE)
-[![Coverage](https://codecov.io/gh/dubov94/vue-jwt-mongo/branch/master/graph/badge.svg)](https://codecov.io/gh/dubov94/vue-jwt-mongo)
+   <br/>
 
-A [package](https://www.npmjs.com/package/vue-jwt-mongo) for bootstrapping a simple [JSON Web Token](https://jwt.io/)-based authentication system using [Vue.js](https://vuejs.org/), [MongoDB](https://www.mongodb.com/) and [Express.js](https://expressjs.com/).
+   <a href="https://www.ebay.com">
+      <img src="https://img.shields.io/badge/ebay-open%20source-01d5c2.svg" alt="ebay open source"/>
+   </a>
+   <a href="https://img.shields.io/github/license/eBay/arc.svg">
+      <img src="https://img.shields.io/github/license/eBay/arc.svg" alt="MIT licensed"/>
+   </a>
+   <a href="https://travis-ci.org/eBay/arc">
+      <img src="https://travis-ci.org/eBay/arc.svg?branch=master" alt="travisci build"/>
+   </a>
+   <a href="https://codecov.io/gh/eBay/arc">
+     <img src="https://codecov.io/gh/eBay/arc/branch/master/graph/badge.svg" alt="Codecov" />
+   </a>
+   <a href="https://www.npmjs.com/package/arc-resolver">
+      <img src="https://img.shields.io/npm/v/arc-resolver.svg" alt="npm version"/>
+   </a>
+   <a href="http://npm-stat.com/charts.html?package=arc-resolver">
+      <img src="https://img.shields.io/npm/dm/arc-resolver.svg" alt="downloads"/>
+   </a>
+</p>
 
-## Installation
+---
 
-```bash
-npm install vue-jwt-mongo --save
+`arc` uses “flags” and a file naming convention to generate and serve a bundle that contains only the resources used by the requesting environment. This allows building web applications that serve only the code necessary for multiple device types, locales, brands - _all from a single codebase_.
+
+The flexibility of `arc` enables diverging components only when necessary. It works for both client + server and is not bound to any specific framework.
+
+## How it works
+
+`arc` adapts files based on a filenaming convension:
+
+```webidl
+style.css
+style[mobile].css
+style[mobile+android].css
 ```
 
-## Server
+However, you write your application as though the flagged version of files did not exist:
 
-```javascript
-const app = require('express')()
+```css
+@import url('./style.css');
+```
 
-const vjmServer = require('vue-jwt-mongo').Server({
-  mongoUrl: 'mongodb://localhost/db',
-  jwtSecret: 'shhh'
+If both the `mobile` and `android` flags are set, when bundling the css, `style[mobile+android].css` will replace `style.css` in the output bundle. If only the `mobile` flag is set, `style[mobile].css` will be used.
+
+### More on flags
+
+- Read how to set flags in the documentation for each [supported environment](#supported-environments).
+
+- Read more about defining [flags in filenames](./packages/arc-resolver/README.md#defining-flags).
+
+## Use cases
+
+### Multiple platforms
+
+For example, swap out a header component based on the user's device type:
+
+```webidl
+header[mobile].js
+header[desktop].js
+```
+
+Then, in your React component:
+
+```jsx
+import Header from "./header.js";
+
+export default () => (
+   <Header/>
+);
+```
+
+### Internationalization (i18n)
+
+For example, swap out a content bundle based on the user's locale:
+
+```webidl
+content[de].json
+content[en].json
+content[es].json
+content[fr].json
+```
+
+Then, in your Marko component:
+
+```marko
+import content from "./content.json";
+
+<h1>${content.welcomeMessage}</h1>
+```
+
+### Branding
+
+For example, swap out a logo based on the brand the user is visiting:
+
+```webidl
+logo[ebay].svg
+logo[gumtree].svg
+logo[vivanuncious].svg
+```
+
+Then, in your `.html` file:
+
+```html
+<img src="./logo.svg"/>
+```
+
+### Experimentation
+
+For example, swap out a component based on the user's participation in an experiment:
+
+```webidl
+date-picker/
+   date-picker.component.css
+   date-picker.component.html
+   date-picker.component.ts
+date-picker[date_experiment_a]/
+   date-picker.component.css
+   date-picker.component.html
+   date-picker.component.ts
+```
+
+Then, in your Angular module:
+
+```ts
+import { NgModule } from '@angular/core';
+import { DatePickerComponent } from './date-picker/date-picker.component';
+
+@NgModule({
+  declarations: [
+    DatePickerComponent
+  ]
 })
+export class MyModule { }
 ```
 
-### Options
+## Supported environments
 
-* `mongoUrl` (__mandatory__): an address of the Mongo database.
-  * See [`mongoose.createConnection`](http://mongoosejs.com/docs/api.html#index_Mongoose-createConnection) for details.
-* `jwtSecret` (__mandatory__): a secret key for token generation.
-  * One can get such a key [here](https://www.grc.com/passwords.htm).
-  * See [`jsonwebtoken.sign`](https://www.npmjs.com/package/jsonwebtoken#jwtsignpayload-secretorprivatekey-options-callback) for details.
-* `userModelName`: a name for the [mongoose](http://mongoosejs.com) model storing encoded user credentials.
-  * Defaults to `'User'`.
-* `jwtExpiresIn`: token expiration time in seconds.
-  * Defaults to `7 * 24 * 60 * 60` (one week).
-  * See [`jsonwebtoken.sign`](https://www.npmjs.com/package/jsonwebtoken#jwtsignpayload-secretorprivatekey-options-callback) for details.
+Please refer to the linked documentation for using `arc` in each environment:
 
-### Endpoints
+- Node 8+ ([`arc-server`](./packages/arc-server))
+- Webpack 4+ ([`arc-webpack`](./packages/arc-webpack))
+- Lasso 3+ ([`arc-lasso`](./packages/arc-lasso))
 
-#### registerHandler
+## Additional resources
 
-Expects `{ username, password }` in the request body. Returns an empty response.
+### Connie & Michael on `arc 1.0` @ Fluent O'Reilly Conf 2017:
 
-The password is salted and hashed via [passport-local-mongoose](https://npmjs.com/package/passport-local-mongoose).
-```javascript
-app.post('/auth/register', vjmServer.registerHandler)
-```
+- [Session abstract](https://conferences.oreilly.com/fluent/fl-ca/public/schedule/detail/58976)    
+- [Recorded video](https://vimeo.com/229162833/c2727d5436)
 
-#### loginHandler
+### Example apps
 
-Expects `{ username, password }` in the request body. Returns a string &mdash; the token.
-
-```javascript
-app.post('/auth/login', vjmServer.loginHandler)
-```
-
-#### refreshHandler
-
-Expects an empty request body and `Authorization: Bearer {token}` as one of the HTTP headers. Returns a string with a new token if the original token is valid.
-
-```javascript
-app.post('/auth/refresh', vjmServer.refreshHandler)
-```
-
-### Protector
-
-`jwtProtector` ensures that the incoming request has a valid token. Expects `Authorization: Bearer {token}` as one of the HTTP headers.
-
-```javascript
-app.get('/protected', vjmServer.jwtProtector, (request, response) => {
-    console.log(request.user.username)
-})
- ```
-
-## Client
-
-```javascript
-Vue.use(require('vue-resource'))
-Vue.use(require('vue-jwt-mongo').Client, {
-  /* options, if any */
-})
-```
-
-### Options
-
-* `registerEndpoint`: the server's endpoint for registration requests.
-  * Defaults to `'/auth/register'`.
-* `loginEndpoint`: the server's endpoint for authentication requests.
-  * Defaults to `'/auth/login'`.
-* `refreshEndpoint`: the server's endpoint for refreshing the token.
-  * Defaults to `'/auth/refresh'`.
-* `storageKey`: a [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) key used for saving the token.
-  * Defaults to `'jsonwebtoken'`.
-* `bearerLexem`: a lexem prepending tokens in [`Authorization`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Authorization) headers.
-  * Defaults to `'Bearer '` (extra space intended).
-
-### Requests
-
-### Authentication
-
-All of the following requests return [vue-resource](https://github.com/pagekit/vue-resource) Promises, so one can get an idea of the callback structure [here](https://github.com/pagekit/vue-resource/blob/master/docs/http.md#response).
-
-```javascript
-this.$auth.register('login', 'password')
-```
-
-```javascript
-this.$auth.logIn('login', 'password')
-```
-
-```javascript
-this.$auth.refresh()
-```
-
-### Authorization
-If `bearer: true` is passed then `Authorization: Bearer {token}` is added as a [header](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Authorization).
-
-```javascript
-this.$http.get('/protected', { bearer: true }).then(response => {
-    console.log(response)
-})
-```
-
-### Token
-
-#### isLoggedIn
-
-Returns `true` if the saved token is valid and `false` otherwise.
-
-```javascript
-let isLoggedIn = this.$auth.isLoggedIn()
-```
-
-#### getToken
-
-Returns a string if the saved token is valid and `null` otherwise.
-
-```javascript
-this.$auth.getToken()
-```
-
-#### logOut
-
-Purges the saved token.
-
-```javascript
-this.$auth.logOut()
-```
-
+- [Simple Server](./packages/example-arc-server)
+- [Isomorphic Koa + Marko + Webpack]() TODO
+- [Isomorphic Express + Marko + Lasso]() TODO
+- [Isomorphic Express + React + Webpack]() TODO
+- [Client-only React + Webpack + `arc-static-server`]() TODO

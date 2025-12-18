@@ -1,64 +1,35 @@
 {
-  "name": "vue-jwt-mongo",
-  "version": "1.7.3",
-  "description": "A simple authentication system for Vue.js",
-  "files": [
-    "distribution/"
-  ],
-  "main": "distribution/server.js",
-  "browser": "distribution/client.js",
+  "name": "arc",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "test": "mocha --exit tests/*",
-    "coverage": "nyc --reporter=lcovonly npm run test",
-    "build": "babel source --out-dir distribution"
+    "postinstall": "lerna bootstrap --hoist --no-ci",
+    "test": "NODE_OPTIONS=--openssl-legacy-provider nyc mocha packages/arc-*/test* --timeout=30000",
+    "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dubov94/vue-jwt-mongo.git"
-  },
-  "keywords": [
-    "vue",
-    "jwt",
-    "jsonwebtoken",
-    "express",
-    "mongo",
-    "mongodb",
-    "auth",
-    "authentication"
-  ],
-  "author": "Pavel Dubov",
+  "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/dubov94/vue-jwt-mongo/issues"
-  },
-  "homepage": "https://github.com/dubov94/vue-jwt-mongo#readme",
-  "// dependencies.passport": "https://github.com/jaredhanson/passport/issues/939",
-  "dependencies": {
-    "body-parser": "1.20.1",
-    "express-jwt": "8.2.1",
-    "jsonwebtoken": "9.0.0",
-    "jwt-decode": "2.2.0",
-    "merge": "2.1.1",
-    "mongoose": "6.11.3",
-    "passport": "0.4.1",
-    "passport-local": "1.0.0",
-    "passport-local-mongoose": "6.0.1"
-  },
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
-    "@babel/cli": "7.17.6",
-    "@babel/core": "7.9.0",
-    "@babel/preset-env": "7.9.0",
-    "chai": "4.2.0",
-    "chai-http": "4.3.0",
-    "codecov": "3.7.1",
-    "dom-storage": "2.1.0",
-    "express": "4.18.2",
-    "jsdom": "19.0.0",
-    "mocha": "9.2.2",
-    "mongodb-memory-server": "8.9.4",
-    "nyc": "15.0.0",
-    "sinon": "9.0.1",
-    "vue": "2.5.16",
-    "vue-resource": "1.5.3"
+    "chai": "^4.1.2",
+    "codecov": "^3.0.0",
+    "memory-fs": "^0.4.1",
+    "mocha": "^10.0.0",
+    "nyc": "^15.1.0"
+  },
+  "nyc": {
+    "exclude": [
+      "**/test.js",
+      "**/test/**",
+      "**/coverage/**",
+      "**/.cache/**",
+      "packages/example-*"
+    ],
+    "cache": true,
+    "all": true
   }
 }
