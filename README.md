@@ -1,132 +1,72 @@
-# @callstack/eslint-config
+# cesium-webpack-example
 
-Callstack ESLint config for React Native, React and Node.js projects, utilizing Flow, TypeScript, Prettier and Jest with sensible defaults.
+A minimal recommended setup for an applications using [Cesium](https://cesium.com) with [Webpack](https://webpack.js.org/concepts/).
 
-## Installation
+[![Build Status](https://travis-ci.org/CesiumGS/cesium-webpack-example.svg?branch=using-custom-loader)](https://travis-ci.org/CesiumGS/cesium-webpack-example)
 
-With Yarn:
+## Running this application
 
-```bash
-yarn add --dev eslint @callstack/eslint-config
-```
+````sh
+npm install
+npm start
+````
 
-Or with npm:
+Navigate to `localhost:8080`.
 
-```
-npm install --save-dev eslint @callstack/eslint-config
-```
+### Available scripts
 
-## Usage
+* `npm start` - Runs a webpack build with `webpack.config.js` and starts a development server
+* `npm run build` - Runs a webpack build with `webpack.config.js`
 
-You can choose one of the following environments to work with by extending your ESLint config (`.eslintrc`, or `eslintConfig` field in `package.json`) with `@callstack` config tailored to your project.
+## Requiring Cesium in your application
 
-### React Native config
+We recommend [importing named exports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) from the Cesium ES module, via the `import` keyword. This allows webpack to [tree shake](https://webpack.js.org/guides/tree-shaking/) your application automatically.
 
-Usage:
+### Import named modules from Cesium
 
-```json
-{
-  "extends": "@callstack"
-}
-```
+````js
+import { Color } from 'cesium';
+var c = Color.fromRandom();
+````
 
-Plugins used:
+### Import Cesium static asset files
 
-- **React config**
-- [eslint-plugin-react-native](https://yarnpkg.com/en/package/eslint-plugin-react-native)
-- [eslint-plugin-react-native-a11y](https://classic.yarnpkg.com/en/package/eslint-plugin-react-native-a11y)
+````js
+import "cesium/Build/Cesium/Widgets/widgets.css";
+````
 
-Additionally, it sets `"react-native/react-native"` environment and native platform extensions to resolve.
+## Removing pragmas
 
-### React config
+To remove pragmas such as a traditional Cesium release build, use the [`strip-pragma-loader`](https://www.npmjs.com/package/strip-pragma-loader).
 
-Usage:
+Install the plugin with npm,
 
-```json
-{
-  "extends": "@callstack/eslint-config/react"
-}
-```
+````sh
+npm install strip-pragma-loader --save-dev
+````
 
-Plugins used:
+and include the loader in `module.rules` with `debug` set to `false`.
 
-- **Node config**
-- [eslint-plugin-react](https://yarnpkg.com/en/package/eslint-plugin-react)
-- [eslint-plugin-react-hooks](https://yarnpkg.com/en/package/eslint-plugin-react-hooks)
+````js
+rules: [{
+	test: /\.js$/,
+	enforce: 'pre',
+	include: path.resolve(__dirname, cesiumSource),
+	use: [{
+		loader: 'strip-pragma-loader',
+		options: {
+		    pragmas: {
+				debug: false
+			}
+		}
+	}]
+}]
+````
 
-### Node config
+## Contributions
 
-Usage:
+Pull requests are appreciated. Please use the same [Contributor License Agreement (CLA)](https://github.com/CesiumGS/cesium/blob/master/CONTRIBUTING.md) used for [Cesium](https://cesium.com/).
 
-```json
-{
-  "extends": "@callstack/eslint-config/node"
-}
-```
+---
 
-Plugins used:
-
-- [eslint-config-prettier](https://yarnpkg.com/en/package/eslint-config-prettier)
-- [eslint-plugin-prettier](https://yarnpkg.com/en/package/eslint-plugin-prettier)
-- [eslint-plugin-jest](https://yarnpkg.com/en/package/eslint-plugin-jest) (applied for tests only, based on Jest's `testMatch` config)
-- [eslint-plugin-import](https://yarnpkg.com/en/package/eslint-plugin-import)
-- [eslint-plugin-promise](https://yarnpkg.com/en/package/eslint-plugin-promise)
-- [eslint-plugin-flowtype](https://yarnpkg.com/en/package/eslint-plugin-flowtype)
-- [@typescript-eslint/eslint-plugin](https://yarnpkg.com/en/package/@typescript-eslint/eslint-plugin) (only for `.tsx?` files)
-- [@typescript-eslint/parser](https://yarnpkg.com/en/package/@typescript-eslint/parser) (only for `.tsx?` files)
-
-Additionally, it sets `es6` and `node` environments.
-
-### Example of extending the configuration
-
-```json
-{
-  "extends": "@callstack",
-  "rules": {
-    "global-require": 0,
-    "prefer-destructuring": 0
-  }
-}
-```
-
-### TypeScript
-
-TypeScript is supported out-of-the-box, including importing JS files from TS files and vice-versa. All you need to do is to make sure you have [`typescript`](https://yarnpkg.com/en/package/typescript) module installed.
-
-Then when running ESLint add `--ext '.js,.ts'` (you might need also `.jsx, .tsx`) option, for example:
-
-```bash
-yarn eslint --ext '.js,.ts' ./src
-```
-
-`parserOptions.project` is set to `./tsconfig.json`. You may need to [adjust that](https://typescript-eslint.io/architecture/parser#project).
-
-To do so, you'll need to override our setup for TS files in your ESLint config:
-
-```json
-{
-  "overrides": [
-    {
-      "files": ["*.ts", "*.tsx"],
-      "parserOptions": {
-        "project": "./packages/**/tsconfig.json"
-      }
-    }
-  ]
-}
-```
-
-#### VSCode
-
-If you're VSCode user, you may find adding this config to your `.vscode/settings.json` helpful:
-
-```json
-{
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ]
-}
-```
+Developed by the Cesium team.

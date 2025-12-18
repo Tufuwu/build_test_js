@@ -1,33 +1,19 @@
-name: Test
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
+name: main
+on: push
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-    name: Test
+    strategy:
+      matrix:
+        node-version: ["16"]
+    name: Node ${{ matrix.node }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js and Yarn
+      - uses: actions/checkout@v4
+      - name: install node ${{ matrix.node }}
         uses: actions/setup-node@v4
         with:
-          node-version: "16"
-
-      - uses: actions/checkout@v4
-        id: cache
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile && yarn --cwd test install --frozen-lockfile
-
-      - name: Test
-        run: yarn test
+           node-version: ${{ matrix.node }}
+      - name: install
+        run: npm install
+      - name: build
+        run: npm run build
