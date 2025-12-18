@@ -1,2 +1,5 @@
-coverage
-node_modules
+/build
+/coverage
+/no-track
+/test/ts/simple.js
+/legacy.js
