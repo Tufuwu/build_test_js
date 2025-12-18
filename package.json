@@ -1,44 +1,36 @@
 {
-  "name": "i18n-zipcodes",
-  "version": "4.0.0",
-  "description": "International zipcodes validator based on Regex for Node.js and the browser.",
-  "keywords": [
-    "i18n",
-    "zipcode",
-    "validator",
-    "international",
-    "regex"
-  ],
-  "author": "Benjamin Blonde",
-  "license": "MIT",
-  "main": "index.js",
-  "scripts": {
-    "build": "gulp",
-    "test": "nyc --reporter=text --reporter=lcov mocha",
-    "codecov": "npx codecov"
-  },
+  "name": "portfinder",
+  "description": "A simple tool to find an open port on the current machine",
+  "version": "1.0.28",
+  "author": "Charlie Robbins <charlie.robbins@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sarcadass/i18n-zipcodes.git"
+    "url": "git@github.com:http-party/node-portfinder.git"
   },
-  "directories": {
-    "test": "test"
-  },
-  "files": [
-    "lib/*",
-    "dist/*"
+  "keywords": [
+    "http",
+    "ports",
+    "utilities"
   ],
-  "dependencies": {},
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "async": "^2.6.2",
+    "debug": "^3.1.1",
+    "mkdirp": "^0.5.5"
+  },
   "devDependencies": {
-    "array-uniq": "^3.0.0",
-    "browserify": "^17.0.0",
-    "chai": "^4.3.4",
-    "gulp": "^4.0.2",
-    "gulp-header": "^2.0.9",
-    "gulp-rename": "^2.0.0",
-    "gulp-uglify": "^3.0.2",
-    "mocha": "^9.0.0",
-    "nyc": "^15.1.0",
-    "vinyl-source-stream": "^2.0.0"
-  }
+    "glob": "^7.1.4",
+    "vows": "^0.8.2"
+  },
+  "main": "./lib/portfinder",
+  "types": "./lib/portfinder.d.ts",
+  "scripts": {
+    "test": "vows test/*-test.js --spec"
+  },
+  "engines": {
+    "node": ">= 0.12.0"
+  },
+  "license": "MIT"
 }
