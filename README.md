@@ -1,51 +1,57 @@
-# A-Frame Inspector
+[![REUSE status](https://api.reuse.software/badge/github.com/SAP/openui5-worklist-app)](https://api.reuse.software/info/github.com/SAP/openui5-worklist-app)
+[![Build Status](https://github.com/SAP/openui5-worklist-app/actions/workflows/github-ci.yml/badge.svg)](https://github.com/SAP/openui5-worklist-app/actions/workflows/github-ci.yml)
+![OpenUI5 logo](http://openui5.org/images/OpenUI5_new_big_side.png)
 
-A visual inspector tool for [A-Frame](https://aframe.io) scenes. Just hit
-`<ctrl> + <alt> + i` on any A-Frame scene to open up the Inspector.
+# openui5-worklist-app
+OpenUI5 worklist app using the UI5 Build and Development Tooling.
 
-- [Documentation / Guide](https://aframe.io/docs/master/introduction/visual-inspector-and-dev-tools.html)
-- [Example](https://aframe.io/aframe-inspector/examples/)
+This template implements a typical worklist floorplan, one of the design patterns that is specified by the SAP Fiori Design Guidelines. 
+It includes generic application functionality and tests that can be easily extended.
 
-Also check out:
 
-- [A-Frame Watcher](https://github.com/supermedium/aframe-watcher) - Companion server to sync changes to HTML files.
+## More information
+* [Live Demo](http://sap.github.io/openui5-worklist-app/test/mockServer.html)
+* [Documentation](https://help.sap.com/docs/SAP_FIORI_tools/17d50220bcd848aa854c9c182d65b699/dcd9f97aa8de4adab8270315550f2b23.html)
+* [SAP Fiori Design Guidelines](https://experience.sap.com/fiori-design/)
+* [UI5 Tooling](https://github.com/SAP/ui5-tooling). 
+* [OpenUI5](https://github.com/SAP/openui5)
 
-![Inspector Preview](https://user-images.githubusercontent.com/674727/50159991-fa540c80-028c-11e9-87f1-72c54e08d808.png)
+## Prerequisites
+The **UI5 build and development tooling command line interface (UI5 CLI)** has to be installed.
+For installation instructions please see [Installing the UI5 CLI](https://github.com/SAP/ui5-tooling#installing-the-ui5-cli).
 
-## Using the Inspector
+## Setup
+1. Clone the repository and navigate into it
+    ```sh
+    git clone https://github.com/SAP/openui5-worklist-app.git
+    cd openui5-worklist-app
+    ```
+1. Install all dependencies
+    ```sh
+    npm install
+    ```
 
-### Keyboard Shortcut
+1. Start a local server and run the application (http://localhost:8080/index.html)
+    ```sh
+    ui5 serve -o /index.html
+    ```
 
-A-Frame comes with a **keyboard shortcut** to inject the inspector. Just open
-up any A-Frame scene (running at least A-Frame v0.3.0) and press **`<ctrl> +
-<alt> + i`** to inject the inspector, just like you would use a DOM inspector:
+## Testing
+* Run ESLint code validation
+    ```sh
+    npm run lint
+    ```
+* Start a local server and execute the tests automatically after every change
+    ```sh
+    npm run watch
+    ```
+* Run ESLint, start a local server and run the tests in CI mode
+    ```sh
+    npm test
+    ```
 
-### Specifying Inspector Build
+For more build and development options please see: [UI5 Build and Development Tooling](https://github.com/SAP/ui5-tooling)
 
-This is done with the `inspector` component. By default, this is set on the
-scene already. If we want, we can specify a specific build of the Inspector to
-inject by passing a URL. For debugging:
-
-```html
-<a-scene inspector="url: http://localhost:3333/dist/aframe-inspector.js">
-  <!-- Scene... -->
-</a-scene>
-```
-
-To use the master branch of the Inspector:
-
-```html
-<a-scene inspector="url: https://cdn.jsdelivr.net/gh/aframevr/aframe-inspector@master/dist/aframe-inspector.min.js">
-</a-scene>
-```
-
-## Local Development
-
-```bash
-git clone git@github.com:aframevr/aframe-inspector.git
-cd aframe-inspector
-npm install
-npm start
-```
-
-Then navigate to __[http://localhost:3333/examples/](http://localhost:3333/examples/)__
+## Support
+This repository is based on the [OpenUI5 template demo apps](https://sdk.openui5.org/demoapps) and updated regularly with our latest recommendations. 
+If you found a bug, please create an [OpenUI5 issue](https://github.com/sap/openui5/issues). Thank you!
