@@ -1,39 +1,37 @@
 {
-  "name": "connect-gzip-static",
-  "version": "2.1.1",
-  "description": "gzip/brotli static middleware for connect - serves compressed files if they exist, falls through to connect-static if they don't",
+  "name": "postcss-cli-simple",
+  "version": "3.2.0",
+  "description": "simple CLI for postcss",
   "main": "index.js",
+  "bin": {
+    "postcss": "./bin/postcss"
+  },
   "scripts": {
-    "test": "make lint test"
+    "test": "make check"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:pirxpilot/connect-gzip-static.git"
-  },
+  "repository": "https://github.com/pirxpilot/postcss-cli.git",
   "keywords": [
-    "connect",
-    "middleware",
-    "gzip",
-    "brotli",
-    "compress"
+    "postcss",
+    "postcss-runner",
+    "cli"
   ],
   "author": "Damian Krzeminski <pirxpilot@furkot.com>",
   "license": "MIT",
   "dependencies": {
-    "debug": "~2",
-    "find": "~0",
-    "parseurl": "~1",
-    "send": "~0",
-    "serve-static": "~1"
+    "yargs-parser": "~18 || ~19 || ~20 || ~21"
+  },
+  "peerDependencies": {
+    "postcss": "~5 || ~6 || ~7 || ~8"
   },
   "devDependencies": {
-    "connect": ">=2",
     "jshint": "~2",
-    "mocha": "~3",
-    "should": "~11"
+    "postcss": "~8",
+    "postcss-url": "~10",
+    "tape": "~5"
   },
   "files": [
     "index.js",
+    "bin",
     "lib"
   ]
 }

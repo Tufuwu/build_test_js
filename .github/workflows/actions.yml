@@ -10,3 +10,5 @@ jobs:
           node-version: "16"
       - run: yarn install
       - run: make check
+        env:
+          NO_COLOR: 1

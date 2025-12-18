@@ -2,70 +2,144 @@
 [![Build Status][build-image]][build-url]
 [![Dependency Status][deps-image]][deps-url]
 
-# connect-gzip-static
+# postcss-cli-simple
 
-Middleware for [connect]: serves compressed files if they exist, falls through to connect-static
-if they don't, or if browser does not send 'Accept-Encoding' header.
-
-You should use `connect-gzip-static` if your build process already creates compressed (using gzip or
-[brotli]) files. If you want to compress your data on the fly use [compression]
-middleware. And if you want to compress your files dynamically you may want to look up [connect
-gzip].
+Simple CLI for [postcss]. To be used in Makefiles. If you are looking for more options check out [postcss-cli].
+More on the [history of this project][history].
 
 ## Installation
 
-	  $ npm install connect-gzip-static
-
-## Options
-
-gzip-static is meant to be a drop in replacement for [connect static] middleware. Use the same
-options as you would with [connect static].
-
+npm install postcss-cli-simple
 
 ## Usage
 
-```javascript
-var gzipStatic = require('connect-gzip-static');
-var oneDay = 86400000;
+    postcss [options] -o output-file input-file
 
-connect()
-  .use(gzipStatic(__dirname + '/public'))
+In Makefile you can use it with [pattern rules]:
 
-connect()
-  .use(gzipStatic(__dirname + '/public', { maxAge: oneDay }))
-```
+````Make
+deploy/%.css: %.css
+  ./node_modules/.bin/postcss \
+    --use postcss-url --postcss-url.url=rebase \
+    --use autoprefixer --autoprefixer.browsers "> 5%" \
+    --use cssnano --no-cssnano.discardUnused
+    --output $@ $<
+````
 
-## How it works
+#### `--output|-o`
 
-We start by locating all compressed files (ie. _files with .gz and .br extensions_) in `root`
-directory. All HTTP GET and HTTP HEAD requests with Accept-Encoding header set to gzip are checked
-against the list of compressed files and, if possible, fulfilled by returning the compressed
-versions. If compressed version is not found or if the request does not have an appropriate Accept-
-Encoding header, the request is processed in the same way as standard static middleware would
-handle it.
+Output file name.
 
-## Debugging
+#### `--use|-u`
 
-This project uses [debug] module. To enable the debug log, just set the debug enviromental variable:
+Plugin to be used. Multiple plugins can be specified. At least one plugin needs to be specified either with `--use` option or in the config file.
 
-    DEBUG="connect:gzip-static"
+Plugin options can be specified using [yargs dot notation]. For example, to pass `browsers` option to `autoprefixer` one can use `--autoprefixer.browsers "> 5%"`. To set plugin option to `false` use [yargs boolean negation]. For example, to switch off `discardUnused` in `cssnano` try: `--no-cssnano.discardUnused`.  
 
-# License
+#### `--map|-m`
 
-MIT © [Damian Krzeminski](https://pirxpilot.me)
+Activate source map generation. By default inline maps are generated. To generate source maps
+in a separate _.map_ file use `--map file` or `--no-map.inline`.
 
-[brotli]: https://en.wikipedia.org/wiki/Brotli
-[debug]: https://github.com/visionmedia/debug
-[connect]: https://github.com/senchalabs/connect
-[connect static]: https://github.com/expressjs
-[compression]: https://github.com/expressjs/compression
-[connect gzip]: https://github.com/tikonen/connect-gzip
+You can use [advances source map options][source-map-options] - some examples:
 
-[npm-image]: https://img.shields.io/npm/v/connect-gzip-static.svg
-[npm-url]: https://npmjs.org/package/connect-gzip-static
+- `--no-map` - do not generated source maps - even if previous maps exist
+- `--map.annotation <path>` - specify alternaive path to be used in source map annotation appended to CSS
+- `--no-map.annotation` - supress adding annotation to CSS
+- `--no-map.sourcesContent` - remove origin CSS from maps
 
-[build-url]: https://github.com/pirxpilot/connect-gzip-static/actions/workflows/check.yaml
-[build-image]: https://img.shields.io/github/workflow/status/pirxpilot/connect-gzip-static/check
+#### `--config|-c`
+
+JSON file with plugin configuration. Plugin names should be the keys.
+
+````json
+{
+    "autoprefixer": {
+        "browsers": "> 5%"
+    },
+    "postcss-cachify": {
+        "baseUrl": "/res"
+    }
+}
+````
+
+JavaScript configuration can be used if functions are allowed as plugins parameters. Although you might be better off writing your own plugin.
+
+````js
+module.exports = {
+  "postcss-url": {
+    url: function(url) { return "http://example.com/" + url; }
+  },
+  autoprefixer: {
+    browsers: "> 5%"
+  }
+};
+````
+
+Alternatively configuration options can be passed as `--plugin.option` parameters.
+
+Note that command-line options can also be specified in the config file:
+
+````json
+{
+    "use": ["autoprefixer", "postcss-cachify"],
+    "output": "bundle.css",
+    "autoprefixer": {
+        "browsers": "> 5%"
+    },
+    "postcss-cachify": {
+        "baseUrl": "/res"
+    }
+}
+````
+
+#### `--syntax|-s`
+
+Optional module to use as a [custom PostCSS syntax](https://github.com/postcss/postcss#syntaxes).
+
+#### `--parser|-p`
+
+Optional module to use as a [custom PostCSS input parser](https://github.com/postcss/postcss#syntaxes).
+
+#### `--stringifier|-t`
+
+Optional module to use as a [custom PostCSS output stringifier](https://github.com/postcss/postcss#syntaxes).
+
+#### `--help|-h`
+
+Show help
+
+### Examples
+
+Use autoprefixer as a postcss plugin pass parameters from a json file
+
+    postcss --use autoprefixer -c options.json -o screen.css screen.css
+
+Use more than one plugin and pass config parameters
+
+    postcss --use autoprefixer --autoprefixer.browsers "> 5%" \
+        --use postcss-cachify --postcss-cachify.baseUrl /res \
+        -o screen.css screen.css
+
+
+## License
+
+MIT
+
+[postcss]: https://npmjs.org/package/postcss
+[postcss-cli]: https://npmjs.org/package/postcss-cli
+[history]: https://github.com/postcss/postcss/issues/154#issuecomment-177278640
+[source-map-options]: https://github.com/postcss/postcss/blob/master/docs/source-maps.md
+[pattern rules]: https://www.gnu.org/software/make/manual/html_node/Pattern-Rules.html
+[yargs dot notation]: https://www.npmjs.com/package/yargs#dot-notation
+[yargs boolean negation]: https://www.npmjs.com/package/yargs#negate-fields
+
+
+[npm-image]: https://img.shields.io/npm/v/postcss-cli-simple.svg
+[npm-url]: https://npmjs.org/package/postcss-cli-simple
+
+[build-image]: https://img.shields.io/github/workflow/status/pirxpilot/postcss-cli/check
+[build-url]: https://github.com/pirxpilot/postcss-cli/actions/workflows/check.yaml
  
-[deps-image]: https://img.shields.io/librariesio/release/npm/connect-gzip-static
-[deps-url]: https://libraries.io/npm/connect-gzip-static
+[deps-image]: https://img.shields.io/librariesio/release/npm/postcss-cli-simple
+[deps-url]: https://libraries.io/npm/postcss-cli-simple

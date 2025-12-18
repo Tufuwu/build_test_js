@@ -1,1 +1,4 @@
-module.exports = require('./lib/gzip-static');
+module.exports = {
+  argv: require('./lib/argv'),
+  run: require('./lib/run')
+};

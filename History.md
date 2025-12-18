@@ -1,72 +1,56 @@
 
-2.1.1 / 2017-08-26
+3.2.0 / 2022-05-15
 ==================
 
- * fix tests for `last-modified` and `etag` headers
+ * support postcss@8
+ * move postcss to peer dependencies
 
-2.1.0 / 2017-08-26
+3.1.0 / 2020-06-04
 ==================
 
- * fix support for `etag`, `last-modified`, `cache-control`
- * fix support for setHeaders options
+ * export runner and argument parser
+ * fix make check and lint target
+ * fix typo in Readme
+ * move command line tests to tape
+ * update tape to ~5
 
-2.0.1 / 2017-02-18
+3.0.1 / 2020-04-22
 ==================
 
- * transfer repository to pirxpilot
+ * upgrade async to ~3
+ * upgrade yargs-parser
+ * replace mocha/should with tape
 
-2.0.0 / 2017-02-06
+3.0.0 / 2018-12-27
 ==================
 
- * add support for brotli
- * upgrade mocha and should
+ * rewrite in ES6
+ * replace yargs with yargs-parser
+ * replace neo-async with async
+ * work with postcss ~5, ~6, and ~7
 
-1.0.0 / 2014-10-18
+1.0.4 / 2017-02-19
 ==================
 
- * update debug 0 -> 2
- * fix tests
+ * transfer repo to pirxpilot
 
-0.4.1 / 2014-09-30
+1.0.3 / 2016-12-07
 ==================
 
- * fix maxAge option
+ * replace `.npmignore` with package.files
 
-0.4.0 / 2014-08-27
+1.0.2 / 2016-12-07
 ==================
 
- * options.hidden now options.dotfiles
- * Readme updates: debugging and "How it works" section
+ * upgrade neoasync to ~2
+ * remove unused dev dependency on postcss-import
 
-0.3.1 / 2014-05-13
+1.0.1 / 2016-02-03
 ==================
 
- * fix find semver range to be node 0.8 compatible
+ * minor code clean-up - simplify `processCss` extract `dumpWarnings` and `dumpErrors`
 
-0.3.0 / 2014-05-13
+1.0.0 / 2016-01-30
 ==================
 
- * check for .gzip presence on middleware init
- * use serve-static middleware and parseurl
-
-0.2.1 / 2014-03-05
-==================
-
- * fix setting Content-Type for index request
-
-0.2.0 / 2014-03-04
-==================
-
- * support `index` option properly
- * Clarify usage in Readme
- * Tests added
-
-0.1.1 / 2013-09-17 
-==================
-
- * Only handle GET and HEAD methods
-
-0.1.0 / 2013-09-17 
-==================
-
- * Initial implementation of gzip-static middleware
+ * initial implementaion - simplfied version of postcss-cli
