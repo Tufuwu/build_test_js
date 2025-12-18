@@ -1,20 +1,41 @@
 module.exports = {
   env: {
-    mocha: true
+    es6: true,
+    node: true,
   },
-  plugins: ['chai-friendly'],
-  extends: ['standard', 'prettier'],
-  root: true,
+  plugins: ['prettier'],
+  extends: 'eslint:recommended',
+  parserOptions: {
+    sourceType: 'module',
+    ecmaVersion: 8,
+  },
   rules: {
-    'no-use-before-define': 'off',
-    'no-unused-vars': [
+    'prettier/prettier': [
       'error',
       {
-        varsIgnorePattern: 'should|expect'
-      }
+        printWidth: 120,
+
+        tabWidth: 2,
+        useTabs: false,
+        semi: false,
+        singleQuote: true,
+        trailingComma: 'es5',
+        bracketSpacing: false,
+        arrowParens: 'always',
+      },
     ],
-    // disable the original no-unused-expressions use chai-friendly
-    'no-unused-expressions': 'off',
-    'chai-friendly/no-unused-expressions': 'error'
-  }
-};
+    indent: ['error', 2],
+    'linebreak-style': ['error', 'unix'],
+    quotes: ['error', 'single'],
+    semi: ['error', 'never'],
+    'no-console': 'off',
+    'prefer-const': [
+      'error',
+      {
+        destructuring: 'any',
+        ignoreReadBeforeAssign: false,
+      },
+    ],
+    'no-var': 'error',
+  },
+}
