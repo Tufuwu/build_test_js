@@ -1,35 +1,26 @@
 name: CI
 
-on:
-  push:
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
-  pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
+on: [push, pull_request]
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
+    build:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                NODE_VERSION: [12.x, 14.x, 16.x, 17.x]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-    strategy:
-      matrix:
-        node-version: ["16"]
-        os: [ubuntu-latest]
+            - name: Use Node.js ${{ env.NODE_VERSION }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
 
-    steps:
-      - uses: actions/checkout@v4
+            - name: Install dependencies
+              run: |
+                  npm install
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Install Dependencies
-        run: |
-          npm install --ignore-scripts
-      - name: Run Tests
-        run: |
-          npm test
+            - name: Run tests
+              run: |
+                  npm test
