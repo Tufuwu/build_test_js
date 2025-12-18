@@ -1,36 +1,49 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: CI (webpack 5)
-
+name: Build and Test
 on:
   push:
-    branches:
-      - main
-      - "feature/**"
+    paths-ignore:
+      - 'README.md'
   pull_request:
-    branches: [ "*" ]
+    paths-ignore:
+      - 'README.md'
 
 jobs:
-  build:
+  build_and_test:
+    name: Build and run tests
     runs-on: ubuntu-latest
-
+    services:
+        postgres:
+            image: postgres:10
+            env:
+                POSTGRES_USER: postgres
+                POSTGRES_PASSWORD: postgres
+                POSTGRES_DB: sequelize
+            ports:
+                - 5432:5432
+            options:
+                --health-cmd pg_isready
+                --health-interval 10s
+                --health-timeout 5s
+                --health-retries 5
     strategy:
       matrix:
-        node-version:
-          - 14.x
-          - 16.x
-          - 18.x
-          - 20.x
-
+        node-version: ["16"]
     steps:
-    - uses: actions/checkout@v4
-    - name: Using Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: yarn
-    - name: Installing dependencies
-      run: yarn --frozen-lockfile
-    - name: Running unit-tests
-      run: yarn test
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: psql -h 127.0.0.1 -U postgres -d sequelize -c 'create schema if not exists sails;'
+        env:
+            PGPASSWORD: postgres
+      - run: npm ci
+      - run: npm test
+        env:
+            PGPASSWORD: postgres
+      - name: Create test coverage report
+        run: ./node_modules/nyc/bin/nyc.js report --reporter=lcovonly
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
