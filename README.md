@@ -1,53 +1,121 @@
-# MEGAJS
+# niceware
 
-Unofficial JavaScript SDK for MEGA
+[![Build Status](https://travis-ci.org/diracdeltas/niceware.svg?branch=master)](https://travis-ci.org/diracdeltas/niceware)
 
-* This is based on [tonistiigi's mega library](https://github.com/tonistiigi/mega).
-* This is all unofficial, based on [developer guide](https://mega.nz/#developers) and site source.
-* Make sure you agree with MEGA's [Terms of Service](https://mega.nz/#terms) before using it.
-* Maybe an official SDK will probably be released in the future here: https://github.com/meganz/
+A JS library for generating random-yet-memorable passwords, either server-side in Node or in the browser. Each word provides 16 bits of entropy, so a useful password requires at least 3 words.
 
-## Installation
+Because the wordlist is of exactly size 2^16, Niceware is also useful for convert cryptographic keys and other sequences of random bytes into human-readable phrases. With Niceware, a 128-bit key is equivalent to an 8-word phrase.
 
-```shell
-npm install megajs
+Demo: https://diracdeltas.github.io/niceware/
+
+**WARNING: The wordlist has not been rigorously checked for offensive words.
+Use at your own risk.**
+
+## Sample use cases
+
+* Niceware can be used to generate secure, semi-memorable, easy-to-type
+  passphrases. A random 3-5 word phrase in Niceware is equivalent to a strong
+  password for authentication to most online services. For instance,
+  `+8svofk0Y1o=` and `bacca cavort west volley` are equally strong (64 bits of
+  randomness).
+* Niceware can be used to display cryptographic key material in a way that
+  users can easily backup or copy between devices. For instance, the 128-bit
+  random seed used to generate a 256-bit ECC key (~equivalent to
+  a 3072-bit RSA key) is only 8 Niceware words. With this 8-word phrase, you
+  can reconstruct the entire public/private key pair.
+
+## Usage in Node
+
+To install:
+
+```
+npm install niceware
 ```
 
-```javascript
-const mega = require('megajs') // or
-import mega from 'megajs'
+To generate an 8-byte passphrase:
+
+```
+const niceware = require('niceware')
+
+// The number of bytes must be even
+const passphrase = niceware.generatePassphrase(8)
+
+// Result: [ 'deathtrap', 'stegosaur', 'nilled', 'nonscheduled' ]
 ```
 
-You can also load it in a browser using `<script src="https://unpkg.com/megajs/dist/main.node-cjs.js"></script>`, which exports the library in the `mega` global variable. You can also use `import * as mega from 'https://unpkg.com/megajs/dist/main.browser-es.js'`.
+## Usage in browser
 
-**For more details, API documentation and examples check wiki: https://github.com/qgustavor/mega/wiki**
+To use Niceware in modern browsers, include
+[browser/niceware.js](browser/niceware.js) in a script
+tag. Niceware is then available in the `window.niceware` object.
 
-The bundled files are available via [npm](https://www.npmjs.com/package/megajs) and [UNPKG](https://unpkg.com/megajs/dist/).
+```
+<script src='niceware.js'></script>
+<script>
+  const passphrase = window.niceware.generatePassphrase(8)
+</script>
+```
 
-**For CLI usage check MEGAJS CLI**: https://github.com/qgustavor/megajs-cli
+Niceware uses `window.{crypto, msCrypto}.getRandomValues` for entropy in the browser.
 
-## Implementation notes
+## Docs
 
-Only part of the file related API is implemented. For now implementing contact and chat functions seems out of scope.
+NOTE: When used in the browser, `Buffer` is replaced with `window.Uint8Array`.
 
-Cryptography is mostly ported from browser code. In Node some parts are optimized: AES operations are done using native crypto. Sadly WebCrypto don't support streaming so in browser the old pure JavaScript implementation is used. The RSA operations aren't optimized as currently there isn't any need to improve that.
+* [niceware](#exp_module_niceware--niceware) ⏏
+    * [.bytesToPassphrase(bytes)](#module_niceware--niceware.bytesToPassphrase) ⇒ <code>Array.&lt;string&gt;</code>
+    * [.passphraseToBytes(words)](#module_niceware--niceware.passphraseToBytes) ⇒ <code>Buffer</code>
+    * [.generatePassphrase(size)](#module_niceware--niceware.generatePassphrase) ⇒ <code>Array.&lt;string&gt;</code>
 
-This module works in the browser: the "main.browser-umd.js" is a build using the UMD format where Node specific modules, like crypto and request modules, were replaced with browser equivalents. If you want to use tree shaking then use the "main.browser-es.js" bundle. This module wasn't tested in other environments.
+<a name="exp_module_niceware--niceware"></a>
 
-## Fork objectives
+### niceware ⏏
+**Kind**: Exported constant  
+<a name="module_niceware--niceware.bytesToPassphrase"></a>
 
-This package started as a fork, with the following objectives:
+#### niceware.bytesToPassphrase(bytes) ⇒ <code>Array.&lt;string&gt;</code>
+Converts a byte array into a passphrase.
 
-* Make the original package work in browsers again: even following [the instructions from the original library](https://github.com/tonistiigi/mega#browser-support) it stopped working because some dependencies used `__proto__`, which is non-standard and isn't supported in many browsers. Also the updated versions of those libraries broke backyards compatibility;
-* Reduce dependencies and replace big dependencies with smaller ones, like crypto libraries, which usually are huge;
-* Rewrite code using the new JavaScript syntax, allowing to use [Rollup](http://rollupjs.org/), which can generate smaller bundles;
-* Make tests work again after the changes above;
-* Continue the original library development implementing new features and improving performance.
+**Kind**: static method of [<code>niceware</code>](#exp_module_niceware--niceware)  
 
-Request package was replaced with a shim based in [browser-request](https://www.npmjs.com/package/browser-request) and [xhr-stream](https://www.npmjs.com/package/xhr-stream), which additional changes in order to make it work inside Service Workers. Crypto was replaced with [secure-random](https://www.npmjs.com/package/secure-random).
+| Param | Type | Description |
+| --- | --- | --- |
+| bytes | <code>Buffer</code> | The bytes to convert |
 
-As there were many changes there isn't any plan to merge those changes into the original library, unless the original author accept those massive changes. That's why I put "js" in the name, which is silly because both libraries use JavaScript. At least it's better than other ideas I had, like "mega2", "mega-es" and "modern-mega".
+<a name="module_niceware--niceware.passphraseToBytes"></a>
 
-## Contributing
+#### niceware.passphraseToBytes(words) ⇒ <code>Buffer</code>
+Converts a phrase back into the original byte array.
 
-When contributing fork the project, clone it, run `npm install`, change the library as you want, run tests using `npm run test` and build the bundled versions using `npm run build`. Before creating a pull request, *please*, run tests.
+**Kind**: static method of [<code>niceware</code>](#exp_module_niceware--niceware)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| words | <code>Array.&lt;string&gt;</code> | The words to convert |
+
+<a name="module_niceware--niceware.generatePassphrase"></a>
+
+#### niceware.generatePassphrase(size) ⇒ <code>Array.&lt;string&gt;</code>
+Generates a random passphrase with the specified number of bytes.
+NOTE: `size` must be an even number.
+
+**Kind**: static method of [<code>niceware</code>](#exp_module_niceware--niceware)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| size | <code>number</code> | The number of random bytes to use |
+
+
+## Niceware ports
+
+* Chrome extension, thanks to Noah Feder: https://chrome.google.com/webstore/detail/niceware-password/dhnichgmciickpnnnhfcljljnfomadag
+* pip package, thanks to Alex Willmer: https://pypi.python.org/pypi/niceware
+* CLI, thanks to Alex Cross: https://www.npmjs.com/package/nicepass
+
+## Credits
+
+Niceware was inspired by
+[Diceware](http://world.std.com/~reinhold/diceware.html). Its wordlist is
+derived from [the SIL English word list](https://web.archive.org/web/20180803153208/http://www-01.sil.org/linguistics/wordlists/english/). This project
+is based on my work on OpenPGP key backup for the Yahoo
+[End-to-End](https://github.com/yahoo/end-to-end) project.

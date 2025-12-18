@@ -1,67 +1,54 @@
 {
-  "name": "megajs",
-  "version": "0.17.2",
-  "description": "Unofficial JavaScript SDK for MEGA",
-  "main": "dist/main.node-cjs.js",
-  "exports": {
-    "node": {
-      "require": "./dist/main.node-cjs.js",
-      "import": "./dist/main.node-es.js"
-    },
-    "default": {
-      "require": "./dist/main.browser-cjs.js",
-      "import": "./dist/main.browser-es.js"
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/qgustavor/mega.git"
-  },
+  "name": "niceware",
+  "version": "4.0.0",
+  "description": "Utility for generating memorable passwords and converting random bytes into human-readable phrases",
   "keywords": [
-    "mega",
-    "storage"
+    "diceware",
+    "passphrase",
+    "password",
+    "generator",
+    "password generator",
+    "dictionary",
+    "crypto",
+    "cryptography",
+    "random",
+    "entropy",
+    "encryption"
   ],
+  "homepage": "http://www.github.com/diracdeltas/niceware",
+  "main": "lib/main.js",
+  "devDependencies": {
+    "browserify": "^16.5.0",
+    "jsdoc-to-markdown": "^7.1.0",
+    "standard": "^16.0.4",
+    "tape": "^4.13.2"
+  },
   "scripts": {
-    "build": "node build",
-    "test": "npm run lint && ava",
+    "browsertest": "browserify test/*.js > testbundle.js && python3 -m http.server 8000 --bind 127.0.0.1",
+    "build": "browserify lib/main.js -o browser/niceware.js",
     "lint": "standard",
-    "lint-fix": "standard --fix",
-    "dist": "npm run test && npm run build"
+    "jsdoc": "jsdoc2md lib/main.js > docs/api.md",
+    "test": "tape test/**/*.js"
   },
   "standard": {
     "ignore": [
-      "dist"
+      "lib/wordlist.js",
+      "browser/niceware.js"
     ]
   },
-  "author": "Tõnis Tiigi <tonistiigi@gmail.com>",
-  "contributors": [
-    "Gustavo Rodrigues (https://qgustavor.tk)"
-  ],
+  "author": "yan <yan@mit.edu>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/diracdeltas/niceware.git"
+  },
   "license": "MIT",
   "dependencies": {
-    "abort-controller": "^3.0.0",
-    "combined-stream": "^1.0.8",
-    "node-fetch": "^2.6.7",
-    "secure-random": "^1.1.2",
-    "stream-combiner": "^0.2.2",
-    "stream-skip": "^1.0.3",
-    "through": "^2.1.0"
+    "binary-search": "^1.3.6",
+    "randombytes": "^2.0.6"
   },
-  "devDependencies": {
-    "ava": "^4.0.1",
-    "buffer": "^6.0.3",
-    "core-js": "^3.20.3",
-    "esbuild": "^0.14.11",
-    "esbuild-plugin-alias": "^0.2.1",
-    "events": "^3.3.0",
-    "mega-mock": "^0.3.0",
-    "readable-stream": "^3.6.0",
-    "regenerator-runtime": "^0.13.9",
-    "standard": "^16.0.4",
-    "tmp": "0.0.33",
-    "util": "^0.12.4"
+  "resolutions": {
+    "ansi-regex": "5.0.1",
+    "markdown-it": "12.3.2",
+    "marked": "4.0.10"
   }
 }
