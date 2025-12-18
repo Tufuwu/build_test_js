@@ -1,141 +1,208 @@
-# Delaunator [![](https://img.shields.io/badge/simply-awesome-brightgreen.svg)](https://github.com/mourner/projects) [![](https://badgen.net/bundlephobia/minzip/delaunator)](https://unpkg.com/delaunator)
+# Pa11y Dashboard
 
-An incredibly fast and robust JavaScript library for
-[Delaunay triangulation](https://en.wikipedia.org/wiki/Delaunay_triangulation) of 2D points.
+Pa11y Dashboard is a web interface to the [Pa11y][pa11y] accessibility reporter; allowing you to focus on *fixing* issues rather than hunting them down.
 
-- [Interactive Demo](https://mapbox.github.io/delaunator/demo.html)
-- [Guide to data structures](https://mapbox.github.io/delaunator/)
+![Version][shield-version]
+[![Node.js version support][shield-node]][info-node]
+[![Build status][shield-build]][info-build]
+[![GPL-3.0 licensed][shield-license]][info-license]
 
-<img src="delaunator.png" alt="Delaunay triangulation example" width="600" />
+![dashboard](https://user-images.githubusercontent.com/6110968/61603347-0bce1000-abf2-11e9-87b2-a53f91d315bb.jpg)
+![results-page](https://user-images.githubusercontent.com/6110968/62183438-05851580-b30f-11e9-9bc4-b6a4823ae9e8.jpg)
 
-### Projects based on Delaunator
+---
 
-- [d3-delaunay](https://github.com/d3/d3-delaunay) for Voronoi diagrams, search, traversal and rendering (a part of [D3](https://d3js.org)).
-- [d3-geo-voronoi](https://github.com/Fil/d3-geo-voronoi) for Delaunay triangulations and Voronoi diagrams on a sphere (e.g. for geographic locations).
+## Requirements
 
-## Example
+Pa11y Dashboard is a [Node.js][node] application and requires a stable or LTS version of Node, currently version 12 or 14.
 
-```js
-const coords = [168,180, 168,178, 168,179, 168,181, 168,183, ...];
+⚠️ At the moment, Pa11y Dashboard won't work with Node.js v16. Please use Node.js 12 or 14. ⚠️
 
-const delaunay = new Delaunator(coords);
-console.log(delaunay.triangles);
-// [623, 636, 619,  636, 444, 619, ...]
+Pa11y Dashboard uses a [MongoDB][mongo] database to store the results of the tests. The database doesn't have to be in the same server or computer where Pa11y Dashboard is running from.
+
+Pa11y Dashboard uses [puppeteer](https://www.npmjs.com/package/puppeteer) to create a headless instance of the Chromium browser in order to run the tests. On certain environments this may require additional dependencies to be installed. For example, in Debian/Ubuntu systems you may need to install the `libnss3` and `libgconf-2-4` libraries in order to be able to run tests on Pa11y Dashboard. Please refer to the documentation from your provider for details on how to do this.
+
+## Setting up Pa11y Dashboard
+
+In order to run Pa11y Dashboard, we recommend cloning this repository locally:
+
+```sh
+git clone https://github.com/pa11y/pa11y-dashboard.git
 ```
 
-## Install
+Then installing the dependencies:
 
-Install with NPM (`npm install delaunator`) or Yarn (`yarn add delaunator`), then import as an ES module:
-
-```js
-import Delaunator from 'delaunator';
+```sh
+cd pa11y-dashboard
+npm install
 ```
 
-To use as a module in a browser:
+### Installing MongoDB
 
-```html
-<script type="module">
-    import Delaunator from 'https://cdn.skypack.dev/delaunator@5.0.0';
-</script>
+Instructions for installing and running MongoDB are outside the scope of this document. When in doubt, please refer to the [MongoDB installation instructions](https://docs.mongodb.com/manual/installation/) for details of how to install and run MongoDB on your specific operating system. An example of the installation and configuration process for macOS follows.
+
+Pa11y Dashboard currently uses version 3 of the Node.js MongoDB driver, which means that [only MongoDB servers of versions 4.4 or older are supported](https://docs.mongodb.com/drivers/node/current/compatibility/#mongodb-compatibility). Please ensure that your MongoDB server fills the requirements before trying to run Pa11y Dashboard.
+
+#### Example MongoDB installation for macOS
+
+On recent versions of macOS (10.13 or later), you can use [Homebrew](https://brew.sh/) to install MongoDB Community Edition. More recent versions of MongoDB are untested and unsupported.
+
+Tap the MongoDB Homebrew Tap:
+
+```sh
+brew tap mongodb/brew
 ```
 
-Or use a browser UMD build that exposes a `Delaunator` global variable:
+Install a supported Community version of MongoDB:
 
-```html
-<script src="https://unpkg.com/delaunator@5.0.0/delaunator.min.js"></script>
+```sh
+brew install mongodb-community@4.4
 ```
 
-## API Reference
+Start the MongoDB server:
 
-#### new Delaunator(coords)
-
-Constructs a delaunay triangulation object given an array of point coordinates of the form:
-`[x0, y0, x1, y1, ...]` (use a typed array for best performance).
-
-#### Delaunator.from(points[, getX, getY])
-
-Constructs a delaunay triangulation object given an array of points (`[x, y]` by default).
-`getX` and `getY` are optional functions of the form `(point) => value` for custom point formats.
-Duplicate points are skipped.
-
-#### delaunay.triangles
-
-A `Uint32Array` array of triangle vertex indices (each group of three numbers forms a triangle).
-All triangles are directed counterclockwise.
-
-To get the coordinates of all triangles, use:
-
-```js
-for (let i = 0; i < triangles.length; i += 3) {
-    coordinates.push([
-        points[triangles[i]],
-        points[triangles[i + 1]],
-        points[triangles[i + 2]]
-    ]);
-}
+```sh
+brew services start mongodb/brew/mongodb-community@4.4
 ```
 
-#### delaunay.halfedges
+Check that the service has started properly:
 
-A `Int32Array` array of triangle half-edge indices that allows you to traverse the triangulation.
-`i`-th half-edge in the array corresponds to vertex `triangles[i]` the half-edge is coming from.
-`halfedges[i]` is the index of a twin half-edge in an adjacent triangle
-(or `-1` for outer half-edges on the convex hull).
+```sh
+$ brew services list
+Name              Status  User       Plist
+mongodb-community started pa11y      /Users/pa11y/Library/LaunchAgents/homebrew.mxcl.mongodb-community.plist
+```
 
-The flat array-based data structures might be counterintuitive,
-but they're one of the key reasons this library is fast.
+### Configuring Pa11y Dashboard
 
-#### delaunay.hull
+The last step before being able to run Pa11y Dashboard is to define a configuration for it. This can be done in two ways:
 
-A `Uint32Array` array of indices that reference points on the convex hull of the input data, counter-clockwise.
+#### Option 1: Using environment variables
 
-#### delaunay.coords
+Each configuration can be set with an environment variable rather than a config file. For example to run the application on port `8080` you can use the following:
 
-An array of input coordinates in the form `[x0, y0, x1, y1, ....]`,
-of the type provided in the constructor (or `Float64Array` if you used `Delaunator.from`).
+```sh
+PORT=8080 node index.js
+```
 
-#### delaunay.update()
+The [available configurations](#configurations) are documented in the next section.
 
-Updates the triangulation if you modified `delaunay.coords` values in place, avoiding expensive memory allocations.
-Useful for iterative relaxation algorithms such as [Lloyd's](https://en.wikipedia.org/wiki/Lloyd%27s_algorithm).
+#### Option 2: Using config files
 
-## Performance
+You can store the configuration for Pa11y Dashboard on a JSON file. You can use a different configuration file for each environment you're planning to run Pa11y Dashboard on. You can choose a specific environment to run the application from by setting the `NODE_ENV` environment variable:
 
-Benchmark results against other Delaunay JS libraries
-(`npm run bench` on Macbook Pro Retina 15" 2017, Node v10.10.0):
+```sh
+NODE_ENV=development node index.js
+```
 
-&nbsp; | uniform 100k | gauss 100k | grid 100k | degen 100k | uniform 1&nbsp;million | gauss 1&nbsp;million | grid 1&nbsp;million | degen 1&nbsp;million
-:-- | --: | --: | --: | --: | --: | --: | --: | --:
-**delaunator** | 82ms | 61ms | 66ms | 25ms | 1.07s | 950ms | 830ms | 278ms
-[faster&#8209;delaunay](https://github.com/Bathlamos/delaunay-triangulation) | 473ms | 411ms | 272ms | 68ms | 4.27s | 4.62s | 4.3s | 810ms
-[incremental&#8209;delaunay](https://github.com/mikolalysenko/incremental-delaunay) | 547ms | 505ms | 172ms | 528ms | 5.9s | 6.08s | 2.11s | 6.09s
-[d3&#8209;voronoi](https://github.com/d3/d3-voronoi) | 972ms | 909ms | 358ms | 720ms | 15.04s | 13.86s | 5.55s | 11.13s
-[delaunay&#8209;fast](https://github.com/ironwallaby/delaunay) | 3.8s | 4s | 12.57s | timeout | 132s | 138s | 399s | timeout
-[delaunay](https://github.com/darkskyapp/delaunay) | 4.85s | 5.73s | 15.05s | timeout | 156s | 178s | 326s | timeout
-[delaunay&#8209;triangulate](https://github.com/mikolalysenko/delaunay-triangulate) | 2.24s | 2.04s | OOM | 1.51s | OOM | OOM | OOM | OOM
-[cdt2d](https://github.com/mikolalysenko/cdt2d) | 45s | 51s | 118s | 17s | timeout | timeout | timeout | timeout
+Three example files are provided in this repository, you can copy and customise them to your liking:
 
-## Papers
+```sh
+cp config/development.sample.json config/development.json
+cp config/production.sample.json config/production.json
+cp config/test.sample.json config/test.json
+```
 
-The algorithm is based on ideas from the following papers:
+The [available configurations](#configurations) are documented in the next section.
 
-- [A simple sweep-line Delaunay triangulation algorithm](http://www.academicpub.org/jao/paperInfo.aspx?paperid=15630), 2013, Liu Yonghe, Feng Jinming and Shao Yuehong
-- [S-hull: a fast radial sweep-hull routine for Delaunay triangulation](http://www.s-hull.org/paper/s_hull.pdf), 2010, David Sinclair
-- [A faster circle-sweep Delaunay triangulation algorithm](http://cglab.ca/~biniaz/papers/Sweep%20Circle.pdf), 2011, Ahmad Biniaz and Gholamhossein Dastghaibyfard
+If you run into problems, check the [troubleshooting guide][#troubleshooting].
 
-## Robustness
+## Configurations
 
-Delaunator should produce valid output even on highly degenerate input. It does so by depending on [robust-predicates](https://github.com/mourner/robust-predicates), a modern port of Jonathan Shewchuk's robust geometric predicates, an industry standard in computational geometry.
+The boot configurations for Pa11y Dashboard are as follows. Look at the sample JSON files in the repo for example usage.
 
-## Ports to other languages
+### port
 
-- [delaunator-rs](https://github.com/mourner/delaunator-rs) (Rust)
-- [fogleman/delaunay](https://github.com/fogleman/delaunay) (Go)
-- [delaunator-cpp](https://github.com/abellgithub/delaunator-cpp) (C++)
-- [delaunator-sharp](https://github.com/nol1fe/delaunator-sharp) (C#)
-- [delaunator-ruby](https://github.com/hendrixfan/delaunator-ruby) (Ruby)
-- [Delaunator-Python](https://github.com/HakanSeven12/Delaunator-Python) (Python)
-- [ricardomatias/delaunator](https://github.com/ricardomatias/delaunator) (Kotlin)
-- [delaunator-java](https://github.com/waveware4ai/delaunator-java) (Java)
-- [delaunay-Stata](https://github.com/asjadnaqvi/stata-delaunay-voronoi) (Stata/Mata)
-- [Delaunator.jl](https://github.com/JuliaGeometry/Delaunator.jl) (Julia)
+*(number)* The port to run the application on. Set via a config file or the `PORT` environment variable.
+
+### noindex
+
+*(boolean)* If set to `true` (default), the dashboard will not be indexed by search engines. Set to `false` to allow indexing. Set via a config file or the `NOINDEX` environment variable.
+
+### readonly
+
+*(boolean)* If set to `true`, users will not be able to add, delete or run URLs (defaults to `false`). Set via a config file or the `READONLY` environment variable.
+
+### siteMessage
+
+*(string)* A message to display prominently on the site home page. Defaults to `null`.
+
+### webservice
+
+This can either be an object containing [Pa11y Webservice configurations][pa11y-webservice-config], or a string which is the base URL of a [Pa11y Webservice][pa11y-webservice] instance you are running separately. If using environment variables, prefix the webservice vars with `WEBSERVICE_`.
+
+## Contributing
+
+There are many ways to contribute to Pa11y Dashboard, we cover these in the [contributing guide](CONTRIBUTING.md) for this repo.
+
+If you're ready to contribute some code, you'll need to clone the repo and get set up as outlined in the [setup guide](#setup). You'll then need to start the application in test mode with:
+
+```sh
+NODE_ENV=test node index.js
+```
+
+You'll now be able to run the following commands:
+
+```sh
+make verify              # Verify all of the code (ESLint)
+make test                # Run all tests
+make test-integration    # Run the integration tests
+```
+
+To compile the client-side JavaScript and CSS, you'll need the following commands. Compiled code is committed to the repository.
+
+```sh
+make less    # Compile the site CSS from LESS files
+make uglify  # Compile and uglify the client-side JavaScript
+```
+
+## Useful resources
+
+* [Setting up An Accessibility Dashboard from Scratch with Pa11y on DigitalOcean](https://una.im/pa11y-dash/)
+* [Monitoring Web Accessibility Compliance With Pa11y Dashboard](https://www.lullabot.com/articles/monitoring-web-accessibility-compliance-with-pa11y-dashboard)
+
+## Troubleshooting
+
+### Common issues
+
+* `500` errors or `Could not connect to pa11y-webservice` messages are often related to MongoDB. Ensure that you have the [appropriate version of MongoDB][#installing-mongodb] installed, and that it's running - it doesn't always start automatically.
+* Error messages saying that pa11y-webservice isn't running may be due to dependency installation problems. Try deleting your `pa11y-dashboard/node_modules` directory and running `npm install` again.
+
+### Create a new issue
+
+Check the [issue tracker][issues] for similar issues before creating a new one. If the problem that you're experiencing is not covered by one of the existing issues, you can [create a new issue][create-issue]. Please include your node.js and MongoDB version numbers, and your operating system, as well as any information that may be useful in debugging the issue.
+
+## Support and Migration
+
+Pa11y Dashboard major versions are normally supported for 6 months after their last minor release. This means that patch-level changes will be added and bugs will be fixed. The table below outlines the end-of-support dates for major versions, and the last minor release for that version.
+
+We also maintain a [migration guide](MIGRATION.md) to help you migrate.
+
+| :grey_question: | Major Version | Last Minor Release | Node.js Versions | Support End Date |
+| :-------------- | :------------ | :----------------- | :--------------- | :--------------- |
+| :heart:         | 4             | N/A                | 12+              | N/A              |
+| :hourglass:     | 3             | 3.3.0              | 8+               | 2022-05-26       |
+| :skull:         | 2             | 2.4.2              | 4+               | 2020-01-16       |
+| :skull:         | 1             | 1.12               | 0.10–6           | 2016-12-05       |
+
+If you're opening issues related to these, please mention the version that the issue relates to.
+
+## License
+
+Pa11y Dashboard is licensed under the [GNU General Public License 3.0][info-license].<br/>
+Copyright &copy; 2013–2020, Team Pa11y and contributors
+
+[gpl]: http://www.gnu.org/licenses/gpl-3.0.html
+[mongo]: http://www.mongodb.org/
+[node]: http://nodejs.org/
+[pa11y]: https://github.com/pa11y/pa11y
+[pa11y-webservice-config]: https://github.com/pa11y/webservice#configurations
+[issues]: https://github.com/pa11y/pa11y-dashboard/issues?utf8=%E2%9C%93&q=is%3Aissue
+[create-issue]: https://github.com/pa11y/pa11y-dashboard/issues/new
+[info-node]: package.json
+[info-build]: https://travis-ci.org/pa11y/pa11y-dashboard
+[info-license]: LICENSE
+[shield-version]: https://img.shields.io/github/package-json/v/pa11y/pa11y-dashboard.svg
+[shield-node]: https://img.shields.io/node/v/pa11y/pa11y-dashboard.svg
+[shield-build]: https://img.shields.io/travis/pa11y/pa11y-dashboard/master.svg
+[shield-license]: https://img.shields.io/badge/license-GPL%203.0-blue.svg
