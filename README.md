@@ -1,109 +1,55 @@
-## NodeJS SQL DDL Synchronization
+# Sizzle
 
-[![Build Status](https://secure.travis-ci.org/dresende/node-sql-ddl-sync.png?branch=master)](http://travis-ci.org/dresende/node-sql-ddl-sync)
-[![](https://badge.fury.io/js/sql-ddl-sync.png)](https://npmjs.org/package/sql-ddl-sync)
-[![](https://gemnasium.com/dresende/node-sql-ddl-sync.png)](https://gemnasium.com/dresende/node-sql-ddl-sync)
+__A pure-JavaScript CSS selector engine designed to be easily dropped in to a host library.__
 
-## Install
+- [More information](https://sizzlejs.com/)
+- [Documentation](https://github.com/jquery/sizzle/wiki/)
+- [Browser support](https://github.com/jquery/sizzle/wiki/#wiki-browsers)
 
-```sh
-npm install sql-ddl-sync
+Contribution Guides
+---------------------------
+
+In the spirit of open source software development, jQuery always encourages community code contribution. To help you get started and before you jump into writing code, be sure to read these important contribution guidelines thoroughly:
+
+1. [Getting Involved](https://contribute.jquery.org/)
+2. [JavaScript Style Guide](https://contribute.jquery.org/style-guide/js/)
+3. [Writing Code for jQuery Organization Projects](https://contribute.jquery.org/code/)
+
+What you need to build Sizzle
+---------------------------
+
+In order to build Sizzle, you should have Node.js/npm latest and git 1.7 or later (earlier versions might work OK, but are not tested).
+
+For Windows you have to download and install [git](http://git-scm.com/downloads) and [Node.js](https://nodejs.org/download/).
+
+Mac OS users should install [Homebrew](http://mxcl.github.com/homebrew/). Once Homebrew is installed, run `brew install git` to install git,
+and `brew install node` to install Node.js.
+
+Linux/BSD users should use their appropriate package managers to install git and Node.js, or build from source
+if you swing that way. Easy-peasy.
+
+
+How to build Sizzle
+----------------------------
+
+Clone a copy of the main Sizzle git repo by running:
+
+```bash
+git clone git://github.com/jquery/sizzle.git
 ```
 
-## Dialects
+In the `sizzle/dist` folder you will find build version of sizzle along with the minified copy and associated map file.
 
-- MySQL
-- PostgreSQL
-- SQLite
+Testing
+----------------------------
 
-## About
+- Run `npm install`, it's also preferable (but not necessarily) to globally install `grunt-cli` package – `npm install -g grunt-cli`
+- Open `test/index.html` in the browser. Or run `npm test`/`grunt test` on the command line, if environment variables `BROWSER_STACK_USERNAME` and `BROWSER_STACK_ACCESS_KEY` are set up, it will attempt to use [Browserstack](https://www.browserstack.com/) service (you will need to install java on your machine so browserstack could connect to your local server), otherwise [PhantomJS](http://phantomjs.org/) will be used.
+- The actual unit tests are in the `test/unit` directory.
 
-This module is part of [ORM](http://dresende.github.com/node-orm2). It's used synchronize model tables in supported dialects.
-Sorry there is no API documentation for now but there are a couple of tests you can read and find out how to use it if you want.
+Developing with [grunt](http://gruntjs.com)
+----------------------------
 
-## Example
-
-Install `orm` & the required driver (eg: `mysql`).
-Create a file with the contents below and change insert your database credentials.
-Run once and you'll see table `ddl_sync_test` appear in your database. Then make some changes to it (add/drop/change columns)
-and run the code again. Your table should always return to the same structure.
-
-```js
-var orm   = require("orm");
-var mysql = require("mysql");
-var Sync  = require("sql-ddl-sync").Sync;
-
-orm.connect("mysql://username:password@localhost/database", function (err, db) {
-	if (err) throw err;
-	var driver = db.driver;
-
-	var sync = new Sync({
-		dialect : "mysql",
-		driver  : driver,
-		debug   : function (text) {
-			console.log("> %s", text);
-		}
-	});
-
-	sync.defineCollection("ddl_sync_test", {
-    id     : { type: "serial", key: true, serial: true },
-    name   : { type: "text", required: true },
-    age    : { type: "integer" },
-    male   : { type: "boolean" },
-    born   : { type: "date", time: true },
-    born2  : { type: "date" },
-    int2   : { type: "integer", size: 2 },
-    int4   : { type: "integer", size: 4 },
-    int8   : { type: "integer", size: 8 },
-    float4 : { type: "number",  size: 4 },
-    float8 : { type: "number",  size: 8 },
-    photo  : { type: "binary" }
-  });
-
-	sync.sync(function (err) {
-		if (err) {
-			console.log("> Sync Error");
-			console.log(err);
-		} else {
-			console.log("> Sync Done");
-		}
-		process.exit(0);
-	});
-});
-
-```
-
-## PostgreSQL UUID
-
-```js
-{ type: 'uuid', defaultExpression: 'uuid_generate_v4()' }
-```
-
-## Test
-
-To test, first make sure you have development dependencies installed. Go to the root folder and do:
-
-```sh
-npm install
-```
-
-Then, just run the tests.
-
-```sh
-npm test
-```
-
-If you have a supported database server and want to test against it, first install the module:
-
-```sh
-# if you have a mysql server
-npm install mysql
-# if you have a postgresql server
-npm install pg
-```
-
-And then run:
-
-```sh
-node test/run-db --uri 'mysql://username:password@localhost/database'
-```
+- `npm run build` or `grunt` will lint, build, test, and compare the sizes of the built files.
+- `npm start` or `grunt start` can be run to re-lint, re-build, and re-test files as you change them.
+- `grunt -help` will show other available commands.

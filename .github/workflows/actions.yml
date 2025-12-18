@@ -1,36 +1,30 @@
-name: test
+name: CI
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
+
+env:
+  NODE_VERSION: '16.x'
 
 jobs:
-  test:
-
+  build:
     runs-on: ubuntu-latest
-
-    env:
-      CI: true
-      TZ: utc
-      NODE_ENV: test
-
-    strategy:
-      matrix:
-        node-version: ["16"]
-
-    name: test on nodejs ${{ matrix.node-version }}
-
     steps:
-      - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: install node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
+    - name: Use Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
 
-      - uses: bahmutov/npm-install@v1
+    - name: Install dependencies
+      run: |
+        npm install
 
-      - name: run tests
-        run: npm run test
+    - name: Run tests
+      env:
+        BROWSER_STACK_USERNAME: ${{ secrets.BROWSER_STACK_USERNAME }}
+        BROWSER_STACK_ACCESS_KEY: ${{ secrets.BROWSER_STACK_ACCESS_KEY }}
+      run: |
+        export PATH=${HOME}/firefox:$PATH
+        npm test
