@@ -1,53 +1,71 @@
-# Express Handlebars plugin for Nodemailer
-This plugin works with nodemailer 6.x. And uses the [express-handlebars](https://github.com/express-handlebars/express-handlebars) view
-engine to generate html emails.
+[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=misund/hex-to-rgba)](https://dependabot.com)
 
-# Install from npm
-```bash
-npm install nodemailer-express-handlebars
+`hex-to-rgba` turns an old-fashioned css hex color value string into an rgba() string.
+
+Optionally pass in an alpha value. The passed alpha value will override any alpha value from 4- or 8-digit hexes. If you don't pass in an alpha value at all, we will default to an alpha value of 1 (completely opaque).
+
+Supports 3-, 4-, 6- and 8-digit hex values with or without a leading hash.
+
+## Installation
+```sh
+$ npm install --save hex-to-rgba
 ```
-# Usage
-```javascript
-//reference the plugin
-import hbs from 'nodemailer-express-handlebars';
-//attach the plugin to the nodemailer transporter
-transporter.use('compile', hbs(options));
-//send mail with options
-const mail = {
-   from: 'from@domain.com',
-   to: 'to@domain.com',
-   subject: 'Test',
-   template: 'email',
-   context: {
-       name: 'Name'
-   }
-}
-transporter.sendMail(mail);
+or
+```sh
+$ yarn add hex-to-rgba
 ```
 
-You can send a multipart html and text email by setting the `text_template` option on a mail message.
-```javascript
-const mail = {
-   from: 'from@domain.com',
-   to: 'to@domain.com',
-   subject: 'Test',
-   template: 'email',
-   text_template: 'text',
-   context: {
-       name: 'Name'
-   }
-}
+## Usage
+```js
+import hexToRgba from 'hex-to-rgba';
+
+// Or if you're so inclined:
+// var hexToRgba = require("hex-to-rgba");
+
+hexToRgba('112233'); // "rgba(17, 34, 51, 1)"
+hexToRgba('#112233'); // "rgba(17, 34, 51, 1)"
+hexToRgba('112233', '0.5'); // "rgba(17, 34, 51, 0.5)"
+hexToRgba('#112233', 0.75); // "rgba(17, 34, 51, 0.75)"
+
+hexToRgba('11223344') // "rgba(17, 34, 51, 0.27)"
+hexToRgba('#11223344') // "rgba(17, 34, 51, 0.27)"
+hexToRgba('11223344', '0.5') // "rgba(17, 34, 51, 0.5)"
+hexToRgba('#11223344', 0.75) // "rgba(17, 34, 51, 0.75)"
+
+hexToRgba('123'); // "rgba(17, 34, 51, 1)"
+hexToRgba('#123'); // "rgba(17, 34, 51, 1)"
+hexToRgba('123', 0.2) // "rgba(17, 34, 51, 0.2)"
+hexToRgba('#123', 0.2) // "rgba(17, 34, 51, 0.2)"
+
+hexToRgba('1234'); // "rgba(17, 34, 51, 0.27)"
+hexToRgba('#1234'); // "rgba(17, 34, 51, 0.27)"
+hexToRgba('1234', 0.5) // "rgba(17, 34, 51, 0.5)"
+hexToRgba('#1234', 0.75) // "rgba(17, 34, 51, 0.75)"
 ```
-## Plugin Options
-The plugin expects the following options:
-* __viewEngine (required)__ either the express-handlebars view engine instance or [options for the view engine](https://github.com/express-handlebars/express-handlebars#configuration-and-defaults)
-* __viewPath (required)__ provides the path to the directory where your views are
-* __extName__ the extension of the views to use (defaults to `.handlebars`)
 
-## Mail options
-Set the template and values properties on the mail object before calling `sendMail`
-* __template__ the name of the template file to use
-* __context__ this will be passed to the view engine as the context as well as view engine options see [here](https://github.com/express-handlebars/express-handlebars#renderviewviewpath-optionscallback-callback)
+## Signature
+`hexToRgba(hex, a=1)`
 
-# License
-MIT
+Returns an rgba() string. (examples: `'rgba(11, 22, 33, 1)'`, `'rgba(11, 22, 33, 0.5)'`)
+
+## Parameters
+* `hex`: The hex color value to convert to rgba. (examples: `'123456'`, `'#123456'`, `'123'`, `'#123'`)
+* `a`: An alpha value to apply. (optional, default: 1) (examples: `'0.5'`, `0.25`)
+
+
+## Contributing
+I appreciate your issues and PRs [on Github](https://github.com/misund/hex-to-rgba)!
+
+### Testing
+```
+yarn build && yarn test
+```
+
+### Releasing
+This project uses [np](https://github.com/sindresorhus/np).
+1. Make sure your changes are on main
+2. Run `yarn release`
+3. Follow the interactive release guide
+
+## Changelog
+See the [releases page on GitHub](https://github.com/misund/hex-to-rgba/releases).
