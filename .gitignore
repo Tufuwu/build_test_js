@@ -1,1 +1,19 @@
-node_modules
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# compiled output
+/dist/
+/tmp/
+
+# dependencies
+/bower_components/
+/node_modules/
+!tests/fixtures/**/node_modules
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage/
+/libpeerconnection.log
+/npm-debug.log*
+/testem.log
+/yarn-error.log
