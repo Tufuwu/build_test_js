@@ -1,103 +1,104 @@
-Cloudinary Node SDK
-=========================
-## About
-The Cloudinary Node SDK allows you to quickly and easily integrate your application with Cloudinary.
-Effortlessly optimize, transform, upload and manage your cloud's assets.
+# Codemeta Generator
+
+This repository contains a (client-side) web application to generate
+CodeMeta documents (aka. `codemeta.json`).
+
+The [CodeMeta initiative](https://github.com/codemeta/codemeta) is a Free and Open Source academic collaboration
+creating a minimal metadata schema for research software and code.
+
+The academic community recommands on adding a codemeta.json file in
+the root directory of your repository.
+
+With this linked data metadata file, you can easily declare the authorship,
+include contextual information and link to other research outputs (publications,
+data, etc.).
+
+Also, the `codemeta.json` file in your source code is indexed in the
+Software Heritage (SWH) archive, which will improve findability in searches.
+
+### References
+
+- [SWH guidelines](https://www.softwareheritage.org/save-and-reference-research-software/) for research software.
+
+- [SWH blog post](https://www.softwareheritage.org/2019/05/28/mining-software-metadata-for-80-m-projects-and-even-more/) about metadata indexation.
+- [Dan S. Katz's blog post](https://danielskatzblog.wordpress.com/2017/09/25/software-heritage-and-repository-metadata-a-software-citation-solution/) about including
+ metadata in your repository.
+- FORCE11's Software Citation Implementation WG [repository](https://github.com/force11/force11-sciwg)
+- RDA & FORCE11's joint Software Source Code Identification WG
+   [repository](https://github.com/force11/force11-rda-scidwg)
+
+## Specifications
+
+### Use case
+
+1. create a complete codemeta.json file from scratch
+2. aggregate existing information and add complementary information to
+a codemeta.json file
+
+### Functionalities
+
+- helpers while completing the form, for example a reference list of spdx
+  licenses
+- a validation mechanism after submission
+- the possibility to use all the codeMeta terms and schema.org terms
+- accessible from multiple platforms (web browsers or OS)
+- (extra) the possibility to correct the output after validation as part
+  of the creation process
+
+This tool was initially prepared for the [FORCE19 Hackathon](https://github.com/force11/force11-rda-scidwg/tree/master/hackathon/FORCE2019).
 
 
-#### Note
-This Readme provides basic installation and usage information. 
-For the complete documentation, see the [Node SDK Guide](https://cloudinary.com/documentation/node_integration).
+## Code contributions.
 
-## Table of Contents
-- [Key Features](#key-features)
-- [Version Support](#Version-Support)
-- [Installation](#installation)
-- [Usage](#usage)
-    - [Setup](#Setup)
-    - [Transform and Optimize Assets](#Transform-and-Optimize-Assets)
-    - [Generate Image and HTML Tags](#Generate-Image-and-Video-HTML-Tags)
+This section only applies to developers who want to contribute to the Codemeta Generator.
+If you only want to use it, you can use
+[the hosted version](https://codemeta.github.io/codemeta-generator/) instead.
 
+### Code guidelines
 
-## Key Features
-- [Transform](https://cloudinary.com/documentation/node_video_manipulation#video_transformation_examples) and
- [optimize](https://cloudinary.com/documentation/node_image_manipulation#image_optimizations) assets.
-- Generate [image](https://cloudinary.com/documentation/node_image_manipulation#deliver_and_transform_images) and
- [video](https://cloudinary.com/documentation/node_video_manipulation#video_element) tags.
-- [Asset Management](https://cloudinary.com/documentation/node_asset_administration).
-- [Secure URLs](https://cloudinary.com/documentation/video_manipulation_and_delivery#generating_secure_https_urls_using_sdks).
+This application is designed to work on popular modern browsers (Firefox,
+Chromium/Google Chrome, Edge, Safari). Check [Caniuse](https://caniuse.com/)
+for availability of features for these browsers.
 
+To keep the architecture simple, we serve javascript files directly to
+browsers, without a compiler or transpiler; and do not use third-party
+dependencies for now.
 
+### Running local changes
 
-## Version Support
-| SDK Version | Node version |
-|-------------|--------------|
-| 1.x.x       | Node@6 & up  |
-| 2.x.x       | Node@9 & up  |
+To run Codemeta Generator, you just need an HTTP server serving the
+files (nginx, apache2, etc.).
 
-## Installation
-```bash
-npm install cloudinary
+The simplest way is probably to use Python's HTTP server:
+
+```
+git clone https://github.com/codemeta/codemeta-generator
+cd codemeta-generator
+python3 -m http.server
 ```
 
-# Usage
-### Setup
-```js
-// Require the Cloudinary library
-const cloudinary = require('cloudinary').v2
+then open [http://localhost:8000/](http://localhost:8000/) in your web browser.
+
+### Automatic testing
+
+In addition to manual testing, we have automated tests to check for bugs
+quickly, using [Cypress](https://www.cypress.io/).
+
+To run them, first install Cypress:
+
+```
+sudo apt install npm  # or the equivalent on your system
+npm install cypress
+$(npm bin)/cypress install
 ```
 
-### Transform and Optimize Assets
-- [See full documentation](https://cloudinary.com/documentation/node_image_manipulation).
+Then, run the tests:
 
-```js
-cloudinary.url("sample.jpg", {width: 100, height: 150, crop: "fill", fetch_format: "auto"})
+```
+$(npm bin)/cypress run
 ```
 
-### Upload
-- [See full documentation](https://cloudinary.com/documentation/node_image_and_video_upload).
-- [Learn more about configuring your uploads with upload presets](https://cloudinary.com/documentation/upload_presets). 
-```js
-cloudinary.v2.uploader.upload("/home/my_image.jpg", {upload_preset: "my_preset"}, (error, result)=>{
-  console.log(result, error);
-});
-```
-### Large/Chunked Upload
-- [See full documentation](https://cloudinary.com/documentation/node_image_and_video_upload#node_js_video_upload).
-```js
-   cloudinary.v2.uploader.upload_large(LARGE_RAW_FILE, {
-          chunk_size: 7000000
-        }, (error, result) => {console.log(error)});
-```
-### Security options
-- [See full documentation](https://cloudinary.com/documentation/solution_overview#security).
 
-## Contributions
-- Ensure tests run locally (add test command)
-- Open a PR and ensure Travis tests pass
+## Contributed by
 
-
-## Get Help
-If you run into an issue or have a question, you can either:
-- Issues related to the SDK: [Open a Github issue](https://github.com/cloudinary/cloudinary_npm/issues).
-- Issues related to your account: [Open a support ticket](https://cloudinary.com/contact)
-
-
-## About Cloudinary
-Cloudinary is a powerful media API for websites and mobile apps alike, Cloudinary enables developers to efficiently manage, transform, optimize, and deliver images and videos through multiple CDNs. Ultimately, viewers enjoy responsive and personalized visual-media experiences—irrespective of the viewing device.
-
-
-## Additional Resources
-- [Cloudinary Transformation and REST API References](https://cloudinary.com/documentation/cloudinary_references): Comprehensive references, including syntax and examples for all SDKs.
-- [MediaJams.dev](https://mediajams.dev/): Bite-size use-case tutorials written by and for Cloudinary Developers
-- [DevJams](https://www.youtube.com/playlist?list=PL8dVGjLA2oMr09amgERARsZyrOz_sPvqw): Cloudinary developer podcasts on YouTube.
-- [Cloudinary Academy](https://training.cloudinary.com/): Free self-paced courses, instructor-led virtual courses, and on-site courses.
-- [Code Explorers and Feature Demos](https://cloudinary.com/documentation/code_explorers_demos_index): A one-stop shop for all code explorers, Postman collections, and feature demos found in the docs.
-- [Cloudinary Roadmap](https://cloudinary.com/roadmap): Your chance to follow, vote, or suggest what Cloudinary should develop next. 
-- [Cloudinary Facebook Community](https://www.facebook.com/groups/CloudinaryCommunity): Learn from and offer help to other Cloudinary developers.
-- [Cloudinary Account Registration](https://cloudinary.com/users/register/free): Free Cloudinary account registration.
-- [Cloudinary Website](https://cloudinary.com): Learn about Cloudinary's products, partners, customers, pricing, and more.
-
-
-## Licence
-Released under the MIT license.
+![Image description](https://annex.softwareheritage.org/public/logo/software-heritage-logo-title-motto.svg)

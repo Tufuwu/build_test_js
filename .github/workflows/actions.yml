@@ -1,37 +1,30 @@
-name: CI
+name: Run Cypress tests
 
 on:
   push:
-    branches: ["**"]
   pull_request:
-    branches: ["**"]
+  workflow_dispatch:
 
 jobs:
   test:
-    name: Node ${{ matrix.node }} • tests
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: ["16"]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup npm cache
+        uses: actions/checkout@v4
         with:
-          node-version: ${{ matrix.node }}
+          path: '~/.npm'
+          key: ${{ runner.os }}-node
+          restore-keys: |
+            ${{ runner.os }}-node
 
-      - name: Print Node & npm versions
+      - name: Install Cypress
         run: |
-          node -v
-          npm -v
+          npm install cypress@9.7.0
+          ./node_modules/.bin/cypress install
 
-      - name: Install dependencies
-        run: npm ci || npm i
-
-      - name: Run tests with timeout
-        timeout-minutes: 25
-        run: npm run test-with-temp-cloud
+      - name: Run Cypress
+        run: |
+          ./node_modules/.bin/cypress run
