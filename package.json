@@ -1,24 +1,54 @@
 {
-  "name": "url-join",
-  "version": "4.0.1",
-  "description": "Join urls and normalize as in path.join.",
-  "main": "lib/url-join.js",
-  "scripts": {
-    "test": "mocha --require should"
-  },
+  "name": "protocol-buffers",
+  "version": "4.2.0",
+  "description": "Protocol Buffers for Node.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/jfromaniello/url-join.git"
+    "url": "https://github.com/mafintosh/protocol-buffers"
+  },
+  "dependencies": {
+    "generate-function": "^2.0.0",
+    "generate-object-property": "^1.2.0",
+    "protocol-buffers-encodings": "^1.1.0",
+    "protocol-buffers-schema": "^3.1.1",
+    "signed-varint": "^2.0.0",
+    "varint": "^5.0.0"
+  },
+  "devDependencies": {
+    "standard": "^10.0.3",
+    "tape": "^4.8.0"
+  },
+  "bin": {
+    "protocol-buffers": "./bin.js"
+  },
+  "scripts": {
+    "test": "standard && npm run test-generated && npm run test-compiled",
+    "test-generated": "tape test/*.js",
+    "test-compiled": "./bin.js test/test.proto -o test/helpers/compiled.js && COMPILED=true tape test/*.js",
+    "bench": "node bench"
+  },
+  "bugs": {
+    "url": "https://github.com/mafintosh/protocol-buffers/issues"
+  },
+  "homepage": "https://github.com/mafintosh/protocol-buffers",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
   },
   "keywords": [
-    "url",
-    "join"
+    "protobuf",
+    "protocol",
+    "buffers",
+    "protocolbuffers",
+    "encode",
+    "decode",
+    "google",
+    "serialize",
+    "parse",
+    "levelup",
+    "encodings",
+    "encoding"
   ],
-  "author": "José F. Romaniello <jfromaniello@gmail.com> (http://joseoncode.com)",
-  "license": "MIT",
-  "devDependencies": {
-    "conventional-changelog": "^1.1.10",
-    "mocha": "^3.2.0",
-    "should": "~1.2.1"
-  }
+  "author": "Mathias Buus",
+  "license": "MIT"
 }
