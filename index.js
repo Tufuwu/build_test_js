@@ -1,6 +1,6 @@
 /*!
- * on-headers
- * Copyright(c) 2014 Douglas Christopher Wilson
+ * vary
+ * Copyright(c) 2014-2017 Douglas Christopher Wilson
  * MIT Licensed
  */
 
@@ -8,125 +8,142 @@
 
 /**
  * Module exports.
+ */
+
+module.exports = vary
+module.exports.append = append
+
+/**
+ * RegExp to match field-name in RFC 7230 sec 3.2
+ *
+ * field-name    = token
+ * token         = 1*tchar
+ * tchar         = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+ *               / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+ *               / DIGIT / ALPHA
+ *               ; any VCHAR, except delimiters
+ */
+
+var FIELD_NAME_REGEXP = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/
+
+/**
+ * Append a field to a vary header.
+ *
+ * @param {String} header
+ * @param {String|Array} field
+ * @return {String}
  * @public
  */
 
-module.exports = onHeaders
+function append (header, field) {
+  if (typeof header !== 'string') {
+    throw new TypeError('header argument is required')
+  }
 
-/**
- * Create a replacement writeHead method.
- *
- * @param {function} prevWriteHead
- * @param {function} listener
- * @private
- */
+  if (!field) {
+    throw new TypeError('field argument is required')
+  }
 
-function createWriteHead (prevWriteHead, listener) {
-  var fired = false
+  // get fields array
+  var fields = !Array.isArray(field)
+    ? parse(String(field))
+    : field
 
-  // return function with core name and argument list
-  return function writeHead (statusCode) {
-    // set headers from arguments
-    var args = setWriteHeadHeaders.apply(this, arguments)
-
-    // fire listener
-    if (!fired) {
-      fired = true
-      listener.call(this)
-
-      // pass-along an updated status code
-      if (typeof args[0] === 'number' && this.statusCode !== args[0]) {
-        args[0] = this.statusCode
-        args.length = 1
-      }
+  // assert on invalid field names
+  for (var j = 0; j < fields.length; j++) {
+    if (!FIELD_NAME_REGEXP.test(fields[j])) {
+      throw new TypeError('field argument contains an invalid header name')
     }
-
-    return prevWriteHead.apply(this, args)
   }
+
+  // existing, unspecified vary
+  if (header === '*') {
+    return header
+  }
+
+  // enumerate current values
+  var val = header
+  var vals = parse(header.toLowerCase())
+
+  // unspecified vary
+  if (fields.indexOf('*') !== -1 || vals.indexOf('*') !== -1) {
+    return '*'
+  }
+
+  for (var i = 0; i < fields.length; i++) {
+    var fld = fields[i].toLowerCase()
+
+    // append value (case-preserving)
+    if (vals.indexOf(fld) === -1) {
+      vals.push(fld)
+      val = val
+        ? val + ', ' + fields[i]
+        : fields[i]
+    }
+  }
+
+  return val
 }
 
 /**
- * Execute a listener when a response is about to write headers.
+ * Parse a vary header into an array.
  *
- * @param {object} res
- * @return {function} listener
+ * @param {String} header
+ * @return {Array}
+ * @private
+ */
+
+function parse (header) {
+  var end = 0
+  var list = []
+  var start = 0
+
+  // gather tokens
+  for (var i = 0, len = header.length; i < len; i++) {
+    switch (header.charCodeAt(i)) {
+      case 0x20: /*   */
+        if (start === end) {
+          start = end = i + 1
+        }
+        break
+      case 0x2c: /* , */
+        list.push(header.substring(start, end))
+        start = end = i + 1
+        break
+      default:
+        end = i + 1
+        break
+    }
+  }
+
+  // final token
+  list.push(header.substring(start, end))
+
+  return list
+}
+
+/**
+ * Mark that a request is varied on a header field.
+ *
+ * @param {Object} res
+ * @param {String|Array} field
  * @public
  */
 
-function onHeaders (res, listener) {
-  if (!res) {
-    throw new TypeError('argument res is required')
+function vary (res, field) {
+  if (!res || !res.getHeader || !res.setHeader) {
+    // quack quack
+    throw new TypeError('res argument is required')
   }
 
-  if (typeof listener !== 'function') {
-    throw new TypeError('argument listener must be a function')
+  // get existing header
+  var val = res.getHeader('Vary') || ''
+  var header = Array.isArray(val)
+    ? val.join(', ')
+    : String(val)
+
+  // set new header
+  if ((val = append(header, field))) {
+    res.setHeader('Vary', val)
   }
-
-  res.writeHead = createWriteHead(res.writeHead, listener)
-}
-
-/**
- * Set headers contained in array on the response object.
- *
- * @param {object} res
- * @param {array} headers
- * @private
- */
-
-function setHeadersFromArray (res, headers) {
-  for (var i = 0; i < headers.length; i++) {
-    res.setHeader(headers[i][0], headers[i][1])
-  }
-}
-
-/**
- * Set headers contained in object on the response object.
- *
- * @param {object} res
- * @param {object} headers
- * @private
- */
-
-function setHeadersFromObject (res, headers) {
-  var keys = Object.keys(headers)
-  for (var i = 0; i < keys.length; i++) {
-    var k = keys[i]
-    if (k) res.setHeader(k, headers[k])
-  }
-}
-
-/**
- * Set headers and other properties on the response object.
- *
- * @param {number} statusCode
- * @private
- */
-
-function setWriteHeadHeaders (statusCode) {
-  var length = arguments.length
-  var headerIndex = length > 1 && typeof arguments[1] === 'string'
-    ? 2
-    : 1
-
-  var headers = length >= headerIndex + 1
-    ? arguments[headerIndex]
-    : undefined
-
-  this.statusCode = statusCode
-
-  if (Array.isArray(headers)) {
-    // handle array case
-    setHeadersFromArray(this, headers)
-  } else if (headers) {
-    // handle object case
-    setHeadersFromObject(this, headers)
-  }
-
-  // copy leading arguments
-  var args = new Array(Math.min(length, headerIndex))
-  for (var i = 0; i < args.length; i++) {
-    args[i] = arguments[i]
-  }
-
-  return args
 }
