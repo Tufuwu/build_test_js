@@ -1,1 +1,6 @@
-react/Icon/icons-sprite.js
+# /node_modules/* and /bower_components/* ignored by default
+
+lib
+lib-test
+examples/browser/cql4browsers.js
+test/elm/library/data-with-namespace.js
