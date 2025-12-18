@@ -1,33 +1,6 @@
-# Encrypted files
-scripts/decrypted
-scripts/decrypted.tar.gz
-
-# NPM
-node_modules/
-npm-debug.log
-yarn-error.log
-
-
-# Build
-build/
-
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
-
-
-# Editors / IDEs
-.floo
-.flooignore
-
-
-# Default
-# /!\ KEEP THIS SECTION THE LAST ONE
-!.gitkeep
+node_modules
+tmp
+*.log
+coverage
+delaunator.js
+delaunator.min.js

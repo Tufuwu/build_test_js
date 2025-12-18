@@ -1,1 +1,0 @@
-See docs/service.md
