@@ -1,0 +1,10 @@
+{
+  "datagen": {
+    "type": "git",
+    "url": "https://github.com/cliffano/datagen/"
+  },
+  "nestor": {
+    "type": "git",
+    "url": "https://github.com/cliffano/nestor/"
+  }
+}
