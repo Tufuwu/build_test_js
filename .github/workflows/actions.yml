@@ -1,28 +1,50 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
-name: Node.js CI
-
+name: Build & release
 on:
   push:
-    branches: [ main ]
+    branches:
+      - 'main'
   pull_request:
-    branches: [ main ]
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  build:
+  build-release:
+    name: Build and release the Electron App
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        node-version: ["16"]
+        os: [ macos-latest, ubuntu-latest ]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm i
-    - run: npm test
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v4
+        with:
+          node-version: "16"
+          cache: 'npm'
+
+      - name: Build
+        run: |
+          npm install -g codecov
+          npm install
+          npm run build
+          npm run test
+          codecov
+
+      - name: Distribute Mac OS X and Windows binaries
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: |
+          npm run dist -- --mac --win
+
+      - name: Distribute Linux binaries
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          npm run dist
