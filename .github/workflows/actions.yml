@@ -1,37 +1,40 @@
-name: 'Pull Request Checks'
+name: CI
 
 on:
-  workflow_dispatch:
+  push:
+    # Don't run this workflow when a tag is pushed.
+    branches:
+      - '*'
   pull_request:
-    paths:
-      - 'src/**'
-      - 'test/**'
-      - 'images/**'
-      - '.github/workflows/prs.yml'
-      - '*.json'
-      - '*.js'
-      - '*.css'
-      - '!test/demo/**'
 
 jobs:
-  run_checks:
-    name: Run test tasks
+  linux:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          cache: npm
-          cache-dependency-path: package.json
-          node-version: "16"
+          fetch-depth: 0
 
-      - name: Setup environment and install dependencies
+      - name: Install gettext
         run: |
-          npm install -g grunt-cli
-          npm ci
+          sudo apt-get update
+          sudo apt-get install -y --no-upgrade gettext
+
+      - uses: actions/checkout@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Build MO files
+        run: |
+          chmod +x ./test/build_mo_files.sh
+          ./test/build_mo_files.sh
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Run tests
-        run: |
-          npm run test
+        run: npm test
