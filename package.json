@@ -1,44 +1,76 @@
 {
-  "name": "convert-source-map",
-  "version": "1.8.0",
-  "description": "Converts a source-map from/to  different formats and allows adding/changing properties.",
-  "main": "index.js",
-  "scripts": {
-    "test": "tap test/*.js --color"
+  "name": "ember-angle-brackets-codemod",
+  "version": "5.1.0",
+  "description": "Codemod to convert to Angle brackets syntax",
+  "keywords": [
+    "codemod-cli",
+    "codemods",
+    "ember",
+    "ember-codemod"
+  ],
+  "homepage": "https://github.com/ember-codemods/ember-angle-brackets-codemod#readme",
+  "bugs": {
+    "url": "https://github.com/ember-codemods/ember-angle-brackets-codemod/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/thlorenz/convert-source-map.git"
-  },
-  "homepage": "https://github.com/thlorenz/convert-source-map",
-  "dependencies": {
-    "safe-buffer": "~5.1.1"
-  },
-  "devDependencies": {
-    "inline-source-map": "~0.6.2",
-    "tap": "~9.0.0"
-  },
-  "keywords": [
-    "convert",
-    "sourcemap",
-    "source",
-    "map",
-    "browser",
-    "debug"
-  ],
-  "author": {
-    "name": "Thorsten Lorenz",
-    "email": "thlorenz@gmx.de",
-    "url": "http://thlorenz.com"
+    "url": "git+https://github.com/ember-codemods/ember-angle-brackets-codemod.git"
   },
   "license": "MIT",
-  "engine": {
-    "node": ">=0.6"
+  "author": "",
+  "bin": "./bin/cli.js",
+  "scripts": {
+    "coveralls": "cat ./coverage/lcov.info | node node_modules/.bin/coveralls",
+    "debug:integration": "node --inspect-brk ./test/run-test.js",
+    "debug:test": "node --inspect-brk ./node_modules/.bin/jest -i -t ",
+    "lint": "eslint . --cache",
+    "release": "release-it",
+    "test": "codemod-cli test --coverage",
+    "test:integration": "node ./test/run-test.js",
+    "test:notelemetry": " node ./test/run-test-without-telemetry.js"
   },
-  "files": [
-    "index.js"
-  ],
-  "browser": {
-    "fs": false
+  "jest": {
+    "collectCoverageFrom": [
+      "transforms/angle-brackets/transform.js"
+    ]
+  },
+  "dependencies": {
+    "codemod-cli": "^3.1.2",
+    "debug": "^4.3.1",
+    "ember-codemods-telemetry-helpers": "^2.1.0",
+    "ember-template-recast": "^5.0.1",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "coveralls": "^3.1.0",
+    "eslint": "^7.25.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "execa": "^5.0.0",
+    "jest": "^26.6.3",
+    "prettier": "^2.2.1",
+    "release-it": "^14.6.1",
+    "release-it-lerna-changelog": "^3.1.0"
+  },
+  "engines": {
+    "node": "10.* || >=12.*"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "release-it": {
+    "plugins": {
+      "release-it-lerna-changelog": {
+        "infile": "CHANGELOG.md",
+        "launchEditor": true
+      }
+    },
+    "git": {
+      "tagName": "v${version}"
+    },
+    "github": {
+      "release": true,
+      "tokenRef": "GITHUB_AUTH"
+    }
   }
 }
