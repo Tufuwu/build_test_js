@@ -1,29 +1,26 @@
-name: GitHub CI
+name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: ['main']
   pull_request:
-    branches: [ main ]
+    types: [opened, synchronize]
 
 jobs:
-  test:
-    name: General checks, tests and build
+  Unit:
+    name: Unit Tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 22
+          - 20
+          - 18
     steps:
-
-    - uses: actions/checkout@v4
-
-    - name: Use Node.js LTS 18
-      uses: actions/setup-node@v4
-      with:
-        node-version: "16"
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Perform checks and tests
-      run: npm test
-
-    - name: Perform self-contained build
-      run: npm run build
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm test

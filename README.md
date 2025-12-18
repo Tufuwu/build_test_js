@@ -1,57 +1,60 @@
-[![REUSE status](https://api.reuse.software/badge/github.com/SAP/openui5-worklist-app)](https://api.reuse.software/info/github.com/SAP/openui5-worklist-app)
-[![Build Status](https://github.com/SAP/openui5-worklist-app/actions/workflows/github-ci.yml/badge.svg)](https://github.com/SAP/openui5-worklist-app/actions/workflows/github-ci.yml)
-![OpenUI5 logo](http://openui5.org/images/OpenUI5_new_big_side.png)
+Class.extend
+============
 
-# openui5-worklist-app
-OpenUI5 worklist app using the UI5 Build and Development Tooling.
+Backbone like `.extend` inheritance helper for Node.js
 
-This template implements a typical worklist floorplan, one of the design patterns that is specified by the SAP Fiori Design Guidelines. 
-It includes generic application functionality and tests that can be easily extended.
+Usage
+------------
 
+You basically got two options:
 
-## More information
-* [Live Demo](http://sap.github.io/openui5-worklist-app/test/mockServer.html)
-* [Documentation](https://help.sap.com/docs/SAP_FIORI_tools/17d50220bcd848aa854c9c182d65b699/dcd9f97aa8de4adab8270315550f2b23.html)
-* [SAP Fiori Design Guidelines](https://experience.sap.com/fiori-design/)
-* [UI5 Tooling](https://github.com/SAP/ui5-tooling). 
-* [OpenUI5](https://github.com/SAP/openui5)
+``` javascript
+// 1. Extend from the blank class
+const Base = require('class-extend');
+const Sub = Base.extend();
 
-## Prerequisites
-The **UI5 build and development tooling command line interface (UI5 CLI)** has to be installed.
-For installation instructions please see [Installing the UI5 CLI](https://github.com/SAP/ui5-tooling#installing-the-ui5-cli).
+// 2. Add the .extend helper to a class
+MyClass.extend = require('class-extend').extend;
+```
 
-## Setup
-1. Clone the repository and navigate into it
-    ```sh
-    git clone https://github.com/SAP/openui5-worklist-app.git
-    cd openui5-worklist-app
-    ```
-1. Install all dependencies
-    ```sh
-    npm install
-    ```
+#### `.extend()`
 
-1. Start a local server and run the application (http://localhost:8080/index.html)
-    ```sh
-    ui5 serve -o /index.html
-    ```
+`.extend` allow you to assign prototype and static methods.
 
-## Testing
-* Run ESLint code validation
-    ```sh
-    npm run lint
-    ```
-* Start a local server and execute the tests automatically after every change
-    ```sh
-    npm run watch
-    ```
-* Run ESLint, start a local server and run the tests in CI mode
-    ```sh
-    npm test
-    ```
+If no `constructor` method is assigned, the parent constructor method will be called by default.
 
-For more build and development options please see: [UI5 Build and Development Tooling](https://github.com/SAP/ui5-tooling)
+``` javascript
+// Extend a class
+const Sub = Parent.extend({
+  // Overwrite the default constructor
+  constructor() {},
 
-## Support
-This repository is based on the [OpenUI5 template demo apps](https://sdk.openui5.org/demoapps) and updated regularly with our latest recommendations. 
-If you found a bug, please create an [OpenUI5 issue](https://github.com/sap/openui5/issues). Thank you!
+  // Sub class prototypes methods
+  hello() { console.log('hello'); }
+}, {
+  // Constructor static methods
+  hey() { console.log('hey'); }
+});
+
+Sub.hey();
+// LOG: hey
+
+const instance = new Sub();
+instance.hello();
+// LOG: hello
+```
+
+#### `.__super__`
+
+Sub classes are assigned a `__super__` static property pointing to their parent prototype.
+
+``` javascript
+const Sub = Parent.extend();
+assert(Sub.__super__ === Parent.prototype);
+```
+
+License
+---------------
+
+Copyright (c) 2025 Simon Boudrias  
+Licensed under the MIT license.
