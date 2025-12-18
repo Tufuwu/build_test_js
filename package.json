@@ -1,33 +1,37 @@
 {
-  "name": "aria-api",
-  "version": "0.4.7",
-  "description": "Access ARIA information from JavaScript",
+  "name": "nodemailer-express-handlebars",
+  "version": "6.1.2",
+  "description": "A plugin for nodemailer that uses express-handlebars view engine to generate emails",
   "main": "index.js",
-  "keywords": [
-    "aria",
-    "accessibility",
-    "browser"
-  ],
-  "author": "Tobias Bengfort <tobias.bengfort@posteo.de>",
-  "license": "MIT",
-  "devDependencies": {
-    "brfs": "^2.0.0",
-    "browserify": "^17.0.0",
-    "expect": "^1.20.2",
-    "mocha": "^10.2.0",
-    "mocha-headless-chrome": "^4.0.0"
+  "type": "module",
+  "scripts": {
+    "test": "mocha --recursive test/tests"
   },
-  "files": [
-    "index.js",
-    "lib",
-    "dist"
+  "keywords": [
+    "nodemailer",
+    "html",
+    "express-handlebars",
+    "handlebars"
   ],
+  "author": "Vadim Kazakov <yads12@gmail.com>",
+  "homepage": "https://github.com/yads/nodemailer-express-handlebars",
+  "bugs": "https://github.com/yads/nodemailer-express-handlebars/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xi/aria-api.git"
+    "url": "https://github.com/yads/nodemailer-express-handlebars"
   },
-  "bugs": {
-    "url": "https://github.com/xi/aria-api/issues"
+  "license": "MIT",
+  "peerDependencies": {
+    "express-handlebars": ">= 8.0.0",
+    "nodemailer": ">= 6.0.0"
   },
-  "homepage": "https://github.com/xi/aria-api#readme"
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "express-handlebars": "^8.0.0",
+    "mocha": "^10.0.0",
+    "nodemailer": "^6.4.6"
+  },
+  "engines": {
+    "node": ">= 20"
+  }
 }

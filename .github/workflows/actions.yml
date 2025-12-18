@@ -1,14 +1,24 @@
-on: [push]
+name: Tests
+on:
+  push:
+    branches:
+      - main
+    paths-ignore: ['*.md']
+  pull_request:
+    branches:
+      - main
+    paths-ignore: ['*.md']
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ["16"]
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-    - name: dependencies
-      run: npm install
-    - run: mkdir -p dist
-    - name: build
-      run: npx browserify index.js -o dist/aria.js -s aria
-    - name: test
-      run: npx mocha-headless-chrome -a no-sandbox -f test/index.html
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn
+      - run: yarn test
