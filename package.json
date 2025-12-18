@@ -1,70 +1,56 @@
 {
-  "name": "io-ts-from-json-schema",
-  "version": "0.0.20",
-  "description": "Iotsfjs is a static code generation utility used for converting json schema files into static TypeScript types and io-ts runtime validators.",
-  "license": "MIT",
-  "keywords": [
-    "typescript",
-    "io-ts",
-    "code-generation"
-  ],
-  "bugs": {
-    "url": "https://github.com/maasglobal/io-ts-from-json-schema/issues"
-  },
-  "homepage": "https://github.com/maasglobal/io-ts-from-json-schema/",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/maasglobal/io-ts-from-json-schema.git"
-  },
-  "main": "lib/cli.js",
-  "files": [
-    "lib/**/*"
-  ],
-  "bin": {
-    "iotsfjs": "lib/cli.js"
-  },
-  "dependencies": {
-    "glob": "^7.1.6",
-    "io-ts-codegen": "^0.4.5",
-    "uri-template": "^1.0.1",
-    "yargs": "^15.3.1"
-  },
-  "devDependencies": {
-    "@types/glob": "^7.1.3",
-    "@types/jest": "^27.0.1",
-    "@types/json-schema": "^7.0.7",
-    "@types/node": "^14.0.1",
-    "@types/yargs": "^15.0.5",
-    "@typescript-eslint/eslint-plugin": "^4.3.0",
-    "@typescript-eslint/parser": "^4.3.0",
-    "@typescript-eslint/typescript-estree": "^4.3.0",
-    "eslint": "^6.8.0",
-    "eslint-config-maasglobal-ts": "^0.0.10",
-    "eslint-config-prettier": "^6.12.0",
-    "eslint-plugin-deprecation": "^1.2.0",
-    "eslint-plugin-fp": "^2.3.0",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-json": "^2.1.0",
-    "eslint-plugin-prettier": "^3.1.2",
-    "eslint-plugin-simple-import-sort": "^5.0.3",
-    "fp-ts": "^2.11.1",
-    "jest": "^26.4.2",
-    "maas-schemas-git-develop": "https://github.com/maasglobal/maas-schemas.git#develop",
-    "monocle-ts": "^2.1.0",
-    "prettier": "^2.1.2",
-    "ts-jest": "^26.3.0",
-    "typescript": "^4.4.2"
+  "name": "express-autoroute-json",
+  "version": "3.6.3",
+  "description": "Express Auto Route Json is an automatic JSON 'REST' api builder for express-autoroute",
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10"
   },
   "scripts": {
-    "test": "jest --no-cache",
-    "clean": "rm -rf lib tmp",
-    "typecheck": "tsc -p src/tsconfig.json",
-    "build": "yarn clean && tsc && chmod u+x ./lib/cli.js",
-    "eslint": "eslint --max-warnings=0 '**/*.{ts,js,json}'",
-    "prettify": "yarn eslint --fix || true",
-    "lint": "yarn eslint",
-    "ci": "yarn typecheck && yarn test && yarn lint && yarn build",
-    "deploy-npm": "yarn ci && yarn publish --non-interactive",
-    "deploy-alpha": "yarn deploy-npm --tag alpha"
+    "coverage": "NODE_ENV=test nyc -a report --reporter=text-lcov mocha > coverage/lcov.info",
+    "lint:js": "eslint .",
+    "start-docker": "docker run -d -p 27017:27017 --rm --name express-autoroute-json-mongo mongo",
+    "stop-docker": "docker stop express-autoroute-json-mongo",
+    "test-watch": "NODE_ENV=test mocha --recursive -w --reporter min",
+    "test": "NODE_ENV=test nyc -a mocha --recursive"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stonecircle/express-autoroute-json"
+  },
+  "keywords": [
+    "express",
+    "autoroute",
+    "json",
+    "routing"
+  ],
+  "author": "Chris Manson chris@stonecircle.io",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stonecircle/express-autoroute-json/issues"
+  },
+  "homepage": "https://github.com/stonecircle/express-autoroute-json",
+  "devDependencies": {
+    "body-parser": "^1.19.2",
+    "chai": "^4.3.6",
+    "eslint": "^5.9.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.25.4",
+    "express": "^4.17.3",
+    "express-autoroute": "^2.1.1",
+    "istanbul": "^0.4.4",
+    "jsonschema": "^1.4.0",
+    "mocha": "^5.2.0",
+    "mongoose": "^5.3.14",
+    "nyc": "^13.1.0",
+    "q": "^1.0.1",
+    "supertest": "^3.3.0",
+    "winston": "^3.6.0"
+  },
+  "dependencies": {
+    "camelcase-keys": "^5.0.0",
+    "jsonapi-serializer": "^3.6.4",
+    "lodash": "^4.17.11",
+    "pluralize": "^7.0.0"
   }
 }
