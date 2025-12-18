@@ -1,0 +1,151 @@
+/* stylelint-disable no-descending-specificity */
+.textfield-wrapper {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+
+  .textfield-container {
+    width: 100%;
+
+    .input {
+      background-color: var(--color-white-100);
+      border: 2px solid var(--color-gray-88);
+      border-radius: var(--border-radius-default);
+      color: var(--color-gray-15);
+      font: inherit;
+      height: 100%;
+      letter-spacing: .15px;
+      line-height: 20px;
+      min-height: 48px;
+      padding: .75rem .625rem .625rem;
+      width: 100%;
+
+      &.input-icon-left {
+        padding-left: 38px;
+      }
+
+      &.input-icon-right {
+        padding-right: 34px;
+      }
+
+      &:hover {
+        border-color: var(--color-gray-75);
+      }
+
+      &::placeholder {
+        color: var(--color-gray-75);
+        font: 400 14px var(--fontStackSans);
+        letter-spacing: .15px;
+        line-height: 20px;
+      }
+
+      &:focus {
+        border-color: var(--color-blue-54);
+        outline: none;
+
+        &::placeholder {
+          color: transparent;
+        }
+      }
+
+      &.outlined {
+        background-color: transparent;
+      }
+
+      &.error {
+        border-color: var(--color-pink-53) !important;
+
+        &:hover {
+          border-color: var(--color-pink-40) !important;
+        }
+
+        &:focus {
+          border-color: var(--color-pink-53) !important;
+        }
+      }
+    }
+
+    &.textarea-container {
+      &.textarea-autoGrow {
+        display: grid;
+
+        &::after {
+          border: 2px solid transparent;
+
+          /* Note the weird space! Needed to preventy jumpy behavior */
+          content: attr(data-replicated-value) ' ';
+          margin-top: 1px;
+          max-height: inherit;
+          overflow-wrap: anywhere;
+          padding: .75rem .625rem .625rem;
+
+          /* Hidden from view, clicks, and screen readers */
+          visibility: hidden;
+
+          /* This is how textarea text behaves */
+          white-space: pre-wrap;
+        }
+
+        > textarea {
+          height: auto;
+
+          /* Firefox shows scrollbar on growth, you can hide like this. */
+          overflow: hidden;
+          overflow-wrap: anywhere;
+          padding: .75rem .625rem .625rem;
+
+          /* You could leave this, but after a user resizes, then it ruins the auto sizing */
+          resize: none;
+
+          &.input-icon-left {
+            padding-left: 38px;
+          }
+
+          &.input-icon-right {
+            padding-right: 34px;
+          }
+        }
+
+        > textarea,
+        &::after {
+          font: inherit;
+
+          /* Place on top of each other */
+          grid-area: 1 / 1 / 2 / 2;
+          letter-spacing: .15px;
+          line-height: 20px;
+          margin: 1px 0;
+        }
+      }
+
+      &.textarea-maxHeight {
+        > textarea,
+        &::after {
+          max-height: inherit;
+          overflow-y: auto;
+        }
+      }
+
+      textarea {
+        max-width: 100%;
+        min-height: 32px;
+      }
+    }
+
+    &.disabled {
+      .input {
+        background-color: var(--color-gray-96);
+        color: var(--color-gray-59);
+        cursor: not-allowed;
+
+        &:hover {
+          border-color: var(--color-gray-96);
+        }
+      }
+    }
+  }
+}
+
+.textfield-removeable {
+  padding: 0 46px 0 0;
+}

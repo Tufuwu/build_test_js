@@ -1,0 +1,250 @@
+# version: "2.2"
+volumes:
+  elasticsearch:
+  elasticmq:
+  postgres:
+  redis:
+  minio:
+  web-node_modules:
+networks:
+  dev:
+services:
+  elasticsearch:
+    build: check-api/elasticsearch
+    environment:
+      discovery.type: single-node
+      transport.host: 127.0.0.1
+      xpack.security.enabled: "false"
+      bootstrap.memory_lock: "true"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m -Dlog4j2.disable.jmx=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - "elasticsearch:/usr/share/elasticsearch/data"
+    networks:
+      - dev
+  postgres:
+    build: ./alegre/postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - "postgres:/var/lib/postgresql/data"
+    environment:
+      POSTGRESQL_POSTGRES_PASSWORD: postgres
+      POSTGRESQL_USERNAME: postgres
+      POSTGRESQL_PASSWORD: postgres
+      POSTGRESQL_DATABASE: alegre
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: alegre
+      REPMGR_PASSWORD: repmgrpassword
+      REPMGR_PRIMARY_HOST: pg-0
+      REPMGR_PRIMARY_PORT: 5432
+      REPMGR_PARTNER_NODES: pg-0,pg-1:5432
+      REPMGR_NODE_NAME: pg-0
+      REPMGR_NODE_NETWORK_NAME: pg-0
+      REPMGR_PORT_NUMBER: 5432
+    networks:
+      - dev
+  redis:
+    image: redis:6.2
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redis:/data"
+    networks:
+      - dev
+  minio:
+    image: minio/minio
+    command: server /data
+    ports:
+      - "9000:9000"
+    volumes:
+      - "minio:/data"
+    environment:
+      MINIO_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
+      MINIO_SECRET_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    networks:
+      - dev
+  elasticmq:
+    image: softwaremill/elasticmq
+    hostname: presto-elasticmq
+    ports:
+      - "9324:9324"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-S", "-O", "-", "127.0.0.1:9324/?Action=ListQueues"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dev
+  api:
+    build: check-api
+    mem_limit: 4g
+    ports:
+      - "3000:3000"
+      - "3300:3300"
+    depends_on:
+      - elasticsearch
+      - postgres
+      - redis
+      - pender
+    volumes:
+      - "./check-api:/app"
+    environment:
+      RAILS_ENV: development
+      SERVER_PORT: 3000
+    networks:
+      - dev
+  api-background:
+    build: check-api
+    command: /app/docker-background.sh
+    depends_on:
+      - api
+    volumes:
+      - "./check-api:/app"
+    environment:
+      RAILS_ENV: development
+      SERVER_PORT: 3000
+    networks:
+      - dev
+  pender:
+    build: pender
+    shm_size: 1G
+    ports:
+      - "3200:3200"
+      - "9555:9555"
+    volumes:
+      - "./pender:/app"
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    environment:
+      RAILS_ENV: development
+      SERVER_PORT: 3200
+    networks:
+      - dev
+  pender-background:
+    build: pender
+    command: /app/docker-background.sh
+    shm_size: 1G
+    volumes:
+      - "./pender:/app"
+    depends_on:
+      - pender
+    environment:
+      RAILS_ENV: development
+      SERVER_PORT: 3200
+    networks:
+      - dev
+  presto-server:
+    build: presto
+    platform: linux/amd64
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./presto:/app"
+    env_file:
+      - presto/.env_file
+    environment:
+      ROLE: server
+    networks:
+      - dev
+    depends_on:
+      elasticmq:
+        condition: service_healthy
+  presto-image:
+    build: presto
+    platform: linux/amd64
+    volumes:
+      - "./presto:/app"
+    env_file:
+      - presto/.env_file
+    environment:
+      ROLE: worker
+      MODEL_NAME: image.Model
+    networks:
+      - dev
+    depends_on:
+      elasticmq:
+        condition: service_healthy
+  presto-audio:
+    build: presto
+    platform: linux/amd64
+    volumes:
+      - "./presto:/app"
+    env_file:
+      - presto/.env_file
+    environment:
+      ROLE: worker
+      MODEL_NAME: audio.Model
+    networks:
+      - dev
+    depends_on:
+      elasticmq:
+        condition: service_healthy
+  presto-video:
+    build: presto
+    platform: linux/amd64
+    volumes:
+      - "./presto:/app"
+    env_file:
+      - presto/.env_file
+    environment:
+      ROLE: worker
+      MODEL_NAME: video.Model
+    networks:
+      - dev
+    depends_on:
+      elasticmq:
+        condition: service_healthy
+  presto-mean-tokens:
+    build: presto
+    platform: linux/amd64
+    volumes:
+      - "./presto:/app"
+    env_file:
+      - presto/.env_file
+    environment:
+      ROLE: worker
+      MODEL_NAME: mean_tokens.Model
+    networks:
+      - dev
+    depends_on:
+      elasticmq:
+        condition: service_healthy
+  alegre:
+    build: alegre
+    ports:
+      - "3100:3100"
+    volumes:
+      - "./alegre:/app"
+    depends_on:
+      - redis
+      - elasticsearch
+      - presto-server
+    env_file:
+      - alegre/.env_file
+    networks:
+      - dev
+  web:
+    build: .
+    ports:
+      - "3333:3333"
+    volumes:
+      - ".:/app"
+      - "./check-api:/api"
+      - "web-node_modules:/app/node_modules"
+    environment:
+      PLATFORM: web
+      NODE_ENV: development
+      SERVER_PORT: 3333
+      MODE: development
+    networks:
+      - dev

@@ -1,0 +1,7 @@
+[
+  {
+    "id": "tagList.empty",
+    "description": "A message that appears in a lag list when there are no available tags to display.",
+    "defaultMessage": "0 tags"
+  }
+]

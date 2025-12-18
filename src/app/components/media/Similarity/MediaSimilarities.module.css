@@ -1,0 +1,27 @@
+.similar-matched-media-bar {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px;
+}
+
+.similar-matched-media-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+
+  .similar-matched-media {
+    cursor: pointer;
+    position: relative;
+  }
+
+  .similar-matched-media-options {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    position: absolute;
+    right: 8px;
+    top: 8px;
+  }
+}

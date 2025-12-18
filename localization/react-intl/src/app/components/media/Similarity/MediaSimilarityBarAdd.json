@@ -1,0 +1,27 @@
+[
+  {
+    "id": "mediaSimilarityBarAdd.mergedSuccessfully",
+    "description": "Banner displayed when clusters of media are merged successfully.",
+    "defaultMessage": "Media Clusters merged successfully."
+  },
+  {
+    "id": "mediaSimilarityBarAdd.mergeItemsTooltip",
+    "description": "Tooltip message for when merging media clusters is not allowed from this cluster of media",
+    "defaultMessage": "This media cluster has already been merged."
+  },
+  {
+    "id": "mediaSimilarityBarAdd.mergeItems",
+    "description": "Label for the Merge Media Clusters button.",
+    "defaultMessage": "Merge Media Clusters"
+  },
+  {
+    "id": "mediaSimilarityBarAdd.mergeItemsButton",
+    "description": "Button label to commit action of merging items.",
+    "defaultMessage": "Merge Selected Media Clusters"
+  },
+  {
+    "id": "mediaSimilarityBarAdd.mergeItemsTitle",
+    "description": "Dialog title for merging items.",
+    "defaultMessage": "Search for Media Clusters to Merge"
+  }
+]

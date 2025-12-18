@@ -1,0 +1,24 @@
+.tag-list-container {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  min-width: 0;
+
+  > div {
+    background-color: var(--color-beige-86);
+    border-radius: 50px;
+    color: var(--color-beige-40);
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .empty-list {
+    align-self: center;
+    color: var(--color-gray-75);
+  }
+
+  .tooltip-container {
+    border-radius: 50px;
+  }
+}

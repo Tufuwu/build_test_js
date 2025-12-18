@@ -1,0 +1,17 @@
+[
+  {
+    "id": "contentScreen.viewContentButton",
+    "description": "Button to enable view of sensitive content",
+    "defaultMessage": "Temporarily view content"
+  },
+  {
+    "id": "contentScreen.hideContentButton",
+    "description": "Button to disable view of sensitive content",
+    "defaultMessage": "Hide content"
+  },
+  {
+    "id": "contentScreen.superAdminMaskMessage",
+    "description": "Text to show that admin screen is on",
+    "defaultMessage": "Sensitive Content Masking Applied"
+  }
+]

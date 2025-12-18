@@ -1,0 +1,132 @@
+{
+    "parser": "@babel/eslint-parser",
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "requireConfigFile": false,
+    },
+    "env": {
+        "browser": true,
+        "node": true,
+        "jest": true
+    },
+    "extends": [
+        "airbnb",
+        "plugin:require-path-exists/recommended",
+    ],
+    "globals": {
+        "describe": true,
+        "it": true,
+        "Intercom": "readonly",
+    },
+    "plugins": [
+        "require-path-exists",
+        "@calm/react-intl",
+        "sort-destructure-keys",
+        "relay",
+    ],
+    "rules": {
+        "indent": [2, 2],
+
+        // Relax, React!
+        "react/jsx-filename-extension": "off",
+        "react/jsx-no-bind": "off",
+        "react/prop-types": "off",
+        "react/forbid-prop-types": "off",
+        "react/no-children-prop": "off",
+        "react/no-unknown-property": "off",
+        "react/sort-prop-types": [ "error", {
+            "callbacksLast": true,
+        }],
+        "react/jsx-sort-props": [ "error", {
+            "callbacksLast": true,
+        }],
+        
+        // Sorts destructured keys alphabetically
+        "sort-destructure-keys/sort-destructure-keys": 2,
+
+        // Relay
+        "relay/unused-fields": "error",
+
+        // TODO Fix a11y issues
+        "jsx-a11y/no-static-element-interactions": "off",
+        "jsx-a11y/anchor-has-content": "off",
+
+        // Configure valid anchors with <Link>
+        "jsx-a11y/anchor-is-valid": [ "error", {
+            "components": [ "Link" ],
+            "specialLink": [ "to" ],
+            "aspects": [ "noHref", "invalidHref", "preferButton" ]
+        }],
+
+        "jsx-a11y/label-has-for": [ 2, {
+            "components": [],
+            "required": {
+                "some": [ "nesting", "id" ]
+            },
+            "allowChildren": true
+        }],
+
+        // TODO Reconfigure eslint to be aware of our configuration
+        // files we import without extensions (or set this rule to "off")
+        "import/no-extraneous-dependencies": "off",
+        "import/no-unresolved": "off",
+        "import/extensions": "off",
+        "import/no-unused-modules": [1, {"unusedExports": true}],
+        "import/order": [1, {"groups": 
+            [
+            "external", 
+            "builtin", 
+            "internal", 
+            "sibling", 
+            "parent", 
+            "index",
+            "unknown",
+            ],
+            "pathGroups": [
+                {
+                  "pattern": "**/*.css",
+                  "patternOptions": {"dot": true, "nocomment": true},
+                  "group": "unknown",
+                  "position": "after"
+                },
+                {
+                  "pattern": "{.,..}/**/*.css",
+                  "patternOptions": {"dot": true, "nocomment": true},
+                  "group": "unknown",
+                  "position": "after"
+                }
+            ],
+        }],
+
+        // TODO
+        "class-methods-use-this": ["error", { "exceptMethods": ["getMutation", "getFatQuery", "getConfigs"] }],
+
+        // Styled components uses the "confusing" arrows
+        "no-confusing-arrow": "off",
+
+        // Don't worry about spacing in comments
+        "no-irregular-whitespace": ["error", { "skipComments": true }],
+
+        // TODO Consider standardizing on camelCase
+        "camelcase": "off",
+
+        "max-len": "off",
+        "function-paren-newline": "off",
+
+        "@calm/react-intl/missing-attribute": [2,
+          {
+            "requireDescription": true,
+            "requireIdAsString": true,
+          }
+        ],
+    },
+    "overrides": [
+        {
+            // https://github.com/benmosher/eslint-plugin-import/issues/544
+            "files": ["src/app/components/**"],
+            "rules": {
+                "import/no-named-as-default": "off"
+            }
+        }
+    ]
+}

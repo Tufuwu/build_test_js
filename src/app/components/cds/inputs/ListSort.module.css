@@ -1,0 +1,47 @@
+.listSort {
+  align-items: center;
+  display: flex;
+  font-size: var(--font-size-body-2);
+  gap: 4px;
+  min-width: fit-content;
+
+  /* Hack to increase the specificity of this element by duplicating the classname */
+  .listSortSelect {
+    select.listSortSelect {
+      min-height: 38px;
+      padding: 6px 34px 6px 10px;
+
+      + div {
+        font-size: var(--font-size-h6);
+
+        :global(.check-icon) {
+          margin-top: .1em;
+        }
+      }
+    }
+  }
+
+  .listSortDirectionButton {
+    align-items: center;
+    background: var(--color-gray-96);
+    border: 0;
+    border-radius: var(--border-radius-medium);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    height: 38px;
+    justify-content: center;
+    padding: 3px 8px;
+    transition: color 100ms linear, background-color 100ms linear, border-color 100ms linear;
+    width: 32px;
+
+    svg {
+      color: var(--color-blue-54);
+      font-size: var(--iconSizeSmall);
+    }
+
+    &:hover {
+      background-color: var(--color-blue-98);
+    }
+  }
+}

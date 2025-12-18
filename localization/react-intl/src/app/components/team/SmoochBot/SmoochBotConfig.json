@@ -1,0 +1,7 @@
+[
+  {
+    "id": "smoochBot.addResource",
+    "description": "Button label to add a resource to this bot",
+    "defaultMessage": "New Tipline Resource"
+  }
+]

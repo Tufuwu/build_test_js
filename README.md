@@ -1,119 +1,144 @@
-# SuchTube
+# Check Web
 
-[![](https://img.shields.io/npm/v/suchtube.svg?style=flat-square)](https://www.npmjs.com/package/suchtube)
-[![CI](https://img.shields.io/github/actions/workflow/status/markets/suchtube/ci.yml?branch=master&style=flat-square)](https://github.com/markets/suchtube/actions/workflows/ci.yml)
-[![Help Contribute to Open Source](https://www.codetriage.com/markets/suchtube/badges/users.svg)](https://www.codetriage.com/markets/suchtube)
+[![Travis](https://travis-ci.org/meedan/check-web.svg?branch=develop)](https://travis-ci.org/meedan/check-web/)
 
-> Youtube Search as a service
+Verify breaking news online.
 
-SuchTube is a server and a CLI app to search videos on YouTube.
+## Overview
 
-The server responds to multiple formats, even comes with [Slack integration](#slack-integration):
+This is the web client of [Check](https://github.com/meedan/check).
 
-- `html` at `GET /search.html?q=cats`
-- `json` at `GET /search.json?q=cats`
-- `text` at `GET /search.text?q=cats`
-- `slack` at `POST /search.slack` + Slack payload
+## Dependencies
 
-The CLI allows you to search videos without leaving the terminal:
+* [Node.js](https://nodejs.org/en/ "Node.js") (tested with version 6.9.2) and [NPM](https://www.npmjs.com/ "npm") modules as defined in [package.json]()
+* [Ruby](https://www.ruby-lang.org/en/downloads/ "Download Ruby") and [RubyGems](https://rubygems.org/ "RubyGems.org | your community gem host") (to run the tests)
+* Optional: [Inkscape](https://inkscape.org/en/ "Draw Freely | Inkscape") and [ImageMagick](https://www.imagemagick.org/script/index.php "Convert, Edit, Or Compose Bitmap Images @ ImageMagick") (to generate the favicon)
 
-    > suchtube funny cats
-    > suchtube football top goals --random --open
+## Installation
 
-Or start the server:
+If you are just getting started, you probably want to install the full
+[Check](https://github.com/meedan/check) stack with
+[Docker](https://www.docker.com/).
 
-    > suchtube --server
+The full Check environment will install Node packages into an invisible
+`node_modules/` directory. Instead of using `npm run ...`, run
+`docker-compose exec web npm run ...` to run in the Docker container: the
+Docker container can see the `node_modules/` directory.
 
-You can also use the search part [as a library](#usage-as-a-library).
+## Watching for changes
 
-## Installation and usage
+The dev-mode Docker container will watch for file changes in `src/` and rebuild
+whenever a file changes. It will output a message (success or error) after each
+rebuild.
 
-### Requirements
+## Localization
 
-- Node.js
+Translations are managed in [Transifex](https://www.transifex.com/meedan/check-2/).
+All the contents are stored in the `localization` directory which contains the
+following subfolders:
 
-Currently this package officially supports (and is tested against) Node v16+. If you need to manage different Node environments, a version manager (like [creationix/nvm](https://github.com/creationix/nvm) or [tj/n](https://github.com/tj/n)) is recommended.
+* `localization/react-intl`: files extracted by `babel-plugin-react-intl` (localizable strings)
+* `localization/transifex`: files above, but converted to Transifex JSON format
+* `localization/translations`: files downloaded from Transifex in JavaScript format
 
-- YouTube Data API key
+The application is displayed in the browser's language using the files from the
+`localization` directory.
 
-Should be loaded in current shell as an environment variable named `SUCHTUBE_YOUTUBE_DATA_API_V3`.
+## Developing
 
-### Install
+### Adding a new language
 
-Via npm:
+Copy `config-build.js.example` to `config-build.js` (if you don't have it yet) and
+add your Transifex user and password.
 
-    > npm install -g suchtube
-    > suchtube --help
+Then you can use `npm run transifex:upload` and `npm run transifex:download` to
+upload and download translations, respectively.
 
-Via GitHub:
+### Applying css styles
 
-- Clone this repo and `cd` into it.
-- Run `npm install`
-- Run `npm start` to start the server
-- Run `bin/suchtube -h` to use the CLI
+#### Components
+Use locally scoped css styles for all components. Reference a css file with `[componentname].module.css` as the naming pattern to automatically enable [css module scoping](https://github.com/css-modules/css-modules).
 
-The server listens by default on port 3333, if you want to change this, you can do it via the `PORT` environment variable. If you're starting the server using the SuchTube CLI, you can also set the port by:
+### Maintaining `package-lock.json`
 
-    > suchtube --server --port 4444
+Run `docker-compose exec web npm install [--save-dev] MODULE [...]`. This will
+overwrite `package-lock.json`. Commit and deploy `package-lock.json` alongside
+any change to `package.json`.
 
-## Options
+#### Publishing meedan-maintained modules to npmjs.org
 
-Options while using the CLI are available in the following formats: `--time=10` or `--time 10`. For the server, you should pass the options along with the query, inside the `q` paramater, ie: `?q=funny+cats+--time=10`.
+(For Meedan employees.) If:
 
-- `--time=10`, `-t=10`
+* You are a member of the [Meedan npmjs org](https://www.npmjs.com/org/meedan); and
+* You mean to install a fork of a buggy JavaScript module -- or a _new_ module
 
-Starts the video at the given time in seconds.
+Then publish it to npm. Name the module `@meedan/name-of-my-module` (in its
+`package.json`) and then `npm publish`. After, you may
+`docker-compose exec web npm install [--save-dev] MODULE` to use it in `check-web`.
 
-- `--random`, `-r`
+#### Integration tests
 
-Returns a random video taking into account the given topic.
+*Running*
 
-- `--open`, `-o` *(CLI only)*
+* Copy `test/config.yml.example` to `test/config.yml` and set the configurations
+* Copy `config.js.example` to `test/config.js` and set the configurations
+* Copy `config.js.example` to `config.js` and set the configurations
+* Additional configuration steps to run media similarity tests
+  - Start Ngrok: `ngrok http 9000`
+  - Add the public URL generated by ngrok (e.g., https://c239-152-233-241-217.ngrok-free.app) to the `similarity_media_file_url_host` in the Check API config file: https://github.com/meedan/check-api/blob/develop/config/config.yml.example#L47
+* Start the test environment in the [check](https://github.com/meedan/check) repository: `docker-compose -f docker-compose.yml -f docker-test.yml up`
+* Start the nginx proxy for `web` and `chromedriver` containers
+* `docker-compose exec web service nginx start`
+* `docker-compose -f docker-compose.yml -f docker-test.yml exec chromedriver service nginx start`
+* Run `docker-compose exec web npm test:integration`
 
-Opens the video in your browser.
+For Alegre, Pender and Check API that are executed for the integration tests: for each of them, if there is a branch with the same name as the Check Web branch, it's going to be used. Otherwise, it will use `develop`.
 
-- `--full`, `-f` *(CLI only)*
+You can run a single integration test this way: `docker-compose exec web bash -c "cd test && rspec --example KEYWORD spec/integration_spec.rb"`.
 
-Displays full video's information. It corresponds to hit `GET /search.json?q=` against the server.
+By default, when a test fails, it's retried up to 3 times on CI and not retried locally. You can control it by using the environment variable `TEST_RETRY_COUNT`. For example, for five attempts: `docker-compose exec web bash -c "cd test && TEST_RETRY_COUNT=5 rspec --example KEYWORD spec/integration_spec.rb"`.
 
-## Usage as a library
+By default, only unit tests will run for branches on Travis other than `develop` or `master`. In order to run all the tests in any branch it's just necessary to include `[full ci]` in your commit message, and the commit doesn't even need to contain anything, for example: `git commit --allow-empty -m '[full ci] Run all integration tests for this branch'`. Furthermore, if you wish to run only the smoke tests, include `[smoke tests]` in your commit message. Similarly, you can add `[similarity tests]` in your commit message to run only the similarity tests.
 
-You can use the SuchTube search as a library:
 
-```js
-const suchtube = require('suchtube')
+Tests can also be completely skipped if your commit message contains `[skip ci]` (please note that in this case all continuous integration pipelines will be skipped, including deployments).
 
-suchtube.search('funny cats', { random: true }).then(video => {
-  console.log(video.title)
-  console.log(video.link)
-  console.log(video.publishedAt)
-})
+*Writing*
+
+* Use API calls (instead of using Selenium) to create all test data you need _before_ the real thing that the test is testing
+* Tag the test with one of the existing tags (bins) so that the parallel threads stay balanced
+
+#### Unit tests
+
+* Run all unit tests: `docker-compose exec web npm run test:unit`
+* Run a single unit test file:
+```
+$ docker compose exec web bash
+# npm run test:unit TestFileName
+> RUNS src/app/components/example/TestFileName.test.js
+```
+* Run a single unit test:
+```
+./node_modules/.bin/jest -t KEYWORD path/to/TestFile.test.js
 ```
 
-## Slack integration
+#### Missing tests
 
-`/suchtube funny cats --random`
+If you don't have time to implement an integration test for your feature, please add a pending test for that, like this:
 
-To integrate SuchTube in your Slack workspace, read the following guides: https://api.slack.com/slash-commands.
+```ruby
+it "should do whatever my feature expects" do
+  skip("Needs to be implemented")
+end
+```
 
-Basically, you should run the server, make it publicly available (via URL or IP) and create a custom Slash Command pointing to your instance URL.
+In order to implement a pending unit test, do this:
 
-## Contributing
+```javascript
+it("should do whatever my unit expects");
+```
 
-Any kind of idea, suggestion or bug report are really welcome! Just fork the repo, make your hack and send a pull request.
+## Notes and tips
 
-Thanks to all contributors, you rock :metal:
-
-## Development
-
-Start the server in development mode (`nodemon` + debugging):
-
-    > npm run dev
-
-Run tests:
-
-    > npm test
-
-## License
-
-Copyright (c) Marc Anguera Insa. SuchTube is released under the [MIT](LICENSE) License.
+* Remove your `node_modules` directory if you face errors related to `npm install`
+* Change the mode to "production" in `gulpfile.js`, under task `webpack:build:web:dev` if you face Relay Store update issues after mutations, related to this issue: https://github.com/facebook/relay/issues/2049

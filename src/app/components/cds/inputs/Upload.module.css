@@ -1,0 +1,84 @@
+.container {
+  align-items: center;
+  background-color: var(--color-white-100);
+  border: 2px dashed var(--color-gray-88);
+  border-radius: var(--border-radius-default);
+  display: grid;
+  min-height: 84px;
+  padding: 10px;
+  text-align: center;
+}
+
+.container-error {
+  border-color: var(--color-pink-53);
+}
+
+.input {
+  display: none;
+}
+
+.dropping {
+  background-color: var(--color-blue-98);
+  border-color: var(--color-blue-54);
+}
+
+.drag-text {
+  margin: 10px 0;
+}
+
+a.link-text {
+  color: var(--color-blue-54);
+}
+
+.drop-text {
+  color: var(--color-blue-38) !important;
+  pointer-events: none; /* suppress drag and drop events, default to parent */
+}
+
+.file-name {
+  color: var(--color-blue-38) !important;
+  padding: 8px;
+  text-align: left;
+
+  .file-name-added {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+  }
+
+  .file-name-output {
+    word-break: break-all;
+  }
+}
+
+.file-name-container {
+  background-color: var(--color-blue-98);
+  border: none;
+  min-height: 60px;
+}
+
+.file-name-grid {
+  align-items: center;
+  display: grid;
+  grid-gap: 0;
+  grid-template-columns: 5fr 1fr;
+  grid-template-rows: 1fr;
+
+  :last-child {
+    justify-self: end;
+  }
+}
+
+.icon-label {
+  font-size: var(--iconSizeSmall);
+  vertical-align: middle;
+}
+
+.error {
+  background-color: var(--color-pink-96);
+  border-radius: var(--border-radius-medium);
+  color: var(--color-pink-40) !important;
+  font-size: var(--iconSizeSmall);
+  padding: 5px;
+  pointer-events: none; /* suppress drag and drop events, default to parent */
+}

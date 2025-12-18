@@ -1,0 +1,22 @@
+[
+  {
+    "id": "LanguagePickerSelect.optionLabel",
+    "description": "English (en), French (fr), etc.",
+    "defaultMessage": "{languageName} ({languageCode})"
+  },
+  {
+    "id": "LanguagePickerSelect.allLanguages",
+    "description": "Label for the all languages option",
+    "defaultMessage": "Languages: All"
+  },
+  {
+    "id": "LanguagePickerSelect.unknownLanguage",
+    "description": "Label for the unknown language option",
+    "defaultMessage": "Unknown language"
+  },
+  {
+    "id": "LanguagePickerSelect.selectLanguage",
+    "description": "Change language label",
+    "defaultMessage": "Select language"
+  }
+]

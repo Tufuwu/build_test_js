@@ -1,0 +1,260 @@
+.articleLink {
+  align-items: center;
+  color: var(--color-blue-32);
+  display: flex;
+  font-size: var(--font-size-body-2);
+  gap: 3px;
+  margin: 3px 0;
+
+  svg {
+    flex: 0 0 var(--iconSizeTiny);
+    font-size: var(--iconSizeTiny);
+    margin: 0 0 -2px;
+  }
+
+  a {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.card {
+  background-color: var(--color-white-100);
+  border: 1px solid var(--color-gray-88);
+  border-radius: var(--border-radius-default);
+  outline: solid 1px transparent;
+  padding: 8px;
+  transition: border-color 225ms cubic-bezier(0, 0, .2, 1) 0ms, outline-color 225ms cubic-bezier(0, 0, .2, 1) 0ms;
+  width: 100%;
+
+  &:hover {
+    border-color: var(--color-blue-32);
+    cursor: pointer;
+    outline-color: var(--color-blue-32);
+  }
+
+  .cardContent {
+    align-items: flex-start;
+    display: flex;
+    gap: 0 16px;
+  }
+
+  .cardSummary {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+
+    .cardDescription {
+      -webkit-box-orient: vertical;
+      color: var(--color-gray-37);
+      display: -webkit-box; /* stylelint-disable-line */
+      font-size: var(--font-size-body-2);
+      white-space: pre-line;
+
+      + .articleLink {
+        margin: 3px 0 0;
+      }
+    }
+
+    .cardTitle {
+      @mixin typography-button;
+      -webkit-box-orient: vertical;
+      display: -webkit-box; /* stylelint-disable-line */
+      margin: 0;
+      white-space: normal;
+
+      .articleLink {
+        @mixin typography-button;
+      }
+
+      + .cardDescription {
+        margin: 2px 0 0;
+      }
+    }
+
+    .cardSummaryContent {
+      flex: 1 1 auto;
+      overflow: hidden;
+    }
+
+    .cardSummaryClaimContent {
+      display: flex;
+      flex-direction: column;
+      margin: 0 0 8px;
+
+      &.cardSummaryClaimFactCheck {
+        border-bottom: solid 2px var(--color-gray-96);
+        margin: 0;
+        padding: 0 0 6px;
+      }
+    }
+
+    .toggleCollapse {
+      align-items: center;
+      background-color: var(--color-blue-98);
+      border: 0 solid var(--color-gray-88);
+      border-radius: var(--border-radius-default);
+      color: var(--color-gray-37);
+      cursor: pointer;
+      display: flex;
+      flex: 0 0 30px;
+      flex-direction: column;
+      height: 30px;
+      justify-content: center;
+      margin-top: 8px;
+      padding: 2px;
+      width: 30px;
+
+      :global(.check-icon) {
+        font-size: var(--iconSizeSmall);
+        margin: 0;
+        vertical-align: middle;
+      }
+
+      &.toggleCollapseVisible {
+        visibility: visible;
+      }
+
+      &.toggleCollapseHidden {
+        visibility: hidden;
+      }
+
+      &:hover {
+        color: var(--color-blue-54);
+      }
+    }
+
+    &.hideCollapse {
+      .toggleCollapse {
+        display: none;
+      }
+    }
+
+    &.cardSummaryCollapsed {
+      .cardTitle {
+        -webkit-line-clamp: 1;
+        overflow: hidden;
+        white-space: normal;
+      }
+
+      .cardDescription {
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+      }
+    }
+  }
+
+  .cardTag {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .cardTagIcon {
+    font-size: var(--iconSizeTiny);
+  }
+
+  .cardDate {
+    color: var(--color-gray-15);
+    margin-top: 8px;
+    padding-right: 8px;
+    text-align: right;
+  }
+
+  .cardChannels {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+
+    span {
+      display: flex;
+    }
+
+    svg {
+      font-size: var(--font-size-subtitle-1);
+    }
+  }
+
+  .cardWorkspaces {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+
+    .extraWorkspaces {
+      align-items: center;
+      background-color: var(--color-white-100);
+      border: 2px solid var(--color-gray-88);
+      border-radius: var(--border-radius-default);
+      color: var(--color-gray-37);
+      cursor: pointer;
+      display: flex;
+      flex-shrink: 0;
+      font-feature-settings: 'clig' off, 'liga' off;
+      gap: 12px;
+      height: 30px;
+      justify-content: center;
+      padding: 6px;
+      text-align: center;
+      width: 30px;
+    }
+  }
+
+  .cardFooter {
+    margin-top: 6px;
+  }
+
+  .clickableCard {
+    color: inherit;
+    cursor: pointer;
+    text-decoration: none;
+  }
+}
+
+.smallMediaCardWrapper {
+  padding: 8px;
+
+  .smallMediaCard {
+    display: flex;
+    gap: 8px;
+
+    .row {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .smallMediaCardContent {
+      margin: 3px 30px 0 0;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .titleAndUrl {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .oneLineDescription {
+      max-height: 20px;
+    }
+
+    .twoLinesDescription {
+      -webkit-box-orient: vertical;
+      display: -webkit-box; /* stylelint-disable-line */
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre-line;
+    }
+
+    .alert {
+      margin-top: 16px;
+    }
+  }
+}
