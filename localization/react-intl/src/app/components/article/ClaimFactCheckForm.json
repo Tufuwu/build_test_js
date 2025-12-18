@@ -1,7 +1,0 @@
-[
-  {
-    "id": "claimFactCheckForm.saveSuccess",
-    "description": "Save item action success message",
-    "defaultMessage": "Article created successfully! This new article may take a while to appear up everywhere."
-  }
-]
