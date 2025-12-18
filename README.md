@@ -1,1277 +1,283 @@
-<!-- markdownlint-disable MD041 MD033 MD024 -->
+[![NPM version][npm-image]][npm-url]
+[![Build Status][travis-image]][travis-url]
+[![Coverage Status][coverage-image]][coverage-url]
 
-[![schema-inspector logo](https://raw.githubusercontent.com/schema-inspector/schema-inspector/master/misc/schema-inspector.png)](http://schema-inspector.github.io/schema-inspector/)
+# Rickshaw
 
-Schema-Inspector is a powerful tool to sanitize and validate JS objects.
-It's designed to work both client-side and server-side and to be scalable with allowing asynchronous and synchronous calls.
+Rickshaw is a JavaScript toolkit for creating interactive time series graphs, developed at [Shutterstock](http://www.shutterstock.com)
 
-[![NPM version](https://badge.fury.io/js/schema-inspector.png)](http://badge.fury.io/js/schema-inspector)
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+## Table of Contents
 
-**See a live example:** <http://schema-inspector.github.io/schema-inspector/>
+- [Getting Started](#getting-started)
+- [Install](#install)
+  - [Dependencies](#dependencies)
+- [Rickshaw.Graph](#rickshawgraph)
+      - [element](#element)
+      - [series](#series)
+      - [renderer](#renderer)
+      - [width](#width)
+      - [height](#height)
+      - [min](#min)
+      - [max](#max)
+      - [padding](#padding)
+      - [interpolation](#interpolation)
+      - [stack](#stack)
+  - [Methods](#methods)
+      - [render()](#render)
+      - [configure()](#configure)
+      - [onUpdate(f)](#onupdatef)
+- [Extensions](#extensions)
+- [Rickshaw.Color.Palette](#rickshawcolorpalette)
+    - [Color Schemes](#color-schemes)
+    - [Interpolation](#interpolation)
+- [Rickshaw and Cross-Browser Support](#rickshaw-and-cross-browser-support)
+- [Minification](#minification)
+- [Development](#development)
+- [Contributing](#contributing)
+- [Authors](#authors)
+- [License](#license)
 
-## Installation
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-### Node.js
 
-<pre>npm install schema-inspector</pre>
+## Getting Started
 
-### Browser
-
-Bower uses have reported success using the library this way, using bower overrides in `bower.json`.
-
-![image](https://user-images.githubusercontent.com/37461352/111504514-808a8200-8726-11eb-8cbc-09c35d9c0c81.png)
-
-Bower is not officially-supported as a build tool and references to it will be removed from the repository in versions 3.0.0+.
-
-## Version 2.0.0
-
-To fix a security vulnerability in the 1.x.x email Regex expression used, a new Regex expression was used which may be
-less flexible than the expression used in 1.x.x. Therefore, version 2.0.0 was released with this new expression. It's
-highly-recommended to upgrade to this new version after testing it.
-
-If you need the old, insecure behavior, use version 1.x.x or use the custom validation function feature for your field
-and perform email address validation any way you like.
-
-## How it looks like
-
-[![schema-inspector demo](http://schema-inspector.github.io/schema-inspector/images/doc/example.png)](http://schema-inspector.github.io/schema-inspector/)
-*Click to see it live!*
-
-## Usage
+Getting started with a simple graph is straightforward.  Here's the gist:
 
 ```javascript
-var inspector = require('schema-inspector');
+var graph = new Rickshaw.Graph( {
+  element: document.querySelector('#graph'),
+  series: [
+    {
+      color: 'steelblue',
+      data: [ { x: 0, y: 23}, { x: 1, y: 15 }, { x: 2, y: 79 } ]
+    }, {
+      color: 'lightblue',
+      data: [ { x: 0, y: 30}, { x: 1, y: 20 }, { x: 2, y: 64 } ]
+    }
+  ]
+} );
 
-// Data that we want to sanitize and validate
-var data = {
-    firstname: 'sterling  ',
-    lastname: '  archer',
-    jobs: 'Special agent, cocaine Dealer',
-    email: 'NEVER!',
-};
+graph.render();
+```
+See the [overview](https://shutterstock.github.io/rickshaw/), [tutorial](http://shutterstock.github.com/rickshaw/tutorial/introduction.html), and [examples](http://shutterstock.github.com/rickshaw/examples/) for more.
 
-// Sanitization Schema
-var sanitization = {
-    type: 'object',
-    properties: {
-        firstname: { type: 'string', rules: ['trim', 'title'] },
-        lastname: { type: 'string', rules: ['trim', 'title'] },
-        jobs: {
-            type: 'array',
-            splitWith: ',',
-            items: { type: 'string', rules: ['trim', 'title'] },
-        },
-        email: { type: 'string', rules: ['trim', 'lower'] },
-    },
-};
-// Let's update the data
-inspector.sanitize(sanitization, data);
-/*
-data is now:
-{
-    firstname: 'Sterling',
-    lastname: 'Archer',
-    jobs: ['Special Agent', 'Cocaine Dealer'],
-    email: 'never!'
+## Install
+
+In the browser, manually add `rickshaw.min.js` and `rickshaw.min.css` in the document head.
+
+Alternatively, you can install Rickshaw using [Bower](https://bower.io/) or [npm](https://npmjs.com).
+
+```sh
+# With bower
+bower install rickshaw
+# With npm
+npm install --save rickshaw
+```
+
+### Dependencies
+
+Rickshaw relies on the fantastic [D3 visualization library](http://mbostock.github.com/d3/) to do lots of the heavy lifting for stacking and rendering to SVG.
+
+Some extensions require [jQuery](http://jquery.com) and [jQuery UI](http://jqueryui.com), but for drawing some basic graphs you'll be okay without.
+
+Rickshaw uses [jsdom](https://github.com/tmpvar/jsdom) to run unit tests in Node to be able to do SVG manipulation. As of the jsdom 7.0.0 release, jsdom requires Node.js 4 or newer [jsdom changelog](https://github.com/tmpvar/jsdom/blob/master/Changelog.md#700). If you want to run the tests on your machine, and you don't have access to a version of node >= 4.0, you can `npm install jsdom@3`  so that you can run the tests using the [3.x branch of jsdom](https://github.com/tmpvar/jsdom/tree/3.x).
+
+## Rickshaw.Graph
+
+A Rickshaw graph.  Send an `element` reference, `series` data, and optionally other properties to the constructor before calling `render()` to point the graph.  A listing of properties follows.  Send these as arguments to the constructor, and optionally set them later on already-instantiated graphs with a call to `configure()`
+
+##### element
+
+A reference to an HTML element that should hold the graph.
+
+##### series
+
+Array of objects containing series data to plot.  Each object should contain `data` at a minimum, a sorted array of objects each with x and y properties.  Optionally send a `name` and `color` as well.  Some renderers and extensions may also support additional keys.
+
+##### renderer
+
+A string containing the name of the renderer to be used.  Options include `area`, `stack`, `bar`, `line`, and `scatterplot`.  Defaults to `line`. Also see the `multi` meta renderer in order to support different renderers per series.
+
+##### width
+
+Width of the graph in pixels.  Falls back to the width of the `element`, or defaults to 400 if the element has no width.
+
+##### height
+
+Height of the graph in pixels.  Falls back to the height of the `element`, or defaults to 250 if the element has no height.
+
+##### min
+
+Lower value on the Y-axis, or `auto` for the lowest value in the series.  Defaults to 0.
+
+##### max
+
+Highest value on the Y-axis.  Defaults to the highest value in the series.
+
+##### padding
+
+An object containing any of `top`, `right`, `bottom`, and `left` properties specifying a padding percentage around the extrema of the data in the graph.  Defaults to 0.01 on top for 1% padding, and 0 on other sides. Padding on the bottom only applies when the `yMin` is either negative or `auto`.
+
+##### interpolation
+
+Line smoothing / interpolation method (see [D3 docs](https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-line_interpolate)); notable options:
+
+  * `linear`: straight lines between points
+  * `step-after`: square steps from point to point
+  * `cardinal`: smooth curves via cardinal splines (default)
+  * `basis`: smooth curves via B-splines
+
+##### stack
+
+Allows you to specify whether series should be stacked while in the context of stacking renderers (area, bar, etc).  Defaults to `stack: 'true'`. To unstack, `unstack: 'true'`.
+
+### Methods
+
+Once you have instantiated a graph, call methods below to get pixels on the screen, change configuration, and set callbacks.
+
+##### render()
+
+Draw or redraw the graph.
+
+##### configure()
+
+Set properties on an instantiated graph.  Specify any properties the constructor accepts, including `width` and `height` and `renderer`.  Call `render()` to redraw the graph and reflect newly-configured properties.
+
+##### onUpdate(f)
+
+Add a callback to run when the graph is rendered
+
+
+## Extensions
+
+Once you have a basic graph, extensions let you add functionality.  See the [overview](https://shutterstock.github.io/rickshaw/) and [examples](http://shutterstock.github.com/rickshaw/examples/) listing for more.
+
+* __Rickshaw.Graph.Legend__ - add a basic legend
+
+* __Rickshaw.Graph.HoverDetail__ - show details on hover
+
+* __Rickshaw.Graph.JSONP__ - get data via a JSONP request
+
+* __Rickshaw.Graph.Annotate__ - add x-axis annotations
+
+* __Rickshaw.Graph.RangeSlider__ - dynamically zoom on the x-axis with a slider
+
+* __Rickshaw.Graph.RangeSlider.Preview__ - pan and zoom via graphical preview of entire data set
+
+* __Rickshaw.Graph.Axis.Time__ - add an x-axis and grid lines with time labels
+
+* __Rickshaw.Graph.Axis.X__ - add an x-axis and grid lines with arbitrary labels
+
+* __Rickshaw.Graph.Axis.Y__ - add a y-axis and grid lines
+
+* __Rickshaw.Graph.Axis.Y.Scaled__ - add a y-axis with an alternate scale
+
+* __Rickshaw.Graph.Behavior.Series.Highlight__ - highlight series on legend hover
+
+* __Rickshaw.Graph.Behavior.Series.Order__ - reorder series in the stack with drag-and-drop
+
+* __Rickshaw.Graph.Behavior.Series.Toggle__ - toggle series on and off through the legend
+
+
+## Rickshaw.Color.Palette
+
+Rickshaw comes with a few color schemes. Instantiate a palette and specify a scheme name, and then call color() on the palette to get each next color.
+
+```javascript
+var palette = new Rickshaw.Color.Palette( { scheme: 'spectrum2001' } );
+
+palette.color() // => first color in the palette
+palette.color() // => next color in the palette...
+```
+
+Optionally, to palette.color() can take a numeric argument to specify which color from the palette should be used (zero-indexed).  This can be helpful when assigning a color to series of a plot with particular meaning:
+
+```javascript
+var palette = new Rickshaw.Color.Palette( { scheme: 'colorwheel' } );
+
+palette.color(0) // => first color in the palette - red in this example
+palette.color(2) // => third color in the palette - light blue
+```
+
+#### Color Schemes
+
+  * classic9
+  * colorwheel
+  * cool
+  * munin
+  * spectrum14
+  * spectrum2000
+  * spectrum2001
+
+#### Interpolation
+
+For graphs with more series than palettes have colors, specify an `interpolatedStopCount` to the palette constructor.
+
+## Rickshaw and Cross-Browser Support
+
+This library works in modern browsers and Internet Explorer 9+.
+
+Rickshaw relies on the HTMLElement#classList API, which isn't natively supported in Internet Explorer 9.  Rickshaw adds support by including a shim which implements the classList API by extending the HTMLElement prototype.  You can disable this behavior if you like, by setting `RICKSHAW_NO_COMPAT` to a true value before including the library.
+
+## Minification
+
+If your project uses minification, you will need to give a hint to the minifier to leave variables named `$super` named `$super`.  For example, with uglify on the command line:
+
+```
+$ uglify-js --reserved-names "$super" rickshaw.js > rickshaw.min.js
+```
+
+Or a sample configuration with `grunt-contrib-uglify`:
+
+```javascript
+uglify: {
+  options: {
+    mangle: { except: ["$super"] }
+  }
 }
-*/
-
-// Validation schema
-var validation = {
-    type: 'object',
-    properties: {
-        firstname: { type: 'string', minLength: 1 },
-        lastname: { type: 'string', minLength: 1 },
-        jobs: {
-            type: 'array',
-            items: { type: 'string', minLength: 1 },
-        },
-        email: { type: 'string', pattern: 'email' },
-    },
-};
-var result = inspector.validate(validation, data);
-if (!result.valid)
-    console.log(result.format());
-/*
- Property @.email: must match [email], but is equal to "never!"
-*/
 ```
 
-**Tips:** it's recommended to use one schema for the sanitization and another for the validation,
+## Development
 
-## In the browser
+For building, we use [Node](http://nodejs.org) and [npm](http://npmjs.org). Running `npm run build` or `make` should get you going with any luck.
 
-```html
-<script type="text/javascript" src="async.js"></script>
-<script type="text/javascript" src="schema-inspector.js"></script>
-<script type="text/javascript">
-    var schema = { /* ... */ };
-    var candidate = { /* ... */ };
-    SchemaInspector.validate(schema, candidate, function (err, result) {
-    if (!result.valid)
-        return alert(result.format());
- });
-</script>
-```
+After doing a build you can run the tests with the command: `npm test`
 
-In the example below, the `inspector` variable will be used.  For the client-side use `SchemaInspector` instead of `inspector`.
+For more available options see the [package.json](package.json) scripts section.
 
-## Documentation
 
-### Validation
+## Contributing
 
-* [type](#v_type)
-* [optional](#v_optional)
-* [pattern](#v_pattern)
-* [minLength, maxLength, exactLength](#v_length)
-* [lt, lte, gt, gte, eq, ne](#v_comparators)
-* [someKeys](#v_someKeys)
-* [strict](#v_strict)
-* [exec](#v_exec)
-* [properties](#v_properties)
-* [items](#v_items)
-* [alias](#v_alias)
-* [error](#v_error)
-* [code](#v_code)
+Pull requests are always welcome!  Please follow a few guidelines:
 
-### Sanitization
+- Please don't include updated versions of `rickshaw.js` and `rickshaw.min.js`.  Just changes to the source files will suffice.
+- Add a unit test or two to cover the proposed changes
+- Do as the Romans do and stick with existing whitespace and formatting conventions (i.e., tabs instead of spaces, etc)
+- Consider adding a simple example under `examples/` that demonstrates any new functionality
 
-* [type](#s_type)
-* [def](#s_def)
-* [optional](#s_optional)
-* [rules](#s_rules)
-* [min, max](#s_comparators)
-* [minLength, maxLength](#s_length)
-* [strict](#s_strict)
-* [exec](#s_exec)
-* [properties](#s_properties)
-* [items](#s_items)
+Please note that all interactions with Shutterstock follow the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
-### Custom fields
+## Authors
 
-* [punctual use](#cf_punctual)
-* [extension](#cf_extension)
-* [context](#cf_context)
+This library was developed by David Chester, Douglas Hunter, and Silas Sewell at [Shutterstock](http://www.shutterstock.com)
 
-### Asynchronous call
 
-* [How to](#how-to)
+## License
 
-### Thanks to
+Copyright (C) 2011-2020 by Shutterstock Images, LLC
 
-* [Benjamin Gressier](https://twitter.com/NikitaJS) (major contributor of this awesome module)
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-## Validation
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-<h3 id="v_type">type</h3>
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-* **type**: string, array of string.
-* **usable on**: any.
-* **possible values**
-  * `string`
-  * `number`
-  * `integer`
-  * `boolean`
-  * `null`
-  * `date` (instanceof Date), you can use the `validDate: true` to check if the date is valid
-  * `object` (typeof element === 'object') *Note: array, null, or dates don't match the object type*
-  * `array` (constructor === Array)
-  * A function (candidate isinstance)
-  * `any` (it can be anything)
-
-Allow to check property type. If the given value is incorrect, then type is not
-checked.
-
-### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-function Class() {}
-
-var schema = {
-    type: 'object',
-    properties: {
-        lorem: { type: 'number' },
-        ipsum: { type: 'any' },
-        dolor: { type: ['number', 'string', 'null'] },
-        sit: { type: Class },
-    },
-};
-
-var c1 = {
-    lorem: 12,
-    ipsum: 'sit amet',
-    dolor: 23,
-    sit: new Class(),
-};
-var c2 = {
-    lorem: 12,
-    ipsum: 34,
-    dolor: 'sit amet',
-    sit: new Class(),
-};
-var c3 = {
-    lorem: 12,
-    ipsum: ['sit amet'],
-    dolor: null,
-    sit: new Class(),
-};
-var c4 = {
-    lorem: '12',
-    ipsum: 'sit amet',
-    dolor: new Date(),
-    sit: {},
-};
-
-inspector.validate(schema, c1); // Valid
-inspector.validate(schema, c2); // Valid
-inspector.validate(schema, c3); // Valid
-inspector.validate(schema, c4); // Invalid: @.lorem must be a number, @dolor must be a number, a string or null, @.sit must be an instance of Class, but is object
-```
-
----------------------------------------
-
-<h3 id="v_optional">optional</h3>
-
-* **type**: boolean.
-* **default**: false.
-* **usable on**: any.
-
-This field indicates whether or not property has to exist.
-
-#### Example
-
-```javascript
-var inspector = require('Roadspector');
-
-var schema1 = {
-    type: 'object',
-    properties: {
-        lorem: { type: 'any', optional: true },
-    },
-};
-
-var schema2 = {
-    type: 'object',
-    properties: {
-        lorem: { type: 'any', optional: false }, // default value
-    },
-};
-
-var c1 = { lorem: 'ipsum' };
-var c2 = {};
-
-inspector.validate(schema1, c1); // Valid
-inspector.validate(schema1, c2); // Valid
-inspector.validate(schema2, c1); // Valid
-inspector.validate(schema2, c2); // Invalid: "@.lorem" is missing and not optional
-```
-
----------------------------------------
-
-<h3 id="v_uniqueness">uniqueness</h3>
-
-* **type**: boolean.
-* **default**: false.
-* **usable on**: array, string.
-
-If true, then we ensure no element in candidate exists more than once.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'array',
-    uniqueness: true,
-};
-
-var c1 = [12, 23, 34, 45];
-var c2 = [12, 23, 34, 12];
-
-inspector.validate(schema, c1); // Valid
-inspector.validate(schema, c2); // Invalid: 12 exists twice in @.
-```
-
----------------------------------------
-
-<h3 id="v_pattern">pattern</h3>
-
-* **type**: string, RegExp object, array of string and RegExp.
-* **usable on**: string.
-* Possible values as a string: `void`, `url`, `date-time`, `date`,
-`coolDateTime`, `time`, `color`, `email`, `numeric`, `integer`, `decimal`, `v4uuid`,
-`alpha`, `alphaNumeric`, `alphaDash`, `javascript`, `upperString`, `lowerString`.
-
-Ask Schema-Inspector to check whether or not a given matches provided patterns.
-When a pattern is a RegExp, it directly test the string with it. When it's a
-string, it's an alias of a RegExp.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema1 = {
-    type: 'array',
-    items: { type: 'string', pattern: /^[A-C]/ },
-};
-
-var c1 = ['Alorem', 'Bipsum', 'Cdolor', 'DSit amet'];
-
-var schema2 = {
-    type: 'array',
-    items: { type: 'string', pattern: 'email' },
-};
-
-var c2 = ['lorem@ipsum.com', 'dolor@sit.com', 'amet@consectetur'];
-
-inspector.validate(schema1, c1); // Invalid: @[3] ('DSit amet') does not match /^[A-C]/
-inspector.validate(schema2, c2); // Invalid: @[2] ('amet@consectetur') does not match "email" pattern.
-```
-
----------------------------------------
-
-<h3 id="v_length">minLength, maxLength, exactLength</h3>
-
-* **type**: integer.
-* **usable on**: array, string.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    properties: {
-        lorem: { type: 'string', minLength: 4, maxLength: 8 },
-        ipsum: { type: 'array', exactLength: 6 },
-    },
-};
-var c1 = {
-    lorem: '12345',
-    ipsum: [1, 2, 3, 4, 5, 6],
-};
-
-var c2 = {
-    lorem: '123456789',
-    ipsum: [1, 2, 3, 4, 5],
-};
-
-inspector.validate(schema, c1); // Valid
-inspector.validate(schema, c2); // Invalid: @.lorem must have a length between 4 and 8 (here 9)
-// and @.ipsum must have a length of 6 (here 5)
-```
-
----------------------------------------
-
-<h3 id="v_comparators">lt, lte, gt, gte, eq, ne</h3>
-
-* **type**: number (string, number and boolean for eq).
-* **usable on**: number (string, number and boolean for eq).
-
-Check whether comparison is true:
-
-* lt: `<`
-* lte: `<=`
-* gt: `>`
-* gte: `>=`
-* eq: `===`
-* ne: `!==`
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    properties: {
-        lorem: { type: 'number', gt: 0, lt: 5 }, // Between ]0; 5[
-        ipsum: { type: 'number', gte: 0, lte: 5 }, // Between [0; 5]
-        dolor: { type: 'number', eq: [0, 3, 6, 9] }, // Equal to 0, 3, 6 or 9
-        sit: { type: 'number', ne: [0, 3, 6, 9] }, // Not equal to 0, 3, 6 nor 9
-    },
-};
-
-var c1 = { lorem: 3, ipsum: 0, dolor: 6, sit: 2 };
-var c2 = { lorem: 0, ipsum: -1, dolor: 5, sit: 3 };
-
-inspector.validate(schema, c1); // Valid
-inspector.validate(schema, c2); // Invalid
-```
-
----------------------------------------
-
-<h3 id="v_someKeys">someKeys</h3>
-
-* **type**: array of string.
-* **usable on**: object.
-
-Check whether one of the given keys exists in object (useful when they are
-optional).
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    someKeys: ['lorem', 'ipsum'],
-    properties: {
-        lorem: { type: 'any', optional: true },
-        ipsum: { type: 'any', optional: true },
-        dolor: { type: 'any' },
-    },
-};
-
-var c1 = { lorem: 0, ipsum: 1, dolor: 2 };
-var c2 = { lorem: 0, dolor: 2 };
-var c3 = { dolor: 2 };
-
-inspector.validate(schema, c1); // Valid
-inspector.validate(schema, c2); // Valid
-inspector.validate(schema, c3); // Invalid: Neither @.lorem nor @.ipsum is in c3.
-```
-
----------------------------------------
-
-<h3 id="v_strict">strict</h3>
-
-* **type**: boolean.
-* **default**: false.
-* **usable on**: object.
-
-Only keys provided in field "properties" may exist in the object. Strict will be ignored if properties has the special key '*'.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    strict: true,
-    properties: {
-        lorem: { type: 'any' },
-        ipsum: { type: 'any' },
-        dolor: { type: 'any' },
-    },
-};
-
-var c1 = { lorem: 0, ipsum: 1, dolor: 2 };
-var c2 = { lorem: 0, ipsum: 1, dolor: 2, sit: 3 };
-
-inspector.validate(schema, c1); // Valid
-inspector.validate(schema, c2); // Invalid: @.sit should not exist.
-```
-
----------------------------------------
-
-<h3 id="v_exec">exec</h3>
-
-* **type**: function, array of function.
-* **usable on**: any.
-
-Custom checker =). "exec" functions take two three parameter
-(schema, post [, callback]). To report an error, use `this.report([message], [code])`.
-Very useful to make some custom validation.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    properties: {
-        lorem: {
-            type: 'number',
-            exec: function (schema, post) {
-                // here schema === schema.properties.lorem and post === @.lorem
-                if (post === 3) {
-                    // As soon as `this.report()` is called, candidate is not valid.
-                    this.report('must not equal 3 =('); // Ok...it's exactly like "ne: 3"
-                }
-            },
-        },
-    },
-};
-
-var c1 = { lorem: 2 };
-var c2 = { lorem: 3 };
-
-inspector.validate(schema, c1); // Valid
-inspector.validate(schema, c2); // Invalid: "@.lorem must not equal 3 =(".
-```
-
----------------------------------------
-
-<h3 id="v_properties">properties</h3>
-
-* **type**: object.
-* **usable on**: object.
-
-For each property in the field "properties", whose value must be a schema,
-validation is called deeper in object.
-
-The special property '*' is validated against any properties not specifically listed.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    properties: {
-        lorem: {
-            type: 'object',
-            properties: {
-                ipsum: {
-                    type: 'object',
-                    properties: {
-                        dolor: { type: 'string' },
-                    },
-                },
-            },
-        },
-        consectetur: { type: 'string' },
-        '*': { type: 'integer' },
-    },
-};
-
-var c1 = {
-    lorem: {
-        ipsum: {
-            dolor: 'sit amet',
-        },
-    },
-    consectetur: 'adipiscing elit',
-    adipiscing: 12,
-};
-var c2 = {
-    lorem: {
-        ipsum: {
-            dolor: 12,
-        },
-    },
-    consectetur: 'adipiscing elit',
-};
-
-inspector.validate(schema, c1); // Valid
-inspector.validate(schema, c2); // Invalid: @.lorem.ipsum.dolor must be a string.
-```
-
----------------------------------------
-
-<h3 id="v_items">items</h3>
-
-* **type**: object, array of object.
-* **usable on**: array.
-
-Allow to apply schema validation for each element in an array. If it's an
-object, then it's a schema which will be used for all the element. If it's an
-array of object, then it's an array of schema and each element in an array will
-be checked with the schema which has the same position in the array.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema1 = {
-    type: 'array',
-    items: { type: 'number' },
-};
-
-var schema2 = {
-    type: 'array',
-    items: [{ type: 'number' }, { type: 'number' }, { type: 'string' }],
-};
-
-var c1 = [1, 2, 3];
-var c2 = [1, 2, 'string!'];
-
-inspector.validate(schema1, c1); // Valid
-inspector.validate(schema1, c2); // Invalid: @[2] must be a number.
-inspector.validate(schema2, c1); // Invalid: @[2] must be a string.
-inspector.validate(schema2, c2); // Valid
-```
-
----------------------------------------
-
-<h3 id="v_alias">alias</h3>
-
-* **type**: string.
-* **usable on**: any.
-
-Allow to display a more explicit property name if an error is encounted.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema1 = {
-    type: 'object',
-    properties: {
-        _id: { type: 'string' },
-    },
-};
-
-var schema2 = {
-    type: 'object',
-    properties: {
-        _id: { alias: 'id', type: 'string' },
-    },
-};
-
-var c1 = { _id: 1234567890 };
-
-var r1 = inspector.validate(schema1, c1);
-var r2 = inspector.validate(schema2, c1);
-console.log(r1.format()); // Property @._id: must be string, but is number
-console.log(r2.format()); // Property id (@._id): must be string, but is number
-```
-
----------------------------------------
-
-<h3 id="v_error">error</h3>
-
-* **type**: string.
-* **usable on**: any.
-
-This field contains a user sentence for displaying a more explicit message if
-an error is encounted.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema1 = {
-    type: 'object',
-    properties: {
-        _id: { type: 'string' },
-    },
-};
-
-var schema2 = {
-    type: 'object',
-    properties: {
-        _id: { type: 'string', error: 'must be a valid ID.' },
-    },
-};
-
-var c1 = { _id: 1234567890 };
-
-var r1 = inspector.validate(schema1, c1);
-var r2 = inspector.validate(schema2, c1);
-console.log(r1.format()); // Property @._id: must be string, but is number.
-console.log(r2.format()); // Property @._id: must be a valid ID.
-```
-
----------------------------------------
-
-<h3 id="v_code">code</h3>
-
-* **type**: string.
-* **usable on**: any.
-
-This field contains a user code for displaying a more uniform system to personnalize error message.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema1 = {
-    type: 'object',
-    properties: {
-        _id: { type: 'string' },
-    },
-};
-
-var schema2 = {
-    type: 'object',
-    properties: {
-        _id: { type: 'string', code: 'id-format' },
-    },
-};
-
-var c1 = { _id: 1234567890 };
-
-var r1 = inspector.validate(schema1, c1);
-var r2 = inspector.validate(schema2, c1);
-console.log(r1.error[0].code); // null
-console.log(r2.error[0].code); // 'id-format'
-```
-
-## Sanitization
-
-<h3 id="s_type">type</h3>
-
-* **type**: string.
-* **usable on**: any.
-* **possible values**
-  * `number`
-  * `integer`
-  * `string`
-  * `boolean`
-  * `date` (constructor === Date)
-  * `object` (constructor === Object)
-  * `array` (constructor === Array)
-
-Cast property to the given type according to the following description:
-
-* **to number from**:
-  * string (ex: "12.34" -> 12.34)
-![sanitization string to number](http://schema-inspector.github.io/schema-inspector/images/doc/sanitization-type-string-to-number.gif)
-  * date (ex: new Date("2014-01-01") -> 1388534400000)
-![sanitization string to number](http://schema-inspector.github.io/schema-inspector/images/doc/sanitization-type-date-to-number.gif)
-* **to integer from**:
-  * number
-    * 12.34 -> 12
-  * string
-    * "12.34" -> 12
-  * boolean
-    * true -> 1
-    * false -> 0
-  * date
-    * new Date("2014-01-01") -> 1388534400000
-* **to string from**:
-  * boolean
-    * true -> "true"
-  * number
-    * 12.34 -> "12.34"
-  * integer
-    * 12 -> "12"
-  * date
-    * new Date("2014-01-01") -> "Wed Jan 01 2014 01:00:00 GMT+0100 (CET)"
-  * array
-    * [12, 23, 44] -> '12,34,45'
-    * To join with a custom string, use **joinWith** key (example: { type: "string", joinWith: "|" } will transform [12, 23, 44] to "12|23|44").
-* **to date from**:
-  * number / integer
-    * 1361790386000 -> Wed Jan 01 2014 01:00:00 GMT+0100 (CET)
-  * string
-    * "2014-01-01 -> Wed Jan 01 2014 01:00:00 GMT+0100 (CET)
-    * "Wed Jan 01 2014 01:00:00 GMT+0100 (CET)" -> Wed Jan 01 2014 01:00:00 GMT+0100 (CET)
-* **to object from**:
-  * string
-    * '{"love":"open source"}' -> { love: "open source" }
-* **to array from**:
-  * string    ("one,two,three" -> ["one", "two", "three"], '[1,"two",{"three":true}]' -> [ 1, 'two', { three: true } ])
-  * anything except undefined and array  (23 -> [ 23 ])
-  * To split with a custom string (other than ","), use the key **splitWith** (example: { type: "array", splitWith: "|"" } will transform "one|two|three" to ["one", "two", "three"]).*
-
-### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'array',
-    items: { type: 'string' },
-};
-
-var c = [12.23, -34, true, false, 'true', 'false', [123, 234, 345], { obj: "yes" }];
-
-var r = inspector.sanitize(schema, c);
-/*
-r.data: [ '12.23', '-34', 'true', 'false', 'true', 'false', '123,234,345', '{"obj":"yes"}' ]
-*/
-```
-
----------------------------------------
-
-<h3 id="s_def">def</h3>
-
-* **type**: any.
-* **usable on**: any.
-
-Define default value if property does not exist, or if type casting is to fail
-because entry type is not valid (cf [type](#s_type)).
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    properties: {
-        lorem: { type: 'number', def: 10 },
-        ipsum: { type: 'string', def: 'NikitaJS', optional: false },
-        dolor: { type: 'string' },
-    },
-};
-
-var c = {
-    lorem: [12, 23], // convertion to number is about to fail
-    // (array -> number is not possible)
-    // ipsum is not privided
-    dolor: 'sit amet', // "dolor" is already a string
-};
-
-var r = inspector.sanitize(schema, c);
-/*
-r.data: {
-    lorem: 10,
-    ipsum: 'NikitaJS',
-    dolor: 'sit amet'
-}
-*/
-```
-
----------------------------------------
-
-<h3 id="s_optional">optional</h3>
-
-* **type**: boolean.
-* **default**: true.
-* **usable on**: any.
-
-Property is set to `schema.def` if not provided and if optional is `false`.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    properties: {
-        lorem: { type: 'number', optional: false, def: 12 },
-        ipsum: { type: 'string', optional: true, def: 23 },
-        dolor: { type: 'string', def: 'NikitaJS', def: 34 }, // (optional: true)
-    },
-};
-
-var c = {};
-
-var r = inspector.sanitize(schema, c);
-/*
-r.data: {
-    lorem: 12 // Only lorem is set to 12 because it is not optional.
-}
-*/
-```
-
----------------------------------------
-
-<h3 id="s_rules">rules</h3>
-
-* **type**: string, array of string.
-* **usable on**: string.
-* **possible values**:
-  * `upper`: Every character will be changed to uppercase.
-  * `lower`: Every character will be changed to lowercase.
-  * `title`: For each word (/\S*/g), first letter will be changed to uppercase, and the rest to lowercase.
-  * `capitalize`: Only the first letter of the string will be changed to uppercase, the rest to lowercase.
-  * `ucfirst`: Only the first letter of the string will be changed to uppercase, the rest is not modified.
-  * `trim`: Remove extra spaces.
-
-Apply the given rule to a string. If several rules are given (array), then they
-are applied in the same order than in the array.
-
-![sanitization min/max](http://schema-inspector.github.io/schema-inspector/images/doc/sanitization-rules.gif)
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    properties: {
-        lorem: { type: 'string', rules: 'upper' },
-        ipsum: { type: 'string', rules: ['trim', 'title'] },
-    },
-};
-
-var c = {
-    lorem: ' tHiS is sParTa! ',
-    ipsum: '   tHiS is sParTa!    ',
-};
-
-var r = inspector.sanitize(schema, c);
-/*
-r.data: {
-    lorem: ' THIS IS SPARTA! ',
-    ipsum: 'This Is Sparta!' // has been trimed, then titled
-}
-*/
-```
-
----------------------------------------
-
-<h3 id="s_comparators">min, max</h3>
-
-* **type**: string, number.
-* **usable on**: string, number.
-
-Define minimum and maximum value for a property. If it's less than minimum,
-then it's set to minimum. If it's greater than maximum, then it's set to
-maximum.
-
-![sanitization min/max](http://schema-inspector.github.io/schema-inspector/images/doc/sanitization-min-max.gif)
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'array',
-    items: { type: 'number', min: 10, max: 20 },
-};
-
-var c = [5, 10, 15, 20, 25];
-
-var r = inspector.sanitize(schema, c);
-/*
- r.data: [10, 10, 15, 20, 20]
- c[0] (5) was less than min (10), so it's been set to 10.
- c[4] (25) was greater than max (20), so it's been set to 20.
-*/
-```
-
----------------------------------------
-
-<h3 id="s_length">minLength, maxLength</h3>
-
-* **type**: integer.
-* **usable on**: string.
-
-Adjust string length to the given number.
-
-__TODO:__ We must be able to choose which character we want to fill the string with.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'array',
-    items: { type: 'string', minLength: 8, maxLength: 11 },
-};
-
-var c = ['short', 'mediumSize', 'tooLongForThisSchema'];
-
-var r = inspector.sanitize(schema, c);
-/*
- r.data: ['short---', 'mediumSize', 'tooLongForT']
-*/
-```
-
----------------------------------------
-
-<h3 id="s_strict">strict</h3>
-
-* **type**: boolean.
-* **default**: false.
-* **usable on**: any.
-
-Only key provided in field "properties" will exist in object, others will be deleted.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    strict: true,
-    properties: {
-        good: { type: 'string' },
-    },
-};
-
-var c = {
-    good: 'yes',
-    bad: 'nope',
-};
-
-var r = inspector.sanitize(schema, c);
-/*
-r.data: {
-    good: 'yes'
-}
-*/
-```
-
----------------------------------------
-
-<h3 id="s_exec">exec</h3>
-
-* **type**: function, array of functions.
-* **usable on**: any.
-
-Custom checker =). "exec" functions take two three parameter
-(schema, post [, callback]), and must return the new value. To report an
-sanitization, use `this.report([message])`. Very useful to make some custom
-sanitization.
-
-__NB:__ If you don't want to return a differant value, simply return `post`,
-do not return nothing (if you do so, the new value will be `undefined`).
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'array',
-    items: {
-        type: 'string',
-        exec: function (schema, post) {
-            if (typeof post === 'string' && !/^nikita$/i.test(post)) {
-                this.report();
-                return '_INVALID_';
-            }
-            return post;
-        },
-    },
-};
-
-var c = ['Nikita', 'lol', 'NIKITA', 'thisIsGonnaBeSanitized!'];
-
-var r = inspector.sanitize(schema, c);
-/*
- r.data: [ 'Nikita', '_INVALID_', 'NIKITA', '_INVALID_' ]
-*/
-```
-
----------------------------------------
-
-<h3 id="s_properties">properties</h3>
-
-* **type**: object.
-* **usable on**: object.
-
-Work the same way as [validation "properties"](#v_properties).
-
----------------------------------------
-
-<h3 id="s_items">items</h3>
-
-* **type**: object, array of object.
-* **usable on**: array.
-
-Work the same way as [validation "items"](#v_items).
-
-## Custom fields
-
-<h3 id="cf_punctual">punctual use</h3>
-
-When you need to use the same function in `exec` field several time, instead of
-saving the function and declaring `exec` several times, just use custom field.
-First you have to provide a hash containing a function for each custom field you
-want to inject. Then you can call them in your schema with $"your field name".
-For example if you
-provide a custom field called "superiorMod", you can access it with name
-"$superiorMod".
-
-<!-- markdownlint-disable-next-line MD001 -->
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    properties: {
-        lorem: { type: 'number', $divisibleBy: 5 },
-        ipsum: { type: 'number', $divisibleBy: 3 },
-    },
-};
-
-var custom = {
-    divisibleBy: function (schema, candidate) {
-        var dvb = schema.$divisibleBy;
-        if (candidate % dvb !== 0) {
-            this.report('must be divisible by ' + dvb);
-        }
-    },
-};
-
-var c = {
-    lorem: 10,
-    ipsum: 8,
-};
-inspector.validate(schema, candidate, custom); // Invalid: "@.ipsum must be divisible by 3"
-```
-
----------------------------------------
-
-<h3 id="cf_extension">extension</h3>
-
-Sometime you want to use a custom field everywhere in your program, so you may
-extend Schema-Inspector to do so. Just call the method
-_inspector.Validation.extend(customFieldObject)_ or
-_inspector.Sanitization.extend(customFieldObject)_. If you want to reset, simply call
-_inspector.Validation.reset()_ or _inspector.Sanitization.reset()_. You also can remove a
-specific field by calling _inspector.Validation.remove(field)_ or
-_inspector.Sanitization.remove(field)_.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var custom = {
-    divisibleBy: function (schema, candidate) {
-        var dvb = schema.$divisibleBy;
-        if (candidate % dvb !== 0) {
-            this.report('must be divisible by ' + dvb);
-        }
-    },
-};
-
-var schema = {
-    type: 'object',
-    properties: {
-        lorem: { type: 'number', $divisibleBy: 5 },
-        ipsum: { type: 'number', $divisibleBy: 3 },
-    },
-};
-
-inspector.Validation.extend(custom);
-
-var candidate = {
-    lorem: 10,
-    ipsum: 8,
-};
-
-inspector.validate(schema, candidate);
-/*
- As you can see, no more object than schema and candidate has been provided.
- Therefore we can use `$divisibleBy` everywhere in all schemas, for each
- inspector.validate() call.
-*/
-```
-
----------------------------------------
-
-<h3 id="cf_context">Context</h3>
-
-Every function you declare as a custom parameter, or with `exec` field will be
-called with a context. This context allows you to access properties, like
-`this.report()` function, but also `this.origin`, which is equal to the object
-sent to `inspector.validate()` or `inspector.sanitize()`.
-
-#### Example
-
-```javascript
-// ...
-var schema = { /* ... */ };
-var custom = {
-    divisibleBy: function (schema, candidate) {
-        // this.origin === [12, 23, 34, 45]
-        // ...
-    },
-};
-var candidate = [12, 23, 34, 45];
-var result = inspector.validate(schema, candidate, custom);
-// ...
-```
-
-## Asynchronous call
-
-### How to
-
-All of the examples above used synchronous calls (the simplest). But sometimes you
-want to call validation or sanitization asynchronously, in particular with
-`exec` and custom fields. It's pretty simple: To do so, just send a callback
-as extra parameter. It takes 2 parameters: error and result. Actually
-Schema-Inspector should send back no error as it should not throw any if called
-synchronously. But if you want to send back and error in your custom function,
-inspection will be interrupted, and you will be able to retrieve it in your
-callback.
-
-You also have to declare a callback in your `exec` or custom function to make
-Schema-Inspector call it asynchronously, else it will be call synchronously.
-That means you may use `exec` synchronous function normally even during
-and asynchronous call.
-
-#### Example
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = { /* ... */ };
-var candidate = { /* ... */ };
-
-inspector.validate(schema, candidate, function (err, result) {
-    console.log(result.format());
-});
-```
-
-#### Example with custom field
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = { /* ... */ };
-var candidate = { /* ... */ };
-var custom = { /* ... */ };
-
-inspector.validate(schema, candidate, custom, function (err, result) {
-    console.log(result.format());
-});
-```
-
-Here is a full example where you may have to use it:
-
-```javascript
-var inspector = require('schema-inspector');
-
-var schema = {
-    type: 'object',
-    properties: {
-        lorem: { type: 'number', $divisibleBy: 4 },
-        ipsum: { type: 'number', $divisibleBy: 5 },
-        dolor: { type: 'number', $divisibleBy: 0, optional: true },
-    },
-};
-
-var custom = {
-    divisibleBy: function (schema, candidate, callback) {
-        // Third parameter is declared:
-        // Schema-Inspector will wait this function to call this `callback` to keep running.
-        var dvb = schema.$divisibleBy;
-        if (typeof dvb !== 'number' || typeof candidate !== 'number') {
-            return callback();
-        }
-        var self = this;
-        process.nextTick(function () {
-            if (dvb === 0) {
-                return callback(
-                    new Error('Schema error: Divisor must not equal 0')
-                );
-            }
-            var r = candidate / dvb;
-            if ((r | 0) !== r) {
-                self.report('should be divisible by ' + dvb);
-            }
-            callback();
-        });
-    },
-};
-
-var candidate = {
-    lorem: 12,
-    ipsum: 25,
-};
-
-inspector.validate(schema, candidate, custom, function (err, result) {
-    console.log(result.format());
-});
-```
+[npm-image]: https://img.shields.io/npm/v/rickshaw.svg?style=flat-square
+[npm-url]: https://npmjs.org/package/rickshaw
+[travis-image]: https://travis-ci.org/shutterstock/rickshaw.svg?branch=master
+[travis-url]: https://travis-ci.org/shutterstock/rickshaw
+[coverage-image]: https://coveralls.io/repos/github/shutterstock/rickshaw/badge.svg?branch=master
+[coverage-url]: https://coveralls.io/github/shutterstock/rickshaw

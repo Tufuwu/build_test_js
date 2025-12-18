@@ -1,8 +1,12 @@
-node_modules/
-*~
-#*#
-npm-debug.log
-bower_components
-.vscode
-package-lock.json
+*.log
+*swp
+yarn-error.log
 yarn.lock
+package-lock.json
+
+# Dependency directories
+node_modules
+vendor
+
+# Coverage directory used by tools like istanbul
+coverage
