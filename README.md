@@ -1,82 +1,39 @@
-# gradle-to-js
+# OpenSeadragon
 
-[![NPM Version](https://img.shields.io/npm/v/gradle-to-js.svg)](https://www.npmjs.com/package/gradle-to-js)
-[![Build Status][1]][2]
+<!-- [![Gitter][gitter-badge]][gitter]
+[![Build Status][build-badge]][build] -->
 
-## What's this `gradle-to-js` thing?
+An open-source, web-based viewer for zoomable images, implemented in pure JavaScript.
 
-gradle-to-js is a quick & dirty Gradle build file to JavaScript object parser. It is quick & dirty in the sense that it doesn't give you an exact replica of whatever the build file represents during runtime, as evaluations and similar bits are (currently) too much of a hassle to accurately represent while parsing.
+See it in action and get started using it at [https://openseadragon.github.io/][openseadragon].
 
-## Installation
+## Stable Builds
 
-Simply run the following command to include it into your project:
+See the [GitHub releases page][github-releases].
 
-```sh
-npm install gradle-to-js --save
-```
+## Development
 
-## Usage
-
-### As a module
-
-Using `gradle-to-js` as a module, you can parse both strings and files as seen below.
-
-#### Files
-
-```js
-var g2js = require('gradle-to-js/lib/parser');
-g2js.parseFile('path/to/buildfile').then(function(representation) {
-  console.log(representation);
-});
-```
-
-#### Strings
-
-```js
-var g2js = require('gradle-to-js/lib/parser');
-g2js.parseText('key "value"').then(function(representation) {
-  console.log(representation);
-});
-```
-
-The promise will eventually resolve an object matching the build file structure and values.
-
-### Using the CLI
-
-You can also use the module directly from the CLI, and get a json representation out of it. Nifty ey? Currently only supporting files from this direction.
-
-```bash
-./index.js test/sample-data/small.build.gradle
-```
-
-```json
-{
-  "testblock": {
-    "key1": "value1",
-    "key2": "value2",
-    "nestedKey": {
-      "key3": "value3",
-      "key4": "value4",
-      "key5": {
-        "key6": "value6"
-      }
-    }
-  },
-  "testblock2": {
-    "key1": "value1",
-    "key2": "value2"
-  },
-  "testblock3": "not really"
-}
-```
-
-## Author
-
-[Karl Lindmark](https://www.github.com/karllindmark)
+If you want to use OpenSeadragon in your own projects, you can find the latest stable build, API documentation, and example code at [https://openseadragon.github.io/][openseadragon]. If you want to modify OpenSeadragon and/or contribute to its development, read the [contributing guide][github-contributing] for instructions.
 
 ## License
 
-Apache 2.0
+OpenSeadragon is released under the New BSD license. For details, see the [LICENSE.txt file][github-license].
 
-[1]: https://github.com/ninetwozero/gradle-to-js/workflows/ci/badge.svg
-[2]: https://github.com/ninetwozero/gradle-to-js/actions
+[openseadragon]: https://openseadragon.github.io/
+<!-- [gitter-badge]: https://badges.gitter.im/Join%20Chat.svg
+[gitter]: https://gitter.im/openseadragon/openseadragon?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+[build-badge]: https://secure.travis-ci.org/openseadragon/openseadragon.png?branch=master
+[build]: https://travis-ci.org/openseadragon/openseadragon -->
+[github-releases]: https://github.com/openseadragon/openseadragon/releases
+[github-contributing]: https://github.com/openseadragon/openseadragon/blob/master/CONTRIBUTING.md
+[github-license]: https://github.com/openseadragon/openseadragon/blob/master/LICENSE.txt
+
+## Sponsors
+
+We are grateful for the (development or financial) contribution to the OpenSeadragon project.
+
+<a href="https://www.bbmri-eric.eu"><img alt="BBMRI ERIC Logo" src="assets/logos/bbmri-logo.png" height="70" /></a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="https://www.pitt.edu/"><img alt="University of Pittsburgh Logo" src="assets/logos/pitt-logo.png" height="70" /></a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="https://www.stanford.edu/"><img alt="Stanford University Logo" src="assets/logos/stanford-logo.png" height="70" /></a>
