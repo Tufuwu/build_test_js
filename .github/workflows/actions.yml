@@ -1,32 +1,31 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
-      - main
-  pull_request: {}
+  pull_request:
+    branches: [main]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: ["16"]
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: yarn
-    - run: yarn install --frozen-lockfile
-    - run: yarn lint
-    - run: yarn test
-    - run: yarn test:integration
-    - run: yarn test:notelemetry
+    - name: Checkout Repo
+      uses: actions/checkout@v4
 
-    - uses: coverallsapp/github-action@master
+    - name: Setup Node
+      uses: actions/setup-node@v4
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}\
+        node-version-file: '.nvmrc'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Test
+      run: npm test
+
+    - name: Build 
+      run: npm run build
+
+    - name: Codecov
+      uses: codecov/codecov-action@v3.1.0
