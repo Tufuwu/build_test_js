@@ -1,41 +1,55 @@
+'use strict';
+
 module.exports = {
+  root: true,
+  extends: ['eslint:recommended', 'prettier'],
+  parserOptions: {
+    ecmaVersion: 2018,
+  },
   env: {
     es6: true,
-    node: true,
+  },
+  globals: {
+    exports: true,
+    module: true,
+    require: true,
+    window: true,
+    describe: true,
+    it: true,
+    test: true,
+    expect: true,
   },
   plugins: ['prettier'],
-  extends: 'eslint:recommended',
-  parserOptions: {
-    sourceType: 'module',
-    ecmaVersion: 8,
-  },
   rules: {
+    'no-prototype-builtins': 'off',
     'prettier/prettier': [
-      'error',
+      'warn',
       {
-        printWidth: 120,
-
-        tabWidth: 2,
-        useTabs: false,
-        semi: false,
+        printWidth: 100,
         singleQuote: true,
         trailingComma: 'es5',
-        bracketSpacing: false,
-        arrowParens: 'always',
       },
     ],
-    indent: ['error', 2],
-    'linebreak-style': ['error', 'unix'],
-    quotes: ['error', 'single'],
-    semi: ['error', 'never'],
-    'no-console': 'off',
-    'prefer-const': [
-      'error',
-      {
-        destructuring: 'any',
-        ignoreReadBeforeAssign: false,
-      },
-    ],
-    'no-var': 'error',
+    strict: ['warn', 'global'],
   },
-}
+  overrides: [
+    {
+      files: ['lib/implementedProperties.js', 'lib/properties.js'],
+      rules: {
+        'prettier/prettier': 'off',
+      },
+    },
+    {
+      files: 'scripts/**/*',
+      rules: {
+        'no-console': 'off',
+      },
+    },
+    {
+      files: ['scripts/**/*', 'tests/**/*'],
+      env: {
+        node: true,
+      },
+    },
+  ],
+};
