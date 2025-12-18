@@ -1,12 +1,25 @@
-name: github-actions
-on: [push, pull_request]
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
 jobs:
-  check-tests-pass:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version:
+          - 12.x
+          - 14.x
+          - 16.x
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "16"
-      - run: npm ci
-      - run: npm run test
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install
+    - run: npm test
