@@ -1,15 +1,81 @@
-# CSSStyleDeclaration
+# on-headers
 
-A Node JS implementation of the CSS Object Model [CSSStyleDeclaration interface](https://www.w3.org/TR/cssom-1/#the-cssstyledeclaration-interface).
+[![NPM Version][npm-version-image]][npm-url]
+[![NPM Downloads][npm-downloads-image]][npm-url]
+[![Node.js Version][node-image]][node-url]
+[![Build Status][ci-image]][ci-url]
+[![Coverage Status][coveralls-image]][coveralls-url]
 
-[![NpmVersion](https://img.shields.io/npm/v/cssstyle.svg)](https://www.npmjs.com/package/cssstyle) [![Build Status](https://travis-ci.org/jsdom/cssstyle.svg?branch=master)](https://travis-ci.org/jsdom/cssstyle) [![codecov](https://codecov.io/gh/jsdom/cssstyle/branch/master/graph/badge.svg)](https://codecov.io/gh/jsdom/cssstyle)
+Execute a listener when a response is about to write headers.
 
----
+## Installation
 
-#### Background
+This is a [Node.js](https://nodejs.org/en/) module available through the
+[npm registry](https://www.npmjs.com/). Installation is done using the
+[`npm install` command](https://docs.npmjs.com/getting-started/installing-npm-packages-locally):
 
-This package is an extension of the CSSStyleDeclaration class in Nikita Vasilyev's [CSSOM](https://github.com/NV/CSSOM) with added support for CSS 2 & 3 properties. The primary use case is for testing browser code in a Node environment. 
+```sh
+$ npm install on-headers
+```
 
-It was originally created by Chad Walker, it is now maintained by the jsdom community.
+## API
 
-Bug reports and pull requests are welcome.
+<!-- eslint-disable no-unused-vars -->
+
+```js
+var onHeaders = require('on-headers')
+```
+
+### onHeaders(res, listener)
+
+This will add the listener `listener` to fire when headers are emitted for `res`.
+The listener is passed the `response` object as it's context (`this`). Headers are
+considered to be emitted only once, right before they are sent to the client.
+
+When this is called multiple times on the same `res`, the `listener`s are fired
+in the reverse order they were added.
+
+## Examples
+
+```js
+var http = require('http')
+var onHeaders = require('on-headers')
+
+http
+  .createServer(onRequest)
+  .listen(3000)
+
+function addPoweredBy () {
+  // set if not set by end of request
+  if (!this.getHeader('X-Powered-By')) {
+    this.setHeader('X-Powered-By', 'Node.js')
+  }
+}
+
+function onRequest (req, res) {
+  onHeaders(res, addPoweredBy)
+
+  res.setHeader('Content-Type', 'text/plain')
+  res.end('hello!')
+}
+```
+
+## Testing
+
+```sh
+$ npm test
+```
+
+## License
+
+[MIT](LICENSE)
+
+[ci-image]: https://badgen.net/github/checks/jshttp/methods/master?label=ci
+[ci-url]: https://github.com/jshttp/methods/actions/workflows/ci.yml
+[coveralls-image]: https://badgen.net/coveralls/c/github/jshttp/methods/master
+[coveralls-url]: https://coveralls.io/r/jshttp/methods?branch=master
+[node-image]: https://badgen.net/npm/node/methods
+[node-url]: https://nodejs.org/en/download
+[npm-downloads-image]: https://badgen.net/npm/dm/methods
+[npm-url]: https://npmjs.org/package/methods
+[npm-version-image]: https://badgen.net/npm/v/methods
