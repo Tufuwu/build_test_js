@@ -1,69 +1,57 @@
 {
-  "name": "fs-monkey",
-  "version": "1.0.3",
-  "description": "Monkey patches for file system related things.",
-  "main": "lib/index.js",
-  "license": "Unlicense",
-  "keywords": [
-    "fs",
-    "file",
-    "file system",
-    "monkey",
-    "fsmonkey",
-    "monkeyfs",
-    "monkeypatch",
-    "patch"
-  ],
-  "files": [
-    "lib",
-    "!lib/__tests__",
-    "docs"
-  ],
-  "directories": {
-    "doc": "docs"
-  },
+  "name": "download.jqueryui.com",
+  "version": "2.2.11",
   "repository": {
     "type": "git",
-    "url": "https://github.com/streamich/fs-monkey.git"
+    "url": "https://github.com/jquery/download.jqueryui.com.git"
   },
-  "scripts": {
-    "build": "babel src --out-dir lib",
-    "test": "jest"
+  "license": "MIT",
+  "dependencies": {
+    "archiver": "5.3.0",
+    "async": "3.2.2",
+    "builder-amd": "0.0.3",
+    "builder-jquery-css": "0.0.4",
+    "dateformat": "4.5.1",
+    "eslint-config-jquery": "3.0.0",
+    "express": "4.17.1",
+    "fast-glob": "3.2.7",
+    "formidable": "1.2.2",
+    "gm": "1.23.1",
+    "grunt": "1.5.3",
+    "grunt-check-modules": "1.1.0",
+    "grunt-cli": "1.4.3",
+    "grunt-contrib-clean": "2.0.0",
+    "grunt-contrib-copy": "1.0.0",
+    "grunt-contrib-handlebars": "2.0.0",
+    "grunt-contrib-uglify": "5.0.1",
+    "grunt-eslint": "23.0.0",
+    "handlebars": "4.7.7",
+    "jquery-ui-themeroller": "0.0.5",
+    "lzma": "2.3.2",
+    "node-packager": "0.0.6",
+    "q": "1.5.1",
+    "qs": "6.10.1",
+    "requirejs": "2.3.6",
+    "rimraf": "3.0.2",
+    "semver": "7.3.5",
+    "sqwish": "0.2.2",
+    "uglify-js": "3.14.1",
+    "underscore": "1.13.1",
+    "winston": "3.3.3",
+    "wolfy87-eventemitter": "5.2.9",
+    "yargs": "16.2.0"
   },
-  "dependencies": {},
+  "optionalDependencies": {
+    "modern-syslog": "1.2.0"
+  },
   "devDependencies": {
-    "@babel/cli": "^7.18.6",
-    "@babel/core": "^7.18.6",
-    "@babel/preset-env": "^7.18.6",
-    "@semantic-release/changelog": "^6.0.1",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/npm": "^9.0.1",
-    "@types/jest": "^28.1.4",
-    "@types/node": "^8.10.66",
-    "babel-jest": "^28.1.2",
-    "jest": "^28.1.2",
-    "semantic-release": "^19.0.3",
-    "source-map-support": "^0.5.21"
+    "nodeunit": "0.11.3"
   },
-  "release": {
-    "verifyConditions": [
-      "@semantic-release/changelog",
-      "@semantic-release/npm",
-      "@semantic-release/git"
-    ],
-    "prepare": [
-      "@semantic-release/changelog",
-      "@semantic-release/npm",
-      "@semantic-release/git"
-    ]
+  "main": "main.js",
+  "scripts": {
+    "test": "nodeunit test"
   },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.js"
-    ],
-    "transform": {
-      "^.+\\.jsx?$": "babel-jest"
-    },
-    "testRegex": ".*(__tests__/|/test/unit/).*(test|spec)\\.(t|j)sx?$"
+  "engines": {
+    "node": "10 || 12 || 14"
   }
 }

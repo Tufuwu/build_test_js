@@ -1,8 +1,5 @@
-.idea
+app/dist
+jquery-ui
+log/downloads.log
 node_modules
-/.idea
-.nyc_output
-coverage
-package-lock.json
-/lib/
-yarn.lock
+tmp
