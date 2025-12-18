@@ -1,123 +1,291 @@
-# Changelog Ember-OAuth2
+# Changelog
 
-## v2.0.5-beta
-  (Full Changelog)[https://github.com/amkirwan/ember-oauth2/compare/v2.0.4-beta...v2.0.5-beta]
-  - Update ember-cli
-  - Use ES6
-  - Update Tests
-  - cleanup
+All notable changes to this project will be documented in this file.
 
-## v2.0.4-beta
-  (Full Changelog)[https://github.com/amkirwan/ember-oauth2/compare/v2.0.3-beta...v2.0.4-beta]
-  - Move ember-cli-babel to dev dependencies
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.0.3-beta
-  (Full Changelog)[https://github.com/amkirwan/ember-oauth2/compare/v2.0.2-beta...v2.0.3-beta]
-  - fix typo in scope
+## Unreleased
 
-## v2.0.2-beta
-  (Full Changelog)[https://github.com/amkirwan/ember-oauth2/compare/v2.0.1-beta...v2.0.2-beta]
+## 3.1.1 - 2025-08-12
+### Fixed
+- Fix main file reference
+- Fix deprecated url.parse and url.format usage
 
-  - add setProvider method
-  - change init to not take providerId
+## 3.1.0 - 2025-08-06
+### Removed
+- Remove bagoftext locale support
+- Remove commander and proxyquire deps
 
-## v2.0.1-beta
-  (Full Changelog)[https://github.com/amkirwan/ember-oauth2/compare/v2.0.0-beta...v2.0.1-beta]
+### Fixed
+- Fix nestor bin command
 
-  - Update NPM author info
+## 3.0.0 - 2025-08-03
+### Changed
+- Change module type to ESM
+- Replace lint type from jshint to eslint
+- Replace coverage from buster-istanbul to c8
+- Replace doc type from dox-foundation to jsdoc
+- Replace test type from buster to mocha
+- Switch CHANGELOG to use keep-a-changelog
+- Replace Travis CI with GH Actions
+- Failure test scenario now includes EAI_AGAIN for DNS lookup error
+- Replace feed-read with rss-parser for feed handling
 
-## v2.0.0-beta
-  (Full Changelog)[https://github.com/amkirwan/ember-oauth2/compare/v1.1.0...v2.0.0-beta]
+### Fixed
+- Fix discovery host arg handling
+- Fix console streaming check callback call
 
-  - Converted to EmberAddon and turned EmberOAuth2 into a service
-  - Updated testing to use Ember-Qunit
-  - Update project README
+## 2.2.2 - 2022-06-27
+### Changed
+- Upgrade dependencies
 
-## v1.1.0
-  - Add verifyToken method to handle mitigation of the confused deputy
-  - fix bug with checking of state
+## 2.2.1 - 2022-06-21
+### Fixed
+- Fix Jenkins crumb retrieval when URL path is not on the root context
 
-## v1.0.1
-  - Update getState function to not take a param argument and use the configure statePrefix to find the state from localStorage.
-  - This makes getState and getToken perform the same way and avoids confusion with the api
-  - Fix bug where handleRedircect could not find the stateObj
+## 2.2.0 - 2022-06-21
+### Changed
+- Upgrade swaggy-jenkins to 1.0.0
 
-## v1.0.0
-  - Drop support for deprecated callback methods onSuccess, onError, and onRedirect. Callbacks can be called using Ember.Evented trigger with the targets success, error, and redirect.
-## v0.7.0
-  - Add support Authorization Grant Flow
-## v0.6.0
-  - Remove global distribution
-  - Bump project bower and node dependencies
-  - Bump Ember to ~0.13.0
+## 2.0.0 - 2019-02-14
+### Changed
+- Replace request and bagofrequest modules with swaggy-jenkins
 
-## v0.5.5
-  - Provide funtion to remove the token from localstorage
-  - Provide funtion to remove the state from localstorage
-  - Funtion to get the stateKeyName and tokenKeyName
+### Fixed
+- Fix job build not streaming console output when --console flag is used with build command [#46]
 
-## v0.5.4
-  - Added support for versions of Ember >= 1.7
-## v0.5.3
-  - Can now use window.EmberENV for config along with window.ENV.
-  - Fixed issue where mini files had wrong version header.
-  - Better error reporting when configuration file is not formatted correctly.
-## v0.5.2
-  - Update Ember dependeny to 1.7
-  - Moved bower install dependences from vendor to bower_components
-  - Add dist dir to repo for bower installs
-## v0.5.1
-  - Fixed bug where the random UUID for the state was not being set.
-  - openWindow resolves with a reference to the dialog window and rejects
-    with an error if the dialog window fails to open.
-## v0.5.0
-  - Update library to use ES6 module
-  - Export to both Global and AMD module
-  - Use window.ENV['ember-oauth2'] for config
-  - OpenWindow now returns reference to dialog on resolve, on reject object with reference to dialog and error.
-## v0.4.0
-  - Isolates function for opening window so that it can be overridden
-  - Login dialog window returns a promise, it resolves on success and reject on error
-## v0.3.2
-  - Remove files not needed in package.
-  - Add build files to dist dir for package manaagers.
-## v0.3.1
-  - Initial relase to Bower
-## v0.3.0
-  - Added YUIDoc to src.
-  - Published to NPM.
-  - Using get and set for properties on the instances.
-## v0.2.4
-  - Change to using Ember.Evented class for handling 'redirct', 'success' and 'error' callback.
-  - Depricated old callback methods.
-## v0.2.3
-  - Using grunt-versioner for updating and building project
-  - Fixed incorrect path to jQuery when build from source
-## v0.2.2 (Jan 11, 2014)
-  - [a132c65](https://github.com/amkirwan/ember-oauth2/commit/a132c657ae0a5173fc78ab192c6db11e4074232c) updated patch version to v0.2.2
-  - [ffd5069](https://github.com/amkirwan/ember-oauth2/commit/ffd50691721e96091e3642c1ecc871d66c2f48f8) grunt-bump commit changes
-  - [a051d44](https://github.com/amkirwan/ember-oauth2/commit/a051d44a15c3e27fbcafe07e5fee43695e4fd68c) config bump, added custom task to update readme version
-  - [aabf4e0](https://github.com/amkirwan/ember-oauth2/commit/aabf4e055d1cec84a904033fdb4889283544f32d) added grunt bump
-  
-## v0.2.1 (Jan 9, 2014)
-  - [b925f2e](https://github.com/amkirwan/ember-oauth2/commit/b925f2ea303930785227c424ecba5f7c772275a8) version bump to v0.2.1 added dist dir for bower and node
-  - [0d5e7ed](https://github.com/amkirwan/ember-oauth2/commit/0d5e7eddfe5483853476def213caa999354a09dc) do not ignore dist dir
-  - [ea17257](https://github.com/amkirwan/ember-oauth2/commit/ea172578b6dbb6ab13b22583de3368fd7a5aae95) moved ember to dependencies
-  - [7d5e752](https://github.com/amkirwan/ember-oauth2/commit/7d5e75227aa304c77385f24ff4e66408c58d1498) Update README.md
+## 1.0.2 - 2016-10-25
+### Added
+- Add optional build number argument to console command [#44]
 
-## v0.2.0 (Jan 9, 2014)
-  - [9769bf1](https://github.com/amkirwan/ember-oauth2/commit/9769bf1daae3c9035b03a27b7ceabda4e53b6874) version bump v0.2.0
-  - [1305ae8](https://github.com/amkirwan/ember-oauth2/commit/1305ae8504eff1961e4c09d10611e9ce2dbdf4a2) updated Gruntfile to new directory layout structure
-  - [c00930f](https://github.com/amkirwan/ember-oauth2/commit/c00930f58ed8e384071320a04b1fb87091b1a041) moved lib and spec to src
-  - [114d85d](https://github.com/amkirwan/ember-oauth2/commit/114d85d729bb28056d624b2df94cc88013ec3973) renamed packages dir to src
+## 1.0.1 - 2016-10-23
+### Added
+- Add crumb request header because new Jenkins >= 2.x installation enables CSRF protection by default [#40]
 
-## v.0.1.0 (Jan 7, 2014)
-  - [8914512](https://github.com/amkirwan/ember-oauth2/commit/8914512d4cffb9c0de8f1a2455948569846d291a) version bump
-  - [a3cb3e2](https://github.com/amkirwan/ember-oauth2/commit/a3cb3e289a9fda3930e6f90c103aa010af41a1c0) fixed jshint warnings
-  - [b2c4aea](https://github.com/amkirwan/ember-oauth2/commit/b2c4aea31e4f80153d7a7217a50fd1a1caf244ee) added missing var
-  - [f1befdf](https://github.com/amkirwan/ember-oauth2/commit/f1befdfb5040c757090e48826bbf0c936dc34b5c) removed dist directory
-  - [ba25b1e](https://github.com/amkirwan/ember-oauth2/commit/ba25b1e79f9eae2d3e992633189821392987bf7b) remove dist js files
-  - [8de0dc3](https://github.com/amkirwan/ember-oauth2/commit/8de0dc3f6cb2d93a0a16752e9306b18e998a906b) adjusted readme.md
-  - [c4e5829](https://github.com/amkirwan/ember-oauth2/commit/c4e58292a43190fd6e9b7af7d1b3bde900e7776f) travis should run tests using grunt task
-  - [17eb7f7](https://github.com/amkirwan/ember-oauth2/commit/17eb7f71a275c94b3053d334f77004fbf6ef03b4) fixed ember-oauth2.png image
+## 1.0.0 - 2016-10-19
+### Removed
+- Remove confusing reference to 'Jenkins URL' in authentication error message [#41]
 
+### Fixed
+- Fix semver spec of node engine for compatibility with Yarn [Andreas Köhler](https://github.com/andi5)
+
+## 0.3.6 - 2016-09-21
+### Changed
+- Wait for build to start before streaming the console [#38] [Joe Littlejohn](https://github.com/joelittlejohn)
+
+## 0.3.5 - 2016-08-19
+### Added
+- Add NO_PROXY support via bagofrequest v0.1.4 for issue [#36]
+
+## 0.3.4 - 2016-08-14
+### Changed
+- Replace feedparser with feed-read due to feedparser's API change post v0.15.x
+- Update doc with triggering parameterised build with console output
+- Handle build param which includes '=' delimiter sign in the value
+- Set min node engine to >= 4.0.0
+
+### Fixed
+- Fix missing colours on dashboard output
+
+## 0.3.3 - 2015-11-05
+### Added
+- Add SSL certificate support [Benedikt Arnold](https://github.com/benediktarnold)
+
+### Changed
+- Handle job object without color property
+
+## 0.3.2 - 2015-07-12
+### Added
+- Add build reports to readme
+
+### Fixed
+- Fix broken build command when no parameter is specified
+- Fix broken auth username and password prompt with interactive flag
+
+## 0.3.1 - 2015-02-09
+### Changed
+- Monitor Jenkins instance and view checks all jobs instead of just the first job
+
+## 0.3.0 - 2015-02-02
+### Changed
+- Modify Jenkins module to pass Jenkins REST API as-is, update method names (NOTE: backward incompatible with <= 0.2.x)
+- Reorganise code structure
+- Move buildlight support to https://github.com/cliffano/nestor-buildlight
+- Move ninjablocks support to https://github.com/cliffano/nestor-ninjablocks
+- Display job status in lowercase
+- Modify monitor to accept job, view, and schedule args, and return status in lowercase
+
+### Removed
+- Remove build-all, build-fail, and irc commands
+
+## 0.2.4 - 2014-05-01
+### Added
+- Add create-view, update-view, and fetch-view-config commands
+- Add create-job command, create command is now an alias of create-job
+- Add update-job command, update command is now an alias of update-job
+- Add enable-job command, enable command is now an alias of enable-job
+- Add disable-job command, disable command is now an alias of disable-job
+- Add copy-job command, copy command is now an alias of copy-job
+- Add delete-job command, delete command is now an alias of delete-job
+- Add fetch-job-config command, config command is now an alias of fetch-job-config
+- Add last command [Alistair Dutton](https://github.com/kelveden)
+
+## 0.2.3 - 2014-02-13
+### Added
+- Add enable and disable commands
+- Add update and config commands
+
+## 0.2.2 - 2014-02-12
+### Added
+- Add blink on failure flag to buildlight command [#23]
+- Add create, copy, and delete commands [#25]
+
+### Changed
+- Change test lib to buster-node + referee
+- Set min node engine to >= v0.8.0
+
+## 0.2.1 - 2013-08-28
+### Added
+- BuildLight notifier blinks red on build failure
+
+### Fixed
+- Fix buildlight command memory leak
+
+## 0.2.0 - 2013-08-24
+### Added
+- Add l10n support, with en and id locales
+- Add discover command timeout after 5 seconds
+- Add view dashboard support
+
+### Changed
+- Executor command collapses idle executors list into a summary
+
+## 0.1.9 - 2013-07-17
+### Added
+- Add build-all and build-fail commands
+
+## 0.1.8 - 2013-07-15
+### Fixed
+- Fix command with optional flag, no longer displays help menu
+
+## 0.1.7 - 2013-07-14
+### Changed
+- Nick argument is now mandatory for irc command
+
+### Fixed
+- Fix unhandled response 201 on Jenkins v1.5xx when creating a job
+- Fix IllegalAccessException 500 error on Jenkins v1.5xx when stopping a job
+
+## 0.1.6 - 2013-06-17
+### Added
+- Add url flag
+- Add interactive flag
+
+### Changed
+- Change default timeout from 2secs to 30secs
+
+## 0.1.5 - 2013-05-09
+### Added
+- Add view monitoring support
+
+### Changed
+- Change buildlight status colour mapping, unknown displays blue, warn displays all colours to simulate yellow
+- Change feed jobName and viewName passing to use flags instead of args
+- Change feed status handling to check for latest status of all jobs in the feed
+
+## 0.1.4 - 2013-04-17
+### Added
+- Add buildlight command
+
+### Changed
+- Ninja command's job and schedule are now flags since they are optional
+
+## 0.1.3 - 2013-04-06
+### Fixed
+- Fix build trigger error on Jenkins v1.5xx when job requires auth
+
+## 0.1.2 - 2013-04-04
+### Added
+- Add feed command
+- Add jenkins#monitor and ninja command
+- Add jenkins#consoleStream [Whyme Lyu](https://github.com/5long)
+- Add -p/--pending flag to build command
+
+### Changed
+- Move proxy environment variable handling to bag.http.request and bag.http.proxy
+
+## 0.1.1 - 2013-01-23
+### Changed
+- Move status colouring to cli so that when lib/jenkins is used programatically then it gets plain uncoloured text
+- JENKINS_URL is now handled by lib/jenkins
+
+## 0.1.0 - 2013-01-23
+### Added
+- Add irc command
+
+### Changed
+- Move commands setup to conf/commands.json, cli handling to bag.cli.command
+- Move request handling to bag.http.request
+- Change unit tests from Mocha to Buster
+- Modify Jenkins constructor, proxy is now part of opts
+
+## 0.0.10 - 2012-11-24
+### Added
+- Add stop command
+- Colourise build status display
+- Add -c/--console flag to build command
+
+## 0.0.9 - 2012-11-21
+### Added
+- Add proxy support
+- Add console command
+
+## 0.0.8 - 2012-06-28
+### Changed
+- Display error message when parameterised build is triggered without parameters
+
+### Fixed
+- Fix unexpected status code 405 on parameterised build
+
+## 0.0.7 - 2012-06-26
+### Changed
+- Set max node engine to < 0.9.0
+
+## 0.0.6 - 2012-05-30
+### Added
+- Add sample usage commands to help info nestor -h
+
+### Fixed
+- Fix error message for status code 401 (authentication failed, instead of authentication required)
+
+## 0.0.5 - 2012-05-27
+### Added
+- Add support for Jenkins URL containing path e.g. http://host:port/path
+
+### Changed
+- Another rewrite lib (move to bagofholding, mocha, request)
+- Replace version command with ver (version is reserved by visionmedia/commander.js)
+- Display usage on arg-less comamand
+
+### Fixed
+- Fix undefined job status display
+
+## 0.0.3 - 2012-12-21
+### Changed
+- Rewrite lib
+
+## 0.0.2 - 2011-12-12
+### Added
+- Add Jenkins discovery feature
+- Add multiple job names support for job command
+
+### Changed
+- Upgrade nomnom to 1.0.0
+
+### Fixed
+- Fix commands-flags association
+
+## 0.0.1 - 2011-07-18
+### Added
+- Initial version

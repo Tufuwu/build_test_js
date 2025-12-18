@@ -1,265 +1,275 @@
-[![Build Status](https://travis-ci.org/amkirwan/ember-oauth2.png)](https://travis-ci.org/amkirwan/ember-oauth2)
+<img align="right" src="https://raw.github.com/cliffano/nestor/main/avatar.jpg" alt="Avatar"/>
 
-ember-oauth2
-============
+[![Build Status](https://github.com/cliffano/nestor/workflows/CI/badge.svg)](https://github.com/cliffano/nestor/actions?query=workflow%3ACI)
+[![Dependencies Status](https://img.shields.io/librariesio/release/npm/nestor)](https://libraries.io/npm/nestor)
+[![Code Scanning Status](https://github.com/cliffano/nestor/workflows/CodeQL/badge.svg)](https://github.com/cliffano/nestor/actions?query=workflow%3ACodeQL)
+[![Coverage Status](https://img.shields.io/coveralls/cliffano/nestor.svg)](https://coveralls.io/r/cliffano/nestor?branch=main)
+[![Security Status](https://snyk.io/test/github/cliffano/nestor/badge.svg)](https://snyk.io/test/github/cliffano/nestor)
+[![Published Version](https://img.shields.io/npm/v/nestor.svg)](https://www.npmjs.com/package/nestor)
+<br/>
 
-JavaScript library for using OAuth 2.0 Implicit Grant flow (Client-Side Flow) or Authorization Grant flow (Server-Side Flow) for Ember.js
+Nestor
+------
 
-This creates an OAuth 2.0 Ember object class for handling authentication with OAuth 2.0 providers.
+Nestor is a node.js [Jenkins](https://jenkins-ci.org) API and CLI.
 
-Current Version: **[2.0.5-beta](https://github.com/amkirwan/ember-oauth2/releases/tag/v2.0.5-beta)**
+![console command screenshot](https://raw.github.com/cliffano/nestor/master/screenshots/console.png)
 
-The EmberCli addon [EmberTokenAuth](https://github.com/amkirwan/ember-token-auth) demonstrates how to use Ember-OAuth2 library for authentication.
+Installation
+------------
 
-## Dependencies
+    npm install -g nestor
 
-Ember-OAuth2 requires Ember and jQuery.
+Usage
+-----
 
+Trigger a build:
 
-## Browser Support
+    nestor build <job>
 
-Ember-OAuth2 uses localStorage for saving the tokens, localStorage is supported in Firefox 3.5+, Safari 4+, IE9+, and Chrome.
+Trigger a parameterised build:
 
-The latest version of Ember-OAuth2 is an Ember Addon and uses the ES6 modules. This allows Ember-OAuth2 to be used in projects like [EmberCLI](https://github.com/stefanpenner/ember-cli) easier.
+    nestor build <job> ["param1=value1&param2=value2"]
 
+Trigger a build followed by console output:
 
-## Installation
+    nestor build --console <job>
 
-Ember-OAuth2 is an Ember Addon that can be installed with the following command from your ember project.
+Trigger a build, wait for 5 seconds, then display console output:
 
-```javascript
-$ ember install ember-oauth2
-```
+    nestor build --pending 5000 --console <job>
 
-Ember-OAuth2 is an Ember [service](https://guides.emberjs.com/v2.8.0/applications/services/) that you can inject to different parts of your app using the inject syntax
+Trigger a parameterised build followed by console output:
 
-```javascript
-import Ember from 'ember';
+    nestor build <job> ["param1=value1&param2=value2"] --console
 
-export default DS.Model.extend({
-  emberOauth2: Ember.inject.service();
-});
-```
+Display latest build console output:
 
+    nestor console <job>
 
+Display console output of a particular build number:
 
-## Configure
+    nestor console <job> [build_number]
 
-First you must configure your OAuth provider. For Google you would configure it like this.
+Stop currently running build:
 
-```
-window.EmberENV['ember-oauth2'] = {
-  google: {
-    clientId: "xxxxxxxxxxxx",
-    authBaseUri: 'https://accounts.google.com/o/oauth2/auth',
-    redirectUri: 'https://oauth2-login-demo.appspot.com/oauth/callback',
-    scope: 'public write'
-  }
-}
-```
+    nestor stop <job>
 
-If using ember-cli, you can add the configuration to `config/environment.js`:
+View status of all jobs:
 
-```
-EmberENV: {
-  FEATURES: {
-    // Here you can enable experimental features on an ember canary build
-    // e.g. 'with-controller': true
-  },
-  'ember-oauth2': {
-    google: {
-      clientId: "xxxxxxxxxxxx",
-      authBaseUri: 'https://accounts.google.com/o/oauth2/auth',
-      redirectUri: 'https://oauth2-login-demo.appspot.com/oauth/callback',
-      scope: 'public write'
-    }
-  }
-}
-```
+    nestor dashboard
 
-The example above sets *google* as a *providerId* along with configuration information for the provider. The following params are required for configuring a valid provider *clientId*, *authBaseUri* and *redirectUri*. Depending on the provider you might need to provide additional and/or optional configuration key/values.
+View job status reports:
 
-The configuration object allows you to also customize the prefix for the state and token that are stored in the browsers localStorage. The default value for the state prefix is *state* and the default for token is *token*. Using the previous example you can customize the prefixes by doing the following.
+    nestor job <job>
 
-```javascript
-window.ENV['ember-oauth2'] = {
-  google: {
-    clientId: "xxxxxxxxxxxx",
-    authBaseUri: 'https://accounts.google.com/o/oauth2/auth',
-    redirectUri: 'https://oauth2-login-demo.appspot.com/oauth/callback',
-    scope: 'public write',
-    statePrefix: 'foobar',
-    tokenPrefix: 'qux'
-  }
-}
-```
+Enable a job:
 
-The following are the options available for configuring a provider:
+    nestor enable <job>
 
-* `clientId`: (required) The client identifier that is used by the provider. Ember-OAuth2 uses the Implicit Grant flow (Client-Side Flow).
-* `authBaseUri`: (required) The authorization url for the OAuth2 provider.
-* `redirectUri`: (required) The URI that the OAuth2 provider will redirect back to when completed.
-* `scope`: Access your application is requesting from the OAuth2 provider.
-* `responseType`: The type of authorization your application is requesting. The default is `token` but can be set to `code` if using the Authorization Grant flow.
-* `statePrefix`: The prefix name for state key stored in the localStorage. The default value is `state` and the key would be `state-the_state_number`
-* `tokenPrefix`: The prefix name for token key stored in the localStorage. The default value is `token` and the key would be `token-the_provider_id`
+Disable a job:
 
+    nestor disable <job>
 
+Create a new job with a specified config.xml:
 
-## Authorization
+    nestor create <job> <path/to/config.xml>
 
-To sign into the OAuth2 provider create by injecting the service, set the provider with `setProvider` and call the `authorize`. You can inject this addon into your route for example and when the user clicks a button fire the action to handle the request and set the service providerId and call authorize. This is a simple example and you would probably want to wrap this functionality in a session model. Checkout [ember-token-auth](https://github.com/amkirwan/ember-token-auth) for a full example.
+Update an existing job with a specified config.xml:
 
-```javascript
-// login route
-import Ember from 'ember';
-export default Ember.Route.extend({
-  emberOauth2: Ember.inject.service(),
-  action: {
-    authenticate(providerId) {
-      this.get('emberOauth2').setProvider(providerId);
-      return this.get('emberOauth2').authorize().then(function(response) {
-        this.get('emberOauth2').get('auth').trigger('redirect', response.location.hash);
-      }, function(error) {
-        this.get('emberOauth2').get('auth').trigger('error', error);
-      })
-    }
-  }
+    nestor update <job> <path/to/config.xml>
 
-});
-```
+Copy an existing job1 to a new job2:
 
-Calling `authorize()` will open a new window and the OAuth provider's OAuth dialog will be displayed. If the user chooses to authenticate with your website upon authorization by OAuth provider the user will be redirected back to the redirectUri with the params access_token, token_type and state.
+    nestor copy <job1> <job2>
 
-At the redirectURI add the following to process the params returned from the OAuth provider
+Delete an existing job:
 
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Authorize</title>
-    <script>
-      var hash = window.location.hash;
-      window.opener.emberOauth2.trigger('redirect', hash);
-      window.close();
-    </script>
-  </head>
-</html>
-```
+    nestor delete <job>
 
+Fetch the config.xml of an existing job: (experimental)
 
+    nestor config <job>
 
+Create a new view with a specified config.xml: (experimental)
 
-## Implicit Grant Flow (Client-side flow)
+    nestor create-view <view> <path/to/config.xml>
 
-This will process the returned params and save the `provider_id`, `access_token`, `scope` and `expires_in` (the time the access_token will expire) to the localStorage. This localStorage can be accessed with the key `token-the_provider_id`.
+Update an existing view with a specified config.xml: (experimental)
 
+    nestor update-view <view> <path/to/config.xml>
 
-After successful authorization and saving the access_token to the localStorage the `success` event will be called. This will allow the user to do any cleanup necessary or to retrieve user information from the OAuth provider. To configure the callback bind event handlers to the `success` and `error` events.
+Fetch the config.xml of an existing view: (experimental)
 
-The `authorize` call returns a `Ember.RSVP.Promise`. Authorize will `resolve` with a reference to the dialog window when it opens successfully and `rejects` with an error when the window fails to open.
+    nestor fetch-view-config <view>
 
-})
+View queued jobs:
 
-When using the client-side flow it is vital to validate the token received from the endpoint, failure to do so will make your application vulnerable to the [confused deputy problem](https://en.wikipedia.org/wiki/Confused_deputy_problem). As of version `v1.0.2` Ember-OAuth2 supports the `verifyToken` method for validating tokens when using the client-side flow. The user will need to override this method for validating the different server endpoints.
+    nestor queue
 
-Here is an example of how this might be accomplished in an Ember-CLI instance initializer using the Google token validation endpoint.
+View executors' status (running builds):
 
-```javascript
-import Ember from 'ember';
-import EmberOAuth2 from 'ember-oauth2';
-import env from 'ember-pacu/config/environment';
+    nestor executor
 
-export function initialize(app) {
-  verifyTokenInit(app);
-}
+Discover Jenkins instance running on a specified host:
 
-function verifyTokenInit(app) {
-  EmberOAuth2.reopen({
-    // mitigate confused deputy
-    verifyToken: function() {
-      return new Ember.RSVP.Promise((resolve, reject) => {
-        // implement the adapter with the url to the google tokeinfo endpoint
-        var adapter = app.lookup('adapter:session');
-        adapter.google_tokeninfo().then(function(response) {
-          if (response.audience === env.APP.GOOGLE_CLIENT_ID) {
-            resolve(response);
-          } else {
-            reject('app uid does not match');
-          }
-        }, function(error) {
-          reject(error);
-        });
-      });
-    }
-  });
-}
+    nestor discover <host>
 
-export default {
-  name: 'ember-oauth2',
-  initialize: initialize
-};
-```
+View Jenkins version number:
 
+    nestor ver
 
+View builds feed of all jobs:
 
+    nestor feed
 
+View builds feed of a job:
 
-## Authorization Grant flow
+    nestor --job <job> feed
 
-If using the Authorization Grant flow with your provider your backend server will need to handle the final steps of authorizing your application. Your success handler will need to send the `AUTHORIZATON_CODE` returned from OAuth2 provider to your backend server which can then retrieve an access token using the client_id, client_secret, and authorization_code.
+Monitor build status and notify Ninja Blocks RGB LED device:
 
-To enable the Authorization Grant flow for a provider set the `responseType` value to `code`.
+    export NINJABLOCKS_TOKEN=<token_from_https://a.ninja.is/hacking>
+    nestor ninja
 
-```javascript
-window.ENV = window.ENV || {};
-window.ENV['ember-oauth2'] = {
-  google: {
-    clientId: "xxxxxxxxxxxx",
-    authBaseUri: 'https://accounts.google.com/o/oauth2/auth',
-    redirectUri: 'https://oauth2-login-demo.appspot.com/oauth/callback',
-    responseType: 'code'
-  }
-}
-```
+Note: `<job>` in the examples is a part of your Jenkins job URL after the first `job/`.
 
-To build Ember.Oauth2 on your system you will need to have [Node.js](http://nodejs.org), and [npm](https://npmjs.org) installed.
+For example, if you use nested folders on Jenkins and your URL is `/job/myproject/job/releases/job/master`,
+then you should pass `myproject/job/releases/job/master` as `<job>`.
 
-```bash
-$ git clone https://github.com/amkirwan/ember-oauth2
-$ cd ember-oauth2
-$ npm install
-$ bower install
-```
+Programmatically:
 
-## Tests
+    import Nestor from "nestor";
 
-To run the tests you can run one of the following commands.
+    const nestor = new Nestor(
+      'http://user:pass@host:port/path'
+    );
 
-```bash
-$ ember test
-$ ember test --serve
-$ npm test
-```
+    // trigger a standard build
+    nestor.buildJob('job', '', function (err, result) {
+    });
 
-## Building API Docs
+    // trigger a parameterised build
+    nestor.buildJob('job', 'param1=value1&param2=value2', function (err, result) {
+    });
 
-The API Docs provide a detailed collection of methods and properties for Ember.OAuth2. To build the documentation for the project from the project directory run the following command.
+Check out [lib/jenkins](https://github.com/cliffano/nestor/blob/master/lib/jenkins.js) for other available methods.
 
-Requires node.js and yuidocjs to build. Follow the steps in [build](https://github.com/amkirwan/ember-oauth2#building) to install the dependencies before buiding the docs.
+NOTE: Starting from version 2.0.0, Nestor started using [Swaggy Jenkins](https://github.com/cliffano/swaggy-jenkins) as an API client.
 
-```bash
-$ yuidoc .
-```
+Configuration
+-------------
+### Jenkins URL
 
+Set Jenkins URL in JENKINS_URL environment variable (defaults to http://localhost:8080):
 
-## Contributors
+(*nix)
 
-[Contributors](https://github.com/amkirwan/ember-oauth2/graphs/contributors) to this project.
+    export JENKINS_URL=http://user:pass@host:port/path
 
+(Windows)
 
-## Credits
+    set JENKINS_URL=http://user:pass@host:port/path
 
-#### Thanks to the following projects for ideas on how to make this work.
+As an alternative to password, you can use Jenkins API token instead. Jenkins API token can be found on Jenkins user configuration page.
 
-* [backbone-oauth](http://github.com/ptnplanet/backbone-oauth)
+If http_proxy or https_proxy environment variable is set, then Nestor will automatically use it.
+
+If you want authentication details to be prompted interactively:
+
+    JENKINS_URL=http://host:port/path nestor --interactive build job
+
+Jenkins URL can also be specified as an arg:
+
+    nestor --url http://user:pass@host:port/path dashboard
+
+### SSL client certificate authentication
+
+Set JENKINS_CERT and JENKINS_KEY
+
+(*nix)
+
+    export JENKINS_CERT=certificate.pem
+    export JENKINS_KEY=key.pem
+
+(Windows)
+
+    set JENKINS_CERT=certificate.pem
+    set JENKINS_KEY=key.pem
+
+When you have both key and certificate in one file, currently you have to set both ENV variables to the same file
+
+(*nix)
+
+    export JENKINS_CERT=combined.pem
+    export JENKINS_KEY=combined.pem
+
+(Windows)
+
+    set JENKINS_CERT=combined.pem
+    set JENKINS_KEY=combined.pem
+
+It is possible to specify a custom CA. Just set the JENKINS_CA env variable
+
+(*nix)
+
+    export JENKINS_CA=custom.ca.pem
+
+(Windows)
+
+    set JENKINS_CA=custom.ca.pem
+
+Translation
+-----------
+
+To add a new language translation:
+
+1. Create a locale JSON file in conf/locales/ directory, with the locale's [ISO 639-1 code](http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) as file name.
+2. Copy paste the content of the existing non-English locale file (anything other than en.json) and modify the translation values accordingly.
+3. Test by executing a command with LANG environment variable, e.g. `LANG=<code> nestor dashboard`
+
+Contribution
+------------
+
+When opening an issue to report a bug, please provide the following information:
+
+* node.js version: `node --version`
+* npm version: `npm --version`
+* Nestor version: `nestor --version`
+* Jenkins version: `nestor ver`
+
+Thanks in advance for reporting an issue, opening a feature request, or even better, a pull request!
+
+Colophon
+--------
+
+[Developer's Guide](https://cliffano.github.io/developers_guide.html#nodejs)
+
+Build reports:
+
+* [Code complexity report](https://cliffano.github.io/nestor/complexity/plato/index.html)
+* [Unit tests report](https://cliffano.github.io/nestor/test/mocha.txt)
+* [Test coverage report](https://cliffano.github.io/nestor/coverage/c8/index.html)
+* [Integration tests report](https://cliffano.github.io/nestor/test-integration/cmdt.txt)
+* [API Documentation](https://cliffano.github.io/nestor/doc/jsdoc/index.html)
+
+Articles:
+
+* [Nestor – A Faster And Simpler CLI For Jenkins](https://blog.cliffano.com/2011/10/22/nestor-a-faster-and-simpler-cli-for-jenkins/)
+* [Monitor Jenkins From The Terminal](https://blog.cliffano.com/2013/09/13/monitor-jenkins-from-the-terminal/)
+* [Using Node.js To Discover Jenkins On The Network](https://blog.cliffano.com/2011/08/04/using-nodejs-to-discover-jenkins-on-the-network/)
+
+Videos:
+
+* [Jenkins World 2017: Bringing Jenkins Remote Access API To The Masses](https://www.youtube.com/watch?v=D93t1jElt4Q)
+* [Evolution of nestor (Gource Vizualisation)](https://www.youtube.com/watch?v=omwXDBnjp5A) by Landon Wilkins
+
+Presentations:
+
+* [Bringing Jenkins Remote Access API To The Masses](https://www.slideshare.net/cliffano/bringing-jenkins-remote-access-api-to-the-masses)
+
+Related Projects:
+
+* [nestor-buildlight](https://github.com/cliffano/nestor-buildlight) - CLI for Jenkins build light notifier
+* [nestor-lifx](https://github.com/cliffano/nestor-lifx) - CLI for Jenkins LIFX notifier
+* [nestor-ninjablocks](https://github.com/cliffano/nestor-ninjablocks) - CLI for Jenkins Ninja Blocks notifier
