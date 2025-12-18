@@ -1,125 +1,196 @@
-# <img src="build/icons/128x128.png" width="64px" align="center" alt="Excel Parser Processor"> Excel Parser Processor
+# Calipers [![npm version](https://badge.fury.io/js/calipers.svg)](http://badge.fury.io/js/calipers) [![Build Status](https://travis-ci.org/calipersjs/calipers.svg)](https://travis-ci.org/calipersjs/calipers)
 
-### A Desktop app for processing all rows of Excel files
+Current file types supported: **PDF, PNG, JPEG, GIF, BMP, WEBP, SVG**
 
-Simply generates an array of items from the rows of an Excel file and does the repetitive tedious operations step by step
-recursively till every item of the array is processed. For example downloads all the URL's in an Excel file.
+Calipers was built to provide a method of determining the dimensions of an image or PDF much faster and less resource-intensive than shelling-out to ImageMagick. At [Lob](https://lob.com) we must validate image and PDF sizes during the lifecyle of an API request. The simplest way to do this is to shell-out to ImageMagick to identify the type and size of a file. For high-traffic servers, this becomes a major bottleneck due to the inefficiency of shelling-out.
 
-[![Dependency Status][dependabot-badge]][dependabot-url]
-[![Build Status][gh-actions-image]][gh-actions-url]
-[![Github Tag][github-tag-image]][github-tag-url]
-[![codecov][codecov-image]][codecov-url]
-[![Backers on Open Collective](https://opencollective.com/excel-parser-processor/backers/badge.svg)](#backers)
-[![Sponsors on Open Collective](https://opencollective.com/excel-parser-processor/sponsors/badge.svg)](#sponsors)
-[![Open Source Helpers](https://www.codetriage.com/btargac/excel-parser-processor/badges/users.svg)](https://www.codetriage.com/btargac/excel-parser-processor)
-[![CodeFactor][CodeFactor-image]][CodeFactor-url]
-[![CodeQL][codeql-image]][codeql-url]
+Calipers remains performant because it avoids spawning child processes and it doesn't read entire files into memory. Instead, it intelligently reads only parts of the files that are necessary to determine the type and the dimensions of the file.
 
-#### How to use
+# Installation
 
-You can [download the latest release](https://github.com/btargac/excel-parser-processor/releases) for your operating system
-or build it yourself (see [Development](#development)).
+Calipers uses a plugin architecture to allow users to include support for only the specific file types they need to measure. This helps avoid wasting CPU cycles measuring file types that an application doesn't support, and ensures users must only install dependencies that are absolutely needed (e.g. Poppler for PDF support).
 
-Just select or drag & drop an Excel file, then select the output folder for the downloaded images or files. All the items
-in the Excel file will be downloaded into the selected folder, and you will be notified about the state of ongoing progress.
+To use Calipers, you must install the core library and at least one plugin. For example, for PNG support:
 
-#### Sample Excel file structure
-
-|               | A                                                                 | B                         | C                         |
-| ------------- | :---------------------------------------------------------------- | :-------------------------| :-------------------------|
-| 1             | https://www.buraktargac.com/sample_image.gif                      | optional-sample-file-name | optional-sub-folder-name  |
-| 2             | https://www.buraktargac.com/sample_image.png                      | optional-sample-file-name | optional-sub-folder-name  |
-| 3             | https://www.buraktargac.com/sample_image.jpg                      |                           |                           |
-| .             | ...                                                               |                           |                           |
-| .             | ...                                                               |                           |                           |
-| n             | Asset URL ( can be any type of file jpg, jpeg, png, txt, doc, etc)|                           |                           |
-
-<br/>
-
-Currently there is no limit for `n`, I tested with 4000 items and unless your IP is banned from the publisher there
-is no problem to download as much as you can.
-
-#### Demo
-<img src="excel-parser-processor.gif" width="640px" height="480px" align="center" alt="Excel Parser Processor Demo">
-
-#### Development
-
-You need to have [Node.js](https://nodejs.org) installed on your computer in order to develop & build this app.
-
-```bash
-$ git clone https://github.com/btargac/excel-parser-processor.git
-$ cd excel-parser-processor
-$ npm install
-$ npm run build
-$ npm start
+```
+npm install --save calipers calipers-png
 ```
 
-If you are changing the view or renderer related things, you can use Webpack's watch feature with
+### Official Plugins
 
-```bash
-$ npm run start-renderer-dev
+Here is a list of officially supported plugins:
+
+File Type | Plugin
+--------- | ------
+PNG       | [calipers-png](https://github.com/calipersjs/calipers-png)
+JPEG      | [calipers-jpeg](https://github.com/calipersjs/calipers-jpeg)
+PDF <sup>†</sup>    | [calipers-pdf](https://github.com/calipersjs/calipers-pdf)
+GIF       | [calipers-gif](https://github.com/calipersjs/calipers-gif)
+BMP       | [calipers-bmp](https://github.com/calipersjs/calipers-bmp)
+WEBP      | [calipers-webp](https://github.com/calipersjs/calipers-webp)
+SVG       | [calipers-svg](https://github.com/calipersjs/calipers-svg)
+
+##### <sup>†</sup> PDF Support
+
+The [Poppler](http://poppler.freedesktop.org/) library C++ interface is required for PDF support. You must install Poppler before running `npm install calipers-pdf`.
+
+To install Poppler on Mac OS X using Homebrew:
+
+```
+brew install poppler
 ```
 
-After running this command, you'll see a webpack process watching your files after a new renderer.bundle.js is generated
-you can refresh the Excel parser processor app window with `cmd + R` or `ctrl + R` depending on your system.
+To install Poppler on Ubuntu:
 
-To generate binaries on your computer after your development is completed, you can run;
-
-```bash
-$ npm run dist
+```
+apt-get install pkg-config
+apt-get install libpoppler-cpp-dev
 ```
 
-This will add binaries under `/release` folder on your project folder.
+# Usage
 
-`/release` folder is ignored at the repository. Github Actions will be building the binaries after your branch is merged with master.
+Calipers must be initialized by calling the required function with supported file types passed in. Use the plugin name's suffix (everything after the first "-") as an argument.
 
-## Contributors
+```javascript
+// Initializes Calipers with support for calipers-png, calipers-jpeg, calipers-pdf.
+var Calipers = require('calipers')('png', 'jpeg', 'pdf');
+```
 
-This project exists thanks to all the people who contribute. [[Code of Conduct](CODE_OF_CONDUCT.md)].
-<a href="graphs/contributors"><img src="https://opencollective.com/excel-parser-processor/contributors.svg?width=890&button=false" /></a>
+Calipers exposes a single function, `measure`, once initialized.
 
+### `measure(filePath, [callback])`
 
-## Backers
+Measures the file at the given path.
+- `filePath` - The path of the file.
+- `callback` - called when the file has been measured
+  - `err` - An Error is thrown for unsupported file types or corrupt files.
+  - `result` - Contains keys `type` and `pages`, where `type` is a string representing the file type (e.g. `'png'`), and `pages` is an array of objects with keys `width` and `height`. For image files, `pages` always has 1 element and `width` and `height` are the integer pixel dimensions. For PDF `width` and `height` are floating-point PostScript Point dimensions.
 
-Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/excel-parser-processor#backer)]
+# Examples
 
-<a href="https://opencollective.com/excel-parser-processor#backers" target="_blank"><img src="https://opencollective.com/excel-parser-processor/backers.svg?width=890"></a>
+```js
+var Calipers = require('calipers')('png', 'pdf');
 
+// You can use a callback:
+Calipers.measure('/path/to/document.pdf', function (err, result) {
+  // result:
+  // {
+  //   type: 'pdf',
+  //   pages: [
+  //     {
+  //       width: 450,
+  //       height: 670
+  //     },
+  //     {
+  //       width: 450,
+  //       height: 670
+  //     }
+  //   ]
+  // }
+});
 
-## Sponsors
+// Or you can use promises:
+Calipers.measure('/path/to/file.png')
+.then(function (result) {
+  // result:
+  // {
+  //   type: 'png',
+  //   pages: [
+  //     {
+  //       width: 450,
+  //       height: 670
+  //     }
+  //   ]
+  // }
+});
+```
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/excel-parser-processor#sponsor)]
+# Custom Plugins
 
-<a href="https://opencollective.com/excel-parser-processor/sponsor/0/website" target="_blank"><img src="https://opencollective.com/excel-parser-processor/sponsor/0/avatar.svg"></a>
-<a href="https://opencollective.com/excel-parser-processor/sponsor/1/website" target="_blank"><img src="https://opencollective.com/excel-parser-processor/sponsor/1/avatar.svg"></a>
-<a href="https://opencollective.com/excel-parser-processor/sponsor/2/website" target="_blank"><img src="https://opencollective.com/excel-parser-processor/sponsor/2/avatar.svg"></a>
-<a href="https://opencollective.com/excel-parser-processor/sponsor/3/website" target="_blank"><img src="https://opencollective.com/excel-parser-processor/sponsor/3/avatar.svg"></a>
-<a href="https://opencollective.com/excel-parser-processor/sponsor/4/website" target="_blank"><img src="https://opencollective.com/excel-parser-processor/sponsor/4/avatar.svg"></a>
-<a href="https://opencollective.com/excel-parser-processor/sponsor/5/website" target="_blank"><img src="https://opencollective.com/excel-parser-processor/sponsor/5/avatar.svg"></a>
-<a href="https://opencollective.com/excel-parser-processor/sponsor/6/website" target="_blank"><img src="https://opencollective.com/excel-parser-processor/sponsor/6/avatar.svg"></a>
-<a href="https://opencollective.com/excel-parser-processor/sponsor/7/website" target="_blank"><img src="https://opencollective.com/excel-parser-processor/sponsor/7/avatar.svg"></a>
-<a href="https://opencollective.com/excel-parser-processor/sponsor/8/website" target="_blank"><img src="https://opencollective.com/excel-parser-processor/sponsor/8/avatar.svg"></a>
-<a href="https://opencollective.com/excel-parser-processor/sponsor/9/website" target="_blank"><img src="https://opencollective.com/excel-parser-processor/sponsor/9/avatar.svg"></a>
+Calipers also allows custom plugins for file types that are not officially supported or application-specific measuring. A Calipers plugin is simply an object with two functions, `detect` and `measure`. 
 
+##### `detect(buffer)`
 
+```
+@param {Buffer} buffer - a Node buffer containing the first 16 bytes of the file
+@returns {Boolean} true if the given buffer is a file type supported by the plugin
+```
 
-#### License
-MIT © [Burak Targaç](https://github.com/btargac)
+##### `measure(path, fd)`
 
-[dependabot-badge]: https://badgen.net/github/dependabot/btargac/excel-parser-processor?icon=dependabot
-[dependabot-url]: https://github.com/btargac/excel-parser-processor/security/dependabot
+```
+@param {String} path - the file to measure
+@param {Integer} fd - an opened, read-only file descriptor of the file; do not close,
+  Calipers will close file descriptors automatically
+@returns {Promise<Object> | Object} an object or promise resolving an object
+  containing 'type' and 'pages' fields. 'pages' is an array of objects, each with
+  a 'width' and 'height'
+```
 
-[gh-actions-image]: https://github.com/btargac/excel-parser-processor/actions/workflows/main.yml/badge.svg?branch=master
-[gh-actions-url]: https://github.com/btargac/excel-parser-processor/actions/workflows/main.yml
+The simple (and useless) example below illustrates how to create and use a custom plugin.
 
-[github-tag-image]: https://img.shields.io/github/tag/btargac/excel-parser-processor.svg
-[github-tag-url]: https://github.com/btargac/excel-parser-processor/releases/latest
+```javascript
+var fakePlugin = {
+  detect: function (buffer) {
+    // Return true if the file starts with 'fake'.
+    return buffer.toString('ascii', 0, 4) === 'fake';
+  },
+  measure: function (path, fd) {
+    // Return an arbitrary measurement.
+    return {
+      type: 'fake',
+      pages: [{
+        width: 0,
+        height: 0
+      }]
+    };
+  }
+};
 
-[codecov-image]: https://codecov.io/gh/btargac/excel-parser-processor/branch/master/graph/badge.svg
-[codecov-url]: https://codecov.io/gh/btargac/excel-parser-processor
+var Calipers = require('calipers')('png', 'jpeg', fakePlugin);
 
-[CodeFactor-image]: https://www.codefactor.io/repository/github/btargac/excel-parser-processor/badge
-[CodeFactor-url]: https://www.codefactor.io/repository/github/btargac/excel-parser-processor
+Calipers.measure('path/to/file/that/starts/with/fake')
+.then(function (result) {
+  // result:
+  // {
+  //   type: 'fake',
+  //   pages: [{
+  //     width: 0,
+  //     height: 0
+  //   }]
+  // }
+});
+```
 
-[codeql-image]: https://github.com/btargac/excel-parser-processor/actions/workflows/codeql-analysis.yml/badge.svg?branch=master
-[codeql-url]: https://github.com/btargac/excel-parser-processor/actions/workflows/codeql-analysis.yml
+# Benchmarks
+
+As with all benchmarks, take these with a grain of salt. You can run the benchmarks on your own hardware by cloning the benchmark repository: https://github.com/calipersjs/benchmark.
+
+These benchmarks show the time taken to measure 500 iterations of each file type and each method with a concurrency of 50. They were run on a Mid-2014 13" MacBook Pro with a 2.6 GHz Intel Core i5.
+
+File Type | Shell Out Time (ms) | Calipers Time (ms)
+--------- | ------------------: | -----------------:
+PDF  | 2001 <sup>†</sup> | 92
+PNG  | 1814 <sup>††</sup> | 34
+JPEG | 1819 <sup>††</sup> | 56
+GIF  | 2411 <sup>††</sup> | 36
+BMP  | 1788 <sup>††</sup> | 35
+
+<sup>†</sup> Measured by spawning a child process which runs Poppler's `pdfinfo` command.
+
+<sup>††</sup> Measured by spawning a child process which runs ImageMagicks's `identify` command.
+
+# Contribute
+
+### Bug Reporting
+
+The easiest and most helpful way to contribute is to find a file that Calipers incorrectly measures, and submit an issue or PR with the file.
+
+### New Plugins
+
+If there is a file type you'd like to see supported, create an issue for it and we'll do our best to support it. Also, if you've created a custom plugin that you've found useful, please consider offering it as an official plugin.
+
+<br/><br/>
+##### Inspiration
+
+Inspired by netroy's image-size library: https://github.com/netroy/image-size

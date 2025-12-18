@@ -1,50 +1,45 @@
-name: Build & release
+name: "calipers"
+
 on:
   push:
     branches:
-      - 'main'
+      - main
   pull_request:
     branches:
-      - 'main'
-  workflow_dispatch:
-
-env:
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - main
 
 jobs:
-  build-release:
-    name: Build and release the Electron App
+  ci:
+    name: Build & Test
+    runs-on: ubuntu-latest
 
-    runs-on: ${{ matrix.os }}
-
+    # Run the same tests suite for node 12, 14, 16
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-latest ]
+        node-version: ["16"]
 
     steps:
-      - name: Check out Git repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js, NPM and Yarn
+      - name: Install packages
+        run: |
+          sudo apt-get -y install \
+            libpoppler-cpp-dev \
+            libpoppler-private-dev \
+            g++
+      # Setup this version of Node
+      # Cache is saved and restored by actions/setup-node
+      - name: Use Node ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: "16"
-          cache: 'npm'
+          node-version: ${{ matrix.node-version }}
 
-      - name: Build
-        run: |
-          npm install -g codecov
-          npm install
-          npm run build
-          npm run test
-          codecov
+      - name: Install dependencies
+        run: npm install
 
-      - name: Distribute Mac OS X and Windows binaries
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: |
-          npm run dist -- --mac --win
+      - name: Run tests
+        run: npm test
 
-      - name: Distribute Linux binaries
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-          npm run dist
+      - name: Run lint
+        run: npm run lint
