@@ -1,4 +1,4 @@
-name: GitHub CI
+name: Tests
 
 on:
   push:
@@ -7,23 +7,21 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    name: General checks, tests and build
+  build:
     runs-on: ubuntu-latest
+    name: 'Yoast SEO for Neos CMS frontend build'
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "16"
+          cache: 'yarn'
 
-    - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: yarn
 
-    - name: Use Node.js LTS 18
-      uses: actions/setup-node@v4
-      with:
-        node-version: "16"
+      - name: Build inspector view plugin
+        run: yarn build:inspectorView
 
-    - name: Install dependencies
-      run: npm install
-
-    - name: Perform checks and tests
-      run: npm test
-
-    - name: Perform self-contained build
-      run: npm run build
+      - name: Build edit/preview mode
+        run: yarn build:editMode
