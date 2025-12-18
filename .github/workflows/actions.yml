@@ -1,36 +1,29 @@
-name: Run tests
+name: GitHub CI
 
 on:
   push:
+    branches: [ main ]
   pull_request:
-
-permissions:
-  contents: read
+    branches: [ main ]
 
 jobs:
-  build:
-    permissions:
-      checks: write  # for coverallsapp/github-action to create new checks
-      contents: read  # for actions/checkout to fetch code
+  test:
+    name: General checks, tests and build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-        - node-red-version: 3
-          node-version: "16"
-        - node-red-version: 2
-          node-version: "16"
-        - node-red-version: 1
-          node-version: "16"
     steps:
+
     - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
+
+    - name: Use Node.js LTS 18
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
-    - name: Install Dependencies
-      run: |
-        npm install
-        npm install node-red@${{ matrix.node-red-version}}
-    - name: Run tests
+        node-version: "16"
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Perform checks and tests
       run: npm test
+
+    - name: Perform self-contained build
+      run: npm run build
