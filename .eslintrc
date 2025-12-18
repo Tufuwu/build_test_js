@@ -1,5 +1,5 @@
 {
-  "extends": "takiyon",
+  "extends": "takiyon-react",
   "env": {
     "browser": true,
     "node": true
@@ -14,5 +14,9 @@
         "config": "webpack.test.config.js"
       }
     }
+  },
+  "rules": {
+    "react/destructuring-assignment": "off",
+    "react/jsx-sort-props": "off"
   }
 }

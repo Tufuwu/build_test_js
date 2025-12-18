@@ -1,220 +1,266 @@
-## [v2.1.0](https://github.com/jakezatecky/d3-funnel/compare/v2.0.0...v2.1.0) (2022-02-25)
+# CHANGELOG
+
+## [v1.8.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.7.3...v1.8.0) (2020-09-06)
 
 ### Other
 
-* [#156]: Add TypeScript index file
+* [#329] Add React 18 to the peer dependency list (**Note**: React 18 is not part of the automatic testing, but should work)
 
-## [v2.0.0](https://github.com/jakezatecky/d3-funnel/compare/v1.2.2...v2.0.0) (2021-06-04)
-
-### Bug Fixes
-
-* [#138]: Fix an issue with tooltip alignment in newer versions of Chrome
-
-### Dependencies
-
-* **Breaking**: Upgrade to using D3 v6 (changes `events.click.block(d)` to `events.click.block(event, d)`)
-
-## [v1.2.2](https://github.com/jakezatecky/d3-funnel/compare/v1.2.1...v1.2.2) (2019-01-26)
-
-### Performance
-
-* [#97]: Significantly reduce package size to around 27% of its original size
-
-## [v1.2.1](https://github.com/jakezatecky/d3-funnel/compare/v1.2.0...v1.2.1) (2018-10-13)
-
-### Build Process
-
-* [#93]: Fix issue where `dist/d3-funnel.js` was being minified alongside `dist/d3-funnel.min.js`
-
-## [v1.2.0](https://github.com/jakezatecky/d3-funnel/compare/v1.1.1...v1.2.0) (2018-06-25)
-
-### Dependencies
-
-* [#87]: Add official support for D3 v5 (while continuing support for D3 v4)
+## [v1.7.3](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.7.2...v1.7.3) (2020-05-23)
 
 ### Bug Fixes
 
-* [#86]: Fix issue where heights were being calculated incorrectly when the sum of values was zero
+* [#258]: Fix check behavior on nodes with an empty `children` array
 
-## [v1.1.1](https://github.com/jakezatecky/d3-funnel/compare/v1.1.0...v1.1.1) (2017-07-31)
+## [v1.7.2](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.7.1...v1.7.2) (2021-08-09)
 
-This is a patch for the npm release, which was shipped without the updated `/dist` directory.
+### Bug Fixes
 
-## [v1.1.0](https://github.com/jakezatecky/d3-funnel/compare/v1.0.1...v1.1.0) (2017-07-31)
+* [#281]: Fix accessibility issues with checkbox nodes
+* [#288]: Fix issue with custom checkbox icons appearing when `nativeCheckboxes={true}`
 
-Release **v1.1.0** adds a variety of new functionality to the funnel, and introduces a new data structure that allows for more flexibility on a row level than previously capable:
+## [v1.7.1](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.7.0...v1.7.1) (2021-06-08)
 
-``` javascript
-funnel.draw([{
-    label: 'Prospects',
-    value: 5000,
-    backgroundColor: '#d33',
-}]);
-```
+### Build
 
-The old structure of an array-of-arrays has been deprecated and will be removed in the **v2.0** release. Please update to the newest data structure as soon as possible. Refer to the README for the list of available options, which includes all of the capabilities previously held in the data array.
+* Fix build issues for default exports
+
+## [v1.7.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.6.0...v1.7.0) (2021-06-08)
+
+### New Features
+
+* [#182]: Add `direction` property to support RTL languages
+* [#211]: Throw an error when nodes have duplicate values
+* [#244]: Add `expandNodesToLevel` utility
+
+### Bug Fixes
+
+* [#208]: Add missing `onCheck` argument in TypeScript definition
+* [#248]: Add missing `onExpand` argument in TypeScript definition
+
+## [v1.6.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.5.0...v1.6.0) (2019-12-11)
+
+### New Features
+
+* [#13]: Add `checkModel` property to specify which nodes should be stored in the `checked` array (currently `"all"` and `"leaf"` supported)
+* [#126]: Add `iconsClass` property and allow `'fa5'` to fully support Font Awesome 5 icons
+* [#171]: Allow parent nodes to have an empty `children` array
+
+### Bug Fixes
+
+* [#127]: Change TypeScript definition of TreeNode's `label` property to `React.ReactNode` to better align with the PropType
+* [#145]: Fix alignment of many React properties to TypeScript typings
+* [#180]: Fix issue where the `id` property did not apply to the top-level CheckboxTree container
+
+## [v1.5.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.4.1...v1.5.0) (2019-01-25)
+
+### New Features
+
+* [#116]: Add `id` property to specify the DOM ID for the generated tree nodes
+* [#122]: Add `label`, `isLeaf`, `isParent`, `parent`, `treeDepth`, and `level` metadata to the target node of `onCheck`, `onClick`, and `onExpand` handlers
+
+### Bug Fixes
+
+* [#119]: Fix issue where an initially disabled tree could not be enabled after the initial render
+* [#120]: Fix issue where Internet Explorer and Microsoft Edge browsers would fail to update check state when a parent was in a half-check or indeterminate state
+* [#125]: Fix misalignment of TreeNode's `label` property between PropType and TypeScript definitions
+
+### Other
+
+* [#115]: Add example react-fontawesome usage for the `icons` prop
+
+## [v1.4.1](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.4.0...v1.4.1) (2018-09-21)
+
+### Bug Fixes
+
+* [#113]: Add missing `expandOpen` property from TypeScript declaration (...again)
+
+## [v1.4.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.3.1...v1.4.0) (2018-09-21)
+
+### New Features
+
+* [#114]: Add `rct-node-expanded` and `rct-node-collapsed` classes to expanded and collapsed parent nodes
+
+### Bug Fixes
+
+* [#113]: Add missing `expandOpen` property from TypeScript declaration
+
+## [v1.3.1](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.3.0...v1.3.1) (2018-09-06)
+
+### Bug Fixes
+
+* [#109]: Fix erroneous PropTypes check for `lang` property
+
+## [v1.3.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.2.4...v1.3.0) (2018-09-05)
+
+### New Features
+
+* [#79]: Add `showExpandAll` property to give the user the ability to expand or collapse all nodes in the tree
+* [#96]: Add TypeScript definitions
+* [#102]: Add `icons` property to allow specification of icon components
+* [#103]: Add `title` node property and `showNodeTitle` tree property
+* [#108]: Add `lang` property for language customization
+
+### Bug Fixes
+
+* [#61]: Fix issue where disabled children would be checked if a parent node was checked
+
+### Other
+
+* [#91]: Prevent disconnection between Sass and Less files on build
+* [#97]: Some performance optimizations
+
+## [v1.2.4](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.2.3...v1.2.4) (2018-08-29)
+
+### Bug Fixes
+
+* [#82], [#84]: Fix undefined Crypto API errors in Node environments
+* [#104]: Fix issue where numeric node values could trigger PropType warnings
+
+## [v1.2.3](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.2.2...v1.2.3) (2018-06-23)
+
+### Bug Fixes
+
+* [#81]: Fix render errors for all numeric value types
+
+## [v1.2.2](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.2.1...v1.2.2) (2018-05-24)
+
+### Bug Fixes
+
+* [#89]: Fix misnamed variables in the Less stylesheets
+* [#90]: Coerce NaN types to string when outputting DOM IDs
+
+## [v1.2.1](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.2.0...v1.2.1) (2018-05-10)
+
+### Bug Fixes
+
+* [#87]: Fix issue where passing the `onClick` property would trigger a warning about unique `key` prop
+
+## [v1.2.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.1.0...v1.2.0) (2018-05-08)
+
+### New Features
+
+* [#68]: Add `onClick` and `expandOnClick` properties
+
+### Other
+
+* [#69]: Tree will no longer throw an exception if `checked` or `expanded` contains values that do not recursively exist in the `nodes` property
+
+## [v1.1.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.0.2...v1.1.0) (2018-03-31)
+
+### New Features
+
+* [#53]: Add `nativeCheckboxes` property to allow use of native browser checkboxes instead of pseudo-checkbox icons
+* [#72]: Add the node that triggers `onCheck` or `onExpand` as a second parameter to the callback functions
+* [#80]: Add `onlyLeafCheckboxes` property and support `showCheckbox` on the node-level
+
+## [v1.0.2](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.0.1...v1.0.2) (2017-10-24)
+
+### Bug Fixes
+
+* [#57]: Fix an issue where node values with spaces in them would cause validation errors
+
+## [v1.0.1](https://github.com/jakezatecky/react-checkbox-tree/compare/v1.0.0...v1.0.1) (2017-09-30)
+
+### Dependencies
+
+* [#54]: Add support for React 16
+
+## [v1.0.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.6.4...v1.0.0) (2017-09-21)
+
+### New Features
+
+* [#49]: Add the ability to specify `disabled` to individual nodes
+* [#50]: Allow `node.label` to be any valid React node
+
+### Usability
+
+* [#51]: Apply additional background color when a node is active
+
+## [v0.6.4](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.6.3...v0.6.4) (2017-07-22)
+
+### Bug Fixes
+
+* [#42]: Fix npm package not aligning with Git version
+
+## [v0.6.3](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.6.2...v0.6.3) (2017-05-30)
+
+The **v0.6.x** series will likely be the last series before the **v1.0** release. The API is not expected to significantly change, but new features will not be added to pre-1.0 versions.
+
+### New Features
+
+* [#35]: Add `disabled` and `expandDisabled` options to `<CheckboxTree>`
+
+## [v0.6.2](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.6.1...v0.6.2) (2017-05-25)
+
+### New Features
+
+* [#34]: Add `noCascade` option to decouple parent check state from children
+
+## [v0.6.1](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.6.0...v0.6.1) (2017-05-09)
+
+### Other
+
+* [#33]: Add a `prepublish` command to ensure that the `./lib` folder is built before package is published to npm
+
+## [v0.6.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.5.2...v0.6.0) (2017-05-06)
+
+### New Features
+
+* [#32]: Allow customization of `className` at the node level
+* [#30]: Add `showNodeIcon` property to optionally remove node icons
+
+### Other
+
+* [#14]: Component performance when rendering and updating a large number of nodes has been significantly increased
+
+## [v0.5.2](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.5.1...v0.5.2) (2017-05-03)
+
+### Bug Fixes
+
+* [#31]: Fix issue where expand buttons would submit a parent form
+
+## [v0.5.1](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.5.0...v0.5.1) (2017-03-21)
+
+### New Features
+
+* [#27]: Add `rct-node-leaf` and `rct-node-parent` classes to the TreeNode `<li>` element
+
+## [v0.5.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.4.2...v0.5.0) (2017-03-12)
+
+### Breaking Changes
+
+* [#20]: Remove deprecated `title` property in `nodes` (use `label` instead)
+
+### New Features
+
+* [#2]: Allow customization of icons via CSS
+* [#26]: Allow icon customization at node level
+
+## [v0.4.2](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.4.1...v0.4.2) (2017-02-27)
+
+### Bug Fixes
+
+* [#22]: Remove expand-like behavior on nodes without children
+* [#23]: Fix issue where property validation was not occurring on node items
+
+## [v0.4.1](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.4.0...v0.4.1) (2017-02-15)
 
 ### Deprecations
 
-* [#73]: The old array-of-arrays data structure has been deprecated in favor of a data objects
+* [#20]: Add support for `label` in `nodes` property and deprecate `title`
 
 ### New Features
 
-* [#45]: Add support for tooltips via `tooltip.enabled` and `tooltip.format`
-* [#71]: Add `hideLabel` option to the data object
-* [#74]: Add `label.enabled` chart option
-* [#79]: Add support for `HTMLElement` in the D3Funnel constructor
+* [#21]: Add greater accessibility support
+
+## [v0.4.0](https://github.com/jakezatecky/react-checkbox-tree/compare/v0.3.0...v0.4.0) (2017-01-27)
 
 ### Bug Fixes
 
-* [#77]: Fix an issue where containers with zero width and/or height would not inherit from the default dimensions
-
-## [v1.0.1](https://github.com/jakezatecky/d3-funnel/compare/v1.0.0...v1.0.1) (2017-01-30)
-
-### Bug Fixes
-
-* [#67]: Add missing `cursor: pointer` style to blocks when clickable
-* [#70]: Fix NaN and Infinity values in block paths when height is zero and `dynamicHeight: true`
-
-## [v1.0.0](https://github.com/jakezatecky/d3-funnel/compare/v0.8.0...v1.0.0) (2016-08-02)
-
-This release breaks major backwards compatibility by upgrading D3 3.x to
-D3 4.x. Refer to D3's [changes documentation](d3-changes) for more info.
-
-### Behavior Changes
-
-* [#62]: Upgrade D3 3.x to 4.x
-
-[d3-changes]: https://github.com/d3/d3/blob/master/CHANGES.md
-
-## [v0.8.0](https://github.com/jakezatecky/d3-funnel/compare/v0.7.7...v0.8.0) (2016-07-21)
+* [#17]: Auto-prefix CSS styles to support older browsers
+* [#18]: Remove unnecessary margin on tree lists
 
 ### New Features
 
-* [#19]: Add support for percentages in `chart.width` and `chart.height` (e.g. `'75%'`)
-* [#38]: Split line break characters found in `label.format` into multiple lines
-
-### Bug Fixes
-
-* [#49]: Fix issue where gradient definitions could conflict with existing definitions
-
-## [v0.7.7](https://github.com/jakezatecky/d3-funnel/compare/v0.7.6...v0.7.7) (2016-07-15)
-
-### New Features
-
-* [#50]: Add `block.barOverlay` option to display bar charts proportional to block value
-* [#52]: Add `chart.totalCount` option to override total counts used in ratio calculations
-
-### Other
-
-* Simplify and clean up examples
-
-## [v0.7.6](https://github.com/jakezatecky/d3-funnel/compare/v0.7.5...v0.7.6) (2016-07-12)
-
-### New Features
-
-* [#53]: Add `label.fontSize` option
-* [#57]: Add `block.dynamicSlope` option to make the funnel width proportional to its value
-
-### Bug Fixes
-
-* [#59]: Fix issue where formatted array values were not being passed to the label formatter
-
-## [v0.7.5](https://github.com/jakezatecky/d3-funnel/compare/v0.7.4...v0.7.5) (2015-12-19)
-
-### New Features
-
-* [#44]: Pass DOM node to event data
-
-## [v0.7.4](https://github.com/jakezatecky/d3-funnel/compare/v0.7.3...v0.7.4) (2015-12-11)
-
-### Build Changes
-
-* [#42]: Use ES6 imports and exports in source files
-* [#43]: Require D3.js for CommonJS environments
-
-## [v0.7.3](https://github.com/jakezatecky/d3-funnel/compare/v0.7.2...v0.7.3) (skipped)
-
-D3Funnel v0.7.3 is an NPM-only hotfix that adds in missing compiled files.
-
-## [v0.7.2](https://github.com/jakezatecky/d3-funnel/compare/v0.7.1...v0.7.2) (2015-11-18)
-
-### Bug Fixes
-
-* [#41]: Fix issue where `events.click.block` would error on `null`
-
-## [v0.7.1](https://github.com/jakezatecky/d3-funnel/compare/v0.7.0...v0.7.1) (2015-10-28)
-
-### Behavior Changes
-
-* Errors thrown on data validation are now more descriptive and context-aware
-
-### Bug Fixes
-
-* [#35]: Fix issue where gradient background would not persist after mouse out
-* [#36]: Fix issue where non-SVG entities were not being removed from container
-
-## [v0.7.0](https://github.com/jakezatecky/d3-funnel/compare/v0.6.13...v0.7.0) (2015-10-04)
-
-D3Funnel v0.7 is a **backwards-incompatible** release that resolves some
-outstanding bugs, standardizes several option names and formats, and introduces
-a few new features.
-
-No new features will be added to the v0.6 series, but minor patches will be
-available for a few months.
-
-### Behavior Changes
-
-* [#29]: Dynamic block heights are no longer determined by their weighted area, but by their weighted height
-	* Heights determined by weighted area: http://jsfiddle.net/zq4L82kv/2/ (legacy v0.6.x)
-	* Heights determined by weighted height: http://jsfiddle.net/bawv6m0j/3/ (v0.7+)
-
-### New Features
-
-* [#9]: Block can now have their color scale specified in addition to data points
-* [#34]: Default options are now statically available and overridable
-
-### Bug Fixes
-
-* [#25]: Fix issues with `isInverted` and `dynamicArea` producing odd pyramids
-* [#32]: Fix issue where pinched blocks were not having the same width as `bottomWidth`
-
-### Upgrading from v0.6.x
-
-Several options have been renamed for standardization. Please refer to the table
-below for the new equivalent option:
-
-| Old option     | New option            | Notes           |
-| -------------- | --------------------- | --------------- |
-| `animation`    | `chart.animate`       |                 |
-| `bottomPinch`  | `chart.bottomPinch`   |                 |
-| `bottomWidth`  | `chart.bottomWidth`   |                 |
-| `curveHeight`  | `chart.curve.height`  |                 |
-| `dynamicArea`  | `block.dynamicHeight` | See change #29. |
-| `fillType`     | `block.fill.type`     |                 |
-| `height`       | `chart.height`        |                 |
-| `hoverEffects` | `block.hightlight`    |                 |
-| `isCurved`     | `chart.curve.enabled` |                 |
-| `isInverted`   | `chart.inverted`      |                 |
-| `onItemClick`  | `events.click.block`  |                 |
-| `minHeight`    | `block.minHeight`     |                 |
-| `width`        | `chart.width`         |                 |
-
-In addition, please refer to change #29.
-
-## [v0.6.13](https://github.com/jakezatecky/d3-funnel/compare/v0.6.12...v0.6.13) (2015-10-02)
-
-### Bug Fixes
-
-* [#33]: Fix issue where `package.json` pointed to the incorrect main file
-
-## [v0.6.12](https://github.com/jakezatecky/d3-funnel/compare/0.6.11...v0.6.12) (2015-09-25)
-
-### New Features
-
-* [#16]: Add support for formatted labels
-
-### Bug Fixes
-
-* [#26]: Fix issues with closed range intervals in `bottomWidth`
-* [#28]: Fix issue where short hex colors did not translate properly in color manipulations
+* [#15]: Provide `optimisticToggle` configuration to toggle child nodes optimistically or pessimistically

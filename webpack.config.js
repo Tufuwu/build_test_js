@@ -1,25 +1,47 @@
-module.exports = {
-    mode: 'production',
-    output: {
-        filename: 'd3-funnel.js',
-        library: {
-            name: 'D3Funnel',
-            type: 'umd',
+function makeConfig(target) {
+    const fileMap = {
+        node: 'index.js',
+        web: 'index.browser.js',
+    };
+
+    return {
+        mode: 'production',
+        target,
+        output: {
+            filename: fileMap[target],
+            library: {
+                name: 'ReactCheckboxTree',
+                type: 'umd',
+            },
         },
-    },
-    externals: {
-        // Do not compile d3 with the output
-        // In non-CommonJS, allows window.d3 to be used
-        // In CommonJS, this will use the included d3 package
-        d3: 'd3',
-    },
-    module: {
-        rules: [
+        externals: [
             {
-                test: /\.js?$/,
-                exclude: /(node_modules)/,
-                loader: 'babel-loader',
+                react: {
+                    root: 'React',
+                    commonjs2: 'react',
+                    commonjs: 'react',
+                    amd: 'react',
+                },
+            },
+            {
+                'react-dom': {
+                    root: 'ReactDOM',
+                    commonjs2: 'react-dom',
+                    commonjs: 'react-dom',
+                    amd: 'react-dom',
+                },
             },
         ],
-    },
-};
+        module: {
+            rules: [
+                {
+                    test: /\.js?$/,
+                    exclude: /(node_modules)/,
+                    loader: 'babel-loader',
+                },
+            ],
+        },
+    };
+}
+
+module.exports = makeConfig;

@@ -1,23 +1,17 @@
 const path = require('path');
-const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
 
 module.exports = {
     mode: 'development',
     output: {
         filename: 'index.js',
         library: {
-            name: 'D3Funnel',
+            name: 'ReactCheckboxTree',
             type: 'umd',
         },
     },
     resolve: {
         alias: {
-            'd3-funnel': path.resolve(__dirname, 'src/d3-funnel/D3Funnel'),
-        },
-        // Resolve dependency issues with Sinon and Webpack
-        fallback: {
-            'process/browser': require.resolve('process/browser'),
-            util: require.resolve('util/'),
+            'react-checkbox-tree': path.resolve(__dirname, 'src/index.js'),
         },
     },
     module: {
@@ -29,10 +23,4 @@ module.exports = {
             },
         ],
     },
-    plugins: [
-        // Resolve dependency issues with Sinon and Webpack
-        new webpack.ProvidePlugin({
-            process: 'process/browser',
-        }),
-    ],
 };
