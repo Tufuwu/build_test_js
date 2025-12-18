@@ -1,40 +1,19 @@
-# ember-prop-modifier
+# mqtt-match
 
-This addon provides a `{{prop}}` modifier which can be used to set properties
-directly on the element it is applied to:
+> Match mqtt formatted topic strings to strings
+
+[![npm](https://img.shields.io/npm/v/mqtt-match.svg)](https://www.npmjs.com/package/mqtt-match)
+![Node version](https://img.shields.io/node/v/mqtt-match.svg)
+[![Node.js CI](https://github.com/ralphtheninja/mqtt-match/actions/workflows/node.js.yml/badge.svg)](https://github.com/ralphtheninja/mqtt-match/actions/workflows/node.js.yml)
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+
+### Usage
 
 ```js
-import Component from '@glimmer/component';
-
-export default class MyVideo extends Component {
-  mediaSource = new MediaSource();
-}
+const match = require('mqtt-match')
+console.log(match('foo/+', 'foo/bar'))
+// true
 ```
 
-```hbs
-<video {{prop srcObject=this.mediaSource}}/>
-```
-
-
-## Compatibility
-
-* Ember.js v3.28 or above
-* Ember CLI v3.28 or above
-* Node.js v14 or above
-
-
-## Installation
-
-```
-ember install ember-prop-modifier
-```
-
-
-## Contributing
-
-See the [Contributing](CONTRIBUTING.md) guide for details.
-
-
-## License
-
-This project is licensed under the [MIT License](LICENSE.md).
+### License
+MIT
