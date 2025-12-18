@@ -1,7 +1,5 @@
-# Github actions workflow name
-name: CI
+name: Test
 
-# Triggers the workflow on push or pull request events
 on:
   push:
     branches: [main]
@@ -9,15 +7,18 @@ on:
     branches: [main]
 
 jobs:
-  jest_test:
-    name: miniprogram-simulate test with jest
+  test:
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["16"]
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: "16"
-    - run: npm install
-    - run: npm run test
-    - run: npm run codecov
+      - uses: actions/checkout@v4
+      - name: Use Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
