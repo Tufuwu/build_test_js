@@ -1,193 +1,153 @@
-# Ace-diff
+# GOV.UK country and territory autocomplete - what it is and how to use it
 
-This is a wrapper for [Ace Editor](http://ace.c9.io/) to provide a 2-panel diffing/merging tool that visualizes differences in two documents and allows users to copy changes from to the other.
+---
 
-![Ace-diff demo](https://ace-diff.github.io/ace-diff/demos/screenshot1.png)
+**This component is not currently maintained and we are unable to respond to issues and pull requests.**
 
-It's built on top of [google-diff-match-patch](https://code.google.com/p/google-diff-match-patch/) library. That lib handles the hard part: the computation of the document diffs. Ace-diff just visualizes that information as line-diffs in the editors.
+You can still raise issues or pull requests if you want to. As soon as we’re able to, we’ll prioritise dealing with security updates and any bugs that have been raised by people in the UK public sector. We cannot prioritise adding new features.
 
-## Dependencies
-- Ace Editor: this could the [official Ace builds](https://github.com/ajaxorg/ace-builds), [Brace](https://github.com/thlorenz/brace) and any other similar Ace editor build (like the ones from public CDNs)
+---
 
-## Demos
-Take a look at [demos on Ace-diff page](https://ace-diff.github.io/ace-diff/). The demos illustrate a few different configurations and styles. Hopefully they'll give you a rough sense of what it does and how it works.
+The GOV.UK country and territory autocomplete  is a simple UI widget that allows end users to find and select a location. It includes auto-complete functionality to make it faster and easier for users to find a location. For example, to select their country of birth or their current location.
 
-## Features
+The autocomplete uses data from the UK government's country and territory registers. To configure the data used in the autocomplete to suit the specific needs of your product or service, please [raise an issue](https://github.com/alphagov/govuk-country-and-territory-autocomplete/issues/new).
 
-- Compatible with any Ace/Brace Editor mode or theme
-- Accommodates realtime changes to one or both editors
-- Readonly option for left/right editors
-- Control how aggressively diffs are combined
-- Allow users to copy diffs from one side to the other
+The autocomplete itself follows the common look and feel of GOV.UK in line with the [design principles](https://www.gov.uk/design-principles).
 
-## How to install
+![A screenshot of the new country and territory autocomplete](docs/location-autocomplete-general.gif)
+
+This guide will show you how to:
+* populate the autocomplete field
+* use the autocomplete's data file
+
+[Try out the example.](https://alphagov.github.io/govuk-country-and-territory-autocomplete/examples/)
+
+## Integration process
+
+To integrate an application with the autocomplete, you'll need to:
+* use the data from the country and territory registers
+* create an accessible autocomplete widget
+* keep the data up to date
+
+### Add location data from country and territory registers
+
+To use register data in the autocomplete, you will need two files:
+* [location-autocomplete-canonical-list.json](dist/location-autocomplete-canonical-list.json) - a list of every canonical country and territory
+* [location-autocomplete-graph.json](dist/location-autocomplete-graph.json) - a directed acyclic graph mapping canonical locations to abbreviations, synonyms, endonyms, and typos
+
+The `location-autocomplete-graph.json` file only contains examples of synonyms, abbreviations, endonyms and typos you might want to consider. It is not a comprehensive list. You may wish to add or remove items based on your own user research.
+
+Copy both files to your application. The `location-autocomplete-graph.json` file must be exposed as a public asset.
+
+You can also install the location autocomplete using `npm`:
 
 ```bash
-npm i ace-diff -S
-
-…
-
-yarn add ace-diff
+$ npm install govuk-country-and-territory-autocomplete
+$ ls node_modules/govuk-country-and-territory-autocomplete/dist/
+location-autocomplete-canonical-list.json
+location-autocomplete-graph.json
+location-autocomplete.min.css
+location-autocomplete.min.js
+location-autocomplete.min.js.map
 ```
+
+The `location-autocomplete-canonical-list.json` file contains an array of arrays containing the location names and ISO codes:
 
 ```js
-import AceDiff from 'ace-diff';
-
-// optionally, include CSS, or use your own
-import 'ace-diff/dist/ace-diff.min.css';
-// Or use the dark mode
-import 'ace-diff/dist/ace-diff-dark.min.css';
+> JSON.parse(fs.readFileSync('data/location-autocomplete-canonical-list.json', 'utf8'))
+[["Abu Dhabi", "territory:AE-AZ"], ["Afghanistan", "country:AF"], …]
 ```
 
-### Use CDN
-Grab ace-diff from CDN:
+You should parse this file on your application's server or as part of the build process to produce a plain HTML `<select>` dropdown. This is your progressive enhancement fallback. You should render something that looks like this:
 
 ```html
-<!-- Inlude Ace Editor - e.g. with this: -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.11/ace.js"></script>
-
-<script src="https://unpkg.com/ace-diff@^3.0.0"></script>
-
-<!-- optionally include CSS, or use your own -->
-<link href="https://unpkg.com/ace-diff@^3.0.0/dist/ace-diff.min.css" rel="stylesheet">
-
-<!-- optionally there is also a dark mode CSS -->
-<link href="https://unpkg.com/ace-diff@^3.0.0/dist/ace-diff-dark.min.css" rel="stylesheet">
+<select id="location-autocomplete">
+  <option value="territory:AE-AZ">Abu Dhabi</option>
+  <option value="country:AF">Afghanistan</option>
+  …
+</select>
 ```
 
-### HTML
+### Create an accessible autocomplete widget
+
+To make it easier for users to find a location using the autocomplete, you should progressively enhance the front-end to add auto-complete functionality. As a user types, the autocomplete will suggest a list of possible locations for the user to choose from.
+
+On the page where you're rendering the previous `<select>` dropdown, include the following HTML, updating the `/assets/` URLs as needed for your application:
 
 ```html
-<div class="acediff"></div>
+<!-- In your <head> -->
+<link rel="stylesheet" href="/assets/location-autocomplete.min.css" />
+
+<!-- At the end of your <body> -->
+<script type="text/javascript" src="/assets/location-autocomplete.min.js"></script>
+<script type="text/javascript">
+  openregisterLocationPicker({
+    selectElement: document.getElementById('location-autocomplete'),
+    url: '/assets/location-autocomplete-graph.json'
+  })
+</script>
 ```
 
-### JavaScript
-Here's an example of how you'd instantiate AceDiff.
+This will render the same `<select>` menu as before on the server, but hides it and progressively enhances to a autocomplete when JavaScript kicks in. When the user selects something in the autocomplete, the hidden `<select>` menu is still updated, so everything works as before.
 
-```js
-const differ = new AceDiff({
-  ace: window.ace, // You Ace Editor instance
-  element: '.acediff',
-  left: {
-    content: 'your first file content here',
-  },
-  right: {
-    content: 'your second file content here',
-  },
-});
+[If you prefer to learn by reading the source, try out the example.](https://alphagov.github.io/govuk-country-and-territory-autocomplete/examples/)
+
+### Adding additional entries and synonyms
+
+You can pass in custom entries and synonyms using the [`additionalEntries` and `additionalSynonyms` option](https://github.com/alphagov/openregister-picker-engine#optionsadditionalentries):
+
+```html
+<script type="text/javascript">
+  openregisterLocationPicker({
+    additionalEntries: [
+      { name: 'Atlantis', code: 'country:AN' }
+    ],
+    additionalSynonyms: [
+      { name: 'Albion', code: 'country:GB' }
+    ],
+    selectElement: document.getElementById('location-autocomplete'),
+    url: '/assets/location-autocomplete-graph.json'
+  })
+</script>
 ```
 
-When using with Brace or any build system like Webpack, you can pass the editor as an option:
+You can additionally specify custom synonyms on the `<option>` elements by using the `data-additional-synonyms` attribute:
 
-```js
-// If you are using Brace editor, you can pass it as well
-const ace = require('brace');
-
-const differ = new AceDiff({
-  ace, // using Brace
-  element: '.acediff',
-  left: {
-    content: 'your first file content here',
-  },
-  right: {
-    content: 'your second file content here',
-  },
-});
+```html
+<select id="location-autocomplete">
+  <option value="territory:GB" data-additional-synonyms='["Blighty"]'>United Kingdom</option>
+  <option value="country:RO" data-additional-synonyms='["Dacia"]'>Romania</option>
+</select>
 ```
 
-### CSS
+## Keep the data up to date
 
-**Because of the way how ACE is positioned, it's important to have Ace-diff running in some container with specified dimensions (and optionally with a `position: relative`)**
+Government Digital Service will publish new versions of the `govuk-country-and-territory-autocomplete` package when the data changes, such as when countries are renamed.
 
-Styling the elements is vitally important: the gutter should retain its width even if the user resizes his or her browser. But honestly, how you go about that is very much up to you: you can provide whatever CSS you want, depending on your scenario.
+To keep up to date, you can use dependency monitoring tools, such as:
 
-If you want the ace editor's to change height/width based on a user's browser, I find using flexbox the best option - but hell, if you want to use a `<table>`, knock yourself out. :)
+- [Greenkeeper](https://greenkeeper.io/), a GitHub bot that will submit pull requests to your open source project when there are new versions of your dependencies
+- [David](https://www.npmjs.com/package/david), a command line tool that can be configured to run on your continuous integration environment and return a non-zero status when there are new versions of your dependencies
 
-Take a look at the [demos](https://ace-diff.github.io/ace-diff/) for some ideas. They all use flexbox for the layouts, but include some different styles and class names just so you can see.
+## Glossary
 
+country register - A list of British English-language names and descriptive terms for countries.
 
-## Configuration
+location - A country or territory.
 
-You can configure your Ace-diff instance through a number of config settings. This object is what you pass to the constructor, like the **JavaScript** section above.
+autocomplete - A widget that allows you to choose from items in a register.
 
+register - A list of information designed to be an accurate and up-to-date source of data from government. Once entered into a register, the contents can only be added to, they cannot be deleted or rewritten.
 
-### Default settings
+territory - An administrative or geographical entity that isn't recognised as a country by the UK.
 
-Here are all the defaults. I'll explain each one in details below. Note: you only need to override whatever you want.
+territory register - A list of British English-language names and descriptive terms for political, administrative and geographical entities that aren’t recognised as countries by the UK.
 
-```javascript
-{
-  ace: window.ace,
-  mode: null,
-  theme: null,
-  element: null,
-  diffGranularity: 'broad',
-  showDiffs: true,
-  showConnectors: true,
-  maxDiffs: 5000,
-  left: {
-    content: null,
-    mode: null,
-    theme: null,
-    editable: true,
-    copyLinkEnabled: true
-  },
-  right: {
-    content: null,
-    mode: null,
-    theme: null,
-    editable: true,
-    copyLinkEnabled: true
-  },
-  classes: {
-    diff: 'acediff__diffLine',
-    connector: 'acediff__connector',
-    newCodeConnectorLinkContent: '&#8594;',
-    deletedCodeConnectorLinkContent: '&#8592;',
-  },
-}
-```
+## Releasing
 
-
-### Diffing settings
-
-- `ace` (object, optional, default: `window.ace`). The Ace Editor instance to use.
-- `element` (string<DOM selector> or element object, required). The element used for Ace-diff
-- `mode` (string, optional). this is the mode for the Ace Editor, e.g. `"ace/mode/javascript"`. Check out the Ace docs for that. This setting will be applied to both editors. I figured 99.999999% of the time you're going to want the same mode for both of them so you can just set it once here. If you're a mad genius and want to have different modes for each side, (a) *whoah man, what's your use-case?*, and (b) you can override this setting in one of the settings below. Read on.
-- `theme` (string, optional). This lets you set the theme for both editors.
-- `diffGranularity` (string, optional, default: `broad`). this has two options (`specific`, and `broad`). Basically this determines how aggressively AceDiff combines diffs to simplify the interface. I found that often it's a judgement call as to whether multiple diffs on one side should be grouped. This setting provides a little control over it.
-- `showDiffs` (boolean, optional, default: `true`). Whether or not the diffs are enabled. This basically turns everything off.
-- `showConnectors` (boolean, optional, default: `true`). Whether or not the gutter in the middle show show connectors visualizing where the left and right changes map to one another.
-- `maxDiffs` (integer, optional, default: `5000`). This was added a safety precaution. For really massive files with vast numbers of diffs, it's possible the Ace instances or AceDiff will become too laggy. This simply disables the diffing altogether once you hit a certain number of diffs.
-- `left/right`. this object contains settings specific to the leftmost editor.
-- `left.content / right.content` (string, optional, default: `null`). If you like, when you instantiate AceDiff you can include the content that should appear in the leftmost editor via this property.
-- `left.mode / right.mode` (string, optional, defaults to whatever you entered in `mode`). This lets you override the default Ace Editor mode specified in `mode`.
-- `left.theme / right.theme` (string, optional, defaults to whatever you entered in `theme`). This lets you override the default Ace Editor theme specified in `theme`.
-- `left.editable / right.editable` (boolean, optional, default: `true`). Whether the left editor is editable or not.
-- `left.copyLinkEnabled / right.copyLinkEnabled` (boolean, optional, default: `true`). Whether the copy to right/left arrows should appear.
-
-
-### Classes
-- `diff`: the class for a diff line on either editor
-- `connector`: the SVG connector
-- `newCodeConnectorLinkContent`: the content of the copy to right link. Defaults to a unicode right arrow ('&#8594;')
-- `deletedCodeConnectorLinkContent`: the content of the copy to left link. Defaults to a unicode right arrow ('&#8592;')
-
-
-## API
-
-There are a few API methods available on your AceDiff instance.
-
-- `aceInstance.getEditors()`: this returns an object with left and right properties. Each contains a reference to the Ace editor, in case you need to do anything with them. Ace has a ton of options which I wasn't going to support via the wrapper. This should allow you to do whatever you need
-- `aceInstance.setOptions()`: this lets you set many of the above options on the fly. Note: certain things used during the construction of the editor, like the classes can't be overridden.
-- `aceInstance.getNumDiffs()`: returns the number of diffs currently being displayed.
-- `aceInstance.diff()`: updates the diff. This shouldn't ever be required because AceDiff automatically recognizes the key events like changes to the editor and window resizing. But I've included it because there may always be that fringe case...
-- `aceInstance.destroy()`: destroys the AceDiff instance. Basically this just destroys both editors and cleans out the gutter.
-
-
-## Browser Support
-All modern browsers. Open a ticket if you find otherwise.
-
-
-## License
-MIT.
+* Update CHANGELOG
+* Update package.json
+* `npm version`
+* Merge to `main`
+* Create GitHub release tag
+* `npm publish`

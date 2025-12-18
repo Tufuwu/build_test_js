@@ -1,35 +1,22 @@
-name: Test Ace Diff
-on:
-  workflow_dispatch:
-  push:
-  pull_request:
+name: Test
+
+on: [push, pull_request]
 
 jobs:
-  test:
+  run-tests:
+    name: Build & test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: "16"
 
-      - name: Install
+      - name: Install dependencies
         run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Run static server in the background
-        run: npm run serve &
 
       - name: Run tests
         run: npm test
-
-      - name: Release?
-        run: npm run semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
