@@ -1,2 +1,4 @@
-coverage
-test/integration/mock/config/syntax-errors-js.js
+node_modules
+tmp
+lib
+tsconfig.eslint.json

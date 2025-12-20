@@ -1,4 +1,8 @@
-.nyc_output
-coverage
+*.swp
+.DS_Store
+tmp
+lib
 node_modules
-npm-debug.log
+coverage
+package-lock.json
+yarn-error.log
