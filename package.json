@@ -1,76 +1,47 @@
 {
-  "name": "ember-angle-brackets-codemod",
-  "version": "5.1.0",
-  "description": "Codemod to convert to Angle brackets syntax",
-  "keywords": [
-    "codemod-cli",
-    "codemods",
-    "ember",
-    "ember-codemod"
-  ],
-  "homepage": "https://github.com/ember-codemods/ember-angle-brackets-codemod#readme",
-  "bugs": {
-    "url": "https://github.com/ember-codemods/ember-angle-brackets-codemod/issues"
+  "name": "npm2rpm",
+  "version": "6.1.0",
+  "description": "Convert npm packages to rpm packages",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ember-codemods/ember-angle-brackets-codemod.git"
+    "url": "git+https://github.com/dLobatog/npm2rpm.git"
   },
-  "license": "MIT",
-  "author": "",
-  "bin": "./bin/cli.js",
-  "scripts": {
-    "coveralls": "cat ./coverage/lcov.info | node node_modules/.bin/coveralls",
-    "debug:integration": "node --inspect-brk ./test/run-test.js",
-    "debug:test": "node --inspect-brk ./node_modules/.bin/jest -i -t ",
-    "lint": "eslint . --cache",
-    "release": "release-it",
-    "test": "codemod-cli test --coverage",
-    "test:integration": "node ./test/run-test.js",
-    "test:notelemetry": " node ./test/run-test-without-telemetry.js"
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "transforms/angle-brackets/transform.js"
-    ]
+  "keywords": [
+    "npm",
+    "rpm",
+    "package",
+    "redhat",
+    "centos",
+    "fedora",
+    "nodejs"
+  ],
+  "author": "Daniel Lobato Garcia <me@daniellobato.me>",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/dLobatog/npm2rpm/issues"
   },
   "dependencies": {
-    "codemod-cli": "^3.1.2",
-    "debug": "^4.3.1",
-    "ember-codemods-telemetry-helpers": "^2.1.0",
-    "ember-template-recast": "^5.0.1",
-    "winston": "^3.3.3"
+    "colors": "^1.1.2",
+    "commander": "^2.9.0",
+    "handlebars": "^4.0.11",
+    "normalize-package-data": "^2.4.0",
+    "npm-remote-ls": "^1.3.2",
+    "request": "^2.81.0",
+    "semver": "^5.4.1",
+    "tar": "^4.0.0",
+    "tmp": "^0.0.28"
   },
   "devDependencies": {
-    "coveralls": "^3.1.0",
-    "eslint": "^7.25.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^3.4.0",
-    "execa": "^5.0.0",
-    "jest": "^26.6.3",
-    "prettier": "^2.2.1",
-    "release-it": "^14.6.1",
-    "release-it-lerna-changelog": "^3.1.0"
+    "mocha": ">= 3.0.2 < 6.0"
   },
-  "engines": {
-    "node": "10.* || >=12.*"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org"
-  },
-  "release-it": {
-    "plugins": {
-      "release-it-lerna-changelog": {
-        "infile": "CHANGELOG.md",
-        "launchEditor": true
-      }
-    },
-    "git": {
-      "tagName": "v${version}"
-    },
-    "github": {
-      "release": true,
-      "tokenRef": "GITHUB_AUTH"
-    }
+  "homepage": "https://github.com/dLobatog/npm2rpm#readme",
+  "preferGlobal": true,
+  "bin": {
+    "npm2rpm": "bin/npm2rpm.js",
+    "packagejson2rpm": "bin/packagejson2rpm.js"
   }
 }

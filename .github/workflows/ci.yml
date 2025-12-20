@@ -1,32 +1,19 @@
 name: CI
-
-on:
-  push:
-    branches:
-      - main
-      - main
-  pull_request: {}
+on: pull_request
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-
     strategy:
+      fail-fast: false
       matrix:
-        node-version: ["12"]
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: yarn
-    - run: yarn install --frozen-lockfile
-    - run: yarn lint
-    - run: yarn test
-    - run: yarn test:integration
-    - run: yarn test:notelemetry
+        node_version:
+          - 16
 
-    - uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npm test

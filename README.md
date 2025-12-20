@@ -1,269 +1,105 @@
-# ember-angle-brackets-codemod
+npm2rpm
+=======
 
-[![Ember Observer Score](https://emberobserver.com/badges/ember-angle-brackets-codemod.svg)](https://emberobserver.com/addons/ember-angle-brackets-codemod)
-[![Build Status](https://travis-ci.org/ember-codemods/ember-angle-brackets-codemod.svg?branch=master)](https://travis-ci.org/ember-codemods/ember-angle-brackets-codemod)
-[![Coverage Status](https://coveralls.io/repos/github/ember-codemods/ember-angle-brackets-codemod/badge.svg?branch=master)](https://coveralls.io/github/ember-codemods/ember-angle-brackets-codemod?branch=master)
-[![npm version](http://img.shields.io/npm/v/ember-angle-brackets-codemod.svg?style=flat)](https://npmjs.org/package/ember-angle-brackets-codemod 'View this project on npm')
-[![dependencies Status](https://david-dm.org/ember-codemods/ember-angle-brackets-codemod/status.svg)](https://david-dm.org/ember-codemods/ember-angle-brackets-codemod)
-[![devDependencies Status](https://david-dm.org/ember-codemods/ember-angle-brackets-codemod/dev-status.svg)](https://david-dm.org/ember-codemods/ember-angle-brackets-codemod?type=dev)
+[![Known Vulnerabilities](https://snyk.io/test/github/dlobatog/npm2rpm/badge.svg)](https://snyk.io/test/github/dlobatog/npm2rpm)
+[![Code Climate](https://codeclimate.com/github/dLobatog/npm2rpm/badges/gpa.svg)](https://codeclimate.com/github/dLobatog/npm2rpm)
+[![Build Status](https://travis-ci.org/dLobatog/npm2rpm.svg?branch=master)](https://travis-ci.org/dLobatog/npm2rpm)
 
-A [jscodeshift](https://github.com/facebook/jscodeshift) Codemod to convert curly braces syntax to angle brackets syntax for templates
-in an Ember.js app
+npm2rpm - convert npm modules to RPM packages
 
-Refer to this [RFC](https://github.com/emberjs/rfcs/blob/master/text/0311-angle-bracket-invocation.md) for more details on Angle brackets invocation syntax.
+```console
+Usage: npm2rpm [options]
 
-## Requirements
+Options:
 
-This codemod currently only supports Ember's classic filesystem layout, meaning it won't work if your app uses pods. For more info, [see this issue](https://github.com/ember-codemods/ember-angle-brackets-codemod/issues/217).
-
-## Usage
-
-**WARNING**: `jscodeshift`, and thus this codemod, **edits your files in place**.
-It does not make a copy. Make sure your code is checked into a source control
-repository like Git and that you have no outstanding changes to commit before
-running this tool.
-
-1. Start your ember development server
-2. Run Codemod, pointing it at the address of the development server
-
-```sh
-$ cd my-ember-app-or-addon
-$ npx ember-angle-brackets-codemod --telemetry=http://localhost:4200 ./path/of/files/ or ./some**/*glob.hbs
+  -n, --name <name>          NodeJS module name
+  -v, --version <version>    module version in X.Y.Z format
+  -s, --strategy [strategy]  Strategy to build the npm packages
+  -r, --release [release]    RPM's release (default: 1)
+  -t, --template [template]  RPM .spec template to use
+  -o, --output [directory]   Directory to output files to
+  -h, --help                 output usage information
 ```
 
-Telemetry helpers runs the app, grabs basic info about all of the modules at runtime. This allows the codemod to know the names of every helper, component, route, controller, etc. in the app without guessing / relying on static analysis. They basically help you to create "runtime assisted codemods".
+To create `npm2rpm/nodejs-webpack.spec`:
 
-See "Gathering runtime data" section of [ember-native-class-codemod](https://github.com/ember-codemods/ember-native-class-codemod#gathering-runtime-data) for some additonal information.
-
-### Running the codemod without Telemetry
-
-```sh
-$ cd my-ember-app-or-addon
-$ npx ember-angle-brackets-codemod ./path/of/files/ or ./some**/*glob.hbs
+```console
+./bin/npm2rpm.js -n webpack -v 4.20.2
 ```
 
-**NOTE** If you are not using telemetry, you will probably need to [manually configure the codemod to at least skip any helpers](#skipping-helpers) that are invoked in the template files you are running it on.
+To download the sources you can use [spectool](https://fedoraproject.org/wiki/Rpmdevtools):
 
-## From
-
-```hbs
-{{site-header user=this.user class=(if this.user.isAdmin "admin")}}
-
-{{#super-select selected=this.user.country as |s|}}
-  {{#each this.availableCountries as |country|}}
-    {{#s.option value=country}}{{country.name}}{{/s.option}}
-  {{/each}}
-{{/super-select}}
-
-{{ui/button text="Click me"}}
+```console
+spectool --get-files nodejs-webpack.spec
 ```
 
-## To
+## How?
 
-```hbs
-<SiteHeader @user={{this.user}} class={{if this.user.isAdmin "admin"}} />
-<SuperSelect @selected={{this.user.country}} as |s|>
-  {{#each this.availableCountries as |country|}}
-    <s.option @value={{country}}>
-      {{country.name}}
-    </s.option>
-  {{/each}}
-</SuperSelect>
+To package npm dependencies in RPM, you have 3 strategies:
 
-<Ui::Button @text="Click me" />
+#### Packaging 'single' npm modules into rpms. (-s --strategy single)
+This is the way most Linux distributions prefer to do it. See the [Fedora guidelines](https://fedoraproject.org/wiki/Packaging:Node.js) about packaging nodejs libraries.
+The content of this package will contain just the content of the module, without bundled dependencies. It'll have `Requires` and `Provides` equal to the same you see in `package.json`.
+
+It's the way traditional packaging has always worked. However this model conflicts with the way npm modules are used. `npm install` stores the whole dependency tree for all of your application dependencies. This is a problem, as your application may depend on 'async >= 1.0.0' but your dependencies may depend on 'async ~ 0.2.0'.
+
+At this point you may have noticed you cannot build 2 RPMs for the same dependency and expect both versions to be installed at the same time. This makes it impossible for two applications with different dependency requirements to work, so this strategy of having one module per RPM spec is very impractical.
+
+In practice, a medium-sized web application can easily have hundreds of dependencies (counting different versions of the same dependency) due to how `npm install` works. Disregard this stratey if you want to package the dependencies for your application or you'll be in trouble :smile:
+
+#### Packaging npm modules with bundled dependencies (-s --stategy bundle)
+I took this idea from [njs2rpm](https://github.com/sfreire/njs2rpm). If you still want to package your applications as rpms, and not face dependency conflicts, you may want to go with this.
+
+The main idea is to include the node_modules directory (dependency tree) in every RPM package.
+
+    +--------+----------------------+----------------------+-----------------------------+
+    |  Type  |       RPM name       |      Provides        |          Requires           |
+    +--------+----------------------+----------------------+-----------------------------+
+    | Single | nodejs-<name>        | npm(<name>)          | npm(<dep1>)                 |
+    |        |                      |                      | ...                         |
+    |        |                      |                      | npm(<depM>)                 |
+    | Bundle | nodejs-bundle-<name> | npm(<name>)          | (no deps as Requires)       |
+    |        |                      |                      |                             |
+    |        |                      | bundled(npm(<dep1>)) |                             |
+    |        |                      | ...                  |                             |
+    |        |                      | bundled(npm(<depN>)) |                             |
+    +--------+----------------------+----------------------+-----------------------------+
+
+This is OK(ish) as you solve the problem of conflicting dependencies by bundling dependencies. Furthermore other applications can depende on your system library by having a `Requires: npm(name)` However it still seems wrong to put these libraries in your `%{nodejs_sitelib}` - it's like your installing stuff on the user system but they don't really know about these bundled deps or any security they may have. So I understand why [Fedora guidelines](https://fedoraproject.org/wiki/Bundled_Libraries?rd=Packaging:Bundled_Libraries) discourage this kind of bundling for system packages.
+
+In order to include these bundled dependencies, `npm2rpm` downloads all dependencies and puts them in the SOURCES folder, and it adds the Provides/Sources for them. It uses npm to install the package, and since it assumes you'll build the package in an offline machine (common security measure), `npm2rpm` generates a tarball with an npm cache, so that it's able to install it offline. Notice the npm cache has to be generated using the same major version of npm as the one used in the machine where you build the package. e.g: a cache generated with npm 1.3.6 will not work with 2.3.5.
+
+You can circumvent this problem by generating the cache tar manually with all npm versions you want, then put it all in the same tarball. To generate the cache tarball on other npm versions, you can use the script `generate_npm_tarball.sh`. By default npm2rpm will generate a cache tarball with your default npm version, so you should only generate it manually if you want cache tarballs for multiple npm versions
+
+#### Putting your node_modules in a separate package
+If none of these two options were good for you, you can put your `node_modules` directory in a tar. Then unpack the module in a location known by your main application, and copy it from there. No other application in your system needs to even know your npm dependencies exist. Check out [an example here](https://github.com/dLobatog/foreman-packaging/blob/f71bc800c2f4bef5869edae5f6aa87e2a94f735d/foreman-node_modules/foreman-node_modules.spec).
+
+## PeerDependencies
+
+On npm versions less than 3.0.0, npm will try to install peerDependencies. Currently `npm2rpm` does not generate the spec with support for peerDependencies, however, it's easy to do it yourself (for now!).
+
+Start by adding 'BuildRequires' for all peerDependencies (you need to generate these packages too). For example, for babel-loader:
+
+```
+BuildRequires: npm(webpack)
+BuildRequires: npm(babel-core)
 ```
 
-## Advanced Usage
+On your %build section, make symbolic links for these libraries before running `npm install`:
 
-### Skipping helpers
-
-To help the codemod disambiguate components and helpers, you can define a list of helpers from your application in a configuration file as follows:
-
-**config/anglebrackets-codemod-config.json**
-
-```js
-{
-  "helpers": [
-    "date-formatter",
-    "info-pill"
-  ]
-}
+```
+ln -s %{nodejs_sitelib}/webpack node_modules/webpack
+ln -s %{nodejs_sitelib}/babel-core node_modules/babel-core
+npm install babel-loader@6.2.4 --cache-min Infinity --cache .
 ```
 
-The codemod will then ignore the above list of helpers and prevent them from being transformed into the new angle-brackets syntax.
+That's all you need to include peerDependencies in your packages
 
-You can also disable the conversion of the built-in components `{{link-to}}`, `{{input}}` and `{{textarea}}` as follows:
+## License
 
-**config/anglebrackets-codemod-config.json**
+GPLv3 - see [LICENSE](LICENSE)
 
-```js
-{
-  "helpers": [],
-  "skipBuiltInComponents": true
-}
-```
+Thanks to [njs2rpm](https://github.com/sfreire/njs2rpm)(abandoned) and [foreman-packaging](https://github.com/theforeman/foreman-packaging/) that provided motivation to make this project.
 
-You can execute the codemod with custom configuration by specifying a `--config` command line option as follows:
-
-```sh
-$ cd my-ember-app-or-addon
-$ npx ember-angle-brackets-codemod angle-brackets app/templates --config ./config/anglebrackets-codemod-config.json
-```
-
-To get a list of helpers in your app you can do this in the Developer Console in your browser inside of your app:
-
-```js
-var componentLikeHelpers = Object.keys(require.entries)
-  .filter(name => name.includes('/helpers/') || name.includes('/helper'))
-  .filter(name => !name.includes('/-'))
-  .map(name => {
-    let path = name.split('/helpers/');
-    return path.pop();
-  })
-  .filter(name => !name.includes('/'))
-  .uniq();
-
-copy(JSON.stringify(componentLikeHelpers));
-```
-
-### Skipping some files
-
-If there are files that don't convert well, you can skip them by specifying an optional `skipFilesThatMatchRegex` configuration setting. For example, with the configuration below, all files that contain `"foo"` or `"bar"` will be skipped:
-
-**config/anglebrackets-codemod-config.json**
-
-```js
-{
-  "helpers": [],
-  "skipBuiltInComponents": true,
-  "skipFilesThatMatchRegex": "foo|bar"
-}
-```
-
-### Skipping some attributes
-
-If there are cases where some attributes should not be prefixed with `@`, you can skip them by specifying an optional `skipAttributesThatMatchRegex` configuration setting.
-For example, with the configuration below, all attributes that matches either `/data-/gim` or `/aria-/gim` will not be prefixed with `@`:
-
-### Processing valueless data test attributes
-
-Curly invocations that have `data-test-` attributes with no value are not processed by default. The configuration below will cause them to be processed:
-
-**config/anglebrackets-codemod-config.json**
-
-```js
-{
-  "includeValuelessDataTestAttributes": true
-}
-```
-
-**config/anglebrackets-codemod-config.json**
-
-```js
-{
-  "helpers": [],
-  "skipBuiltInComponents": true,
-  "skipAttributesThatMatchRegex": ["/data-/gim", "/aria-/gim"]
-}
-```
-
-Input:
-
-```js
-  {{some-component data-test-foo=true aria-label="bar" foo=true}}
-```
-
-Output:
-
-```js
-  <SomeComponent data-test-foo={{true}} aria-label="bar" @foo={{true}} />
-```
-
-### Converting specific components only
-
-If you would like to only convert certain component invocations to use the angle brackets syntax, use the `components` configuration setting and specify component names. For example, with the configuration below, only the `{{baz}}` and `{{bat}}` components will be converted, leaving everything else intact.
-
-**config/anglebrackets-codemod-config.json**
-
-```js
-{
-  "components": ["baz", "bat"]
-}
-```
-
-## Debugging Workflow
-
-Oftentimes, you want to debug the codemod or the transform to identify issues with the code or to understand
-how the transforms are working, or to troubleshoot why some tests are failing.
-
-Hence we recommend a debugging work-flow like below to quickly find out what is causing the issue.
-
-### 1. Place `debugger` statements
-
-Add `debugger` statements, in appropriate places in the code. For example:
-
-```js
-...
-const params = a.value.params.map(p => {
-  debugger;
-  if(p.type === "SubExpression") {
-    return transformNestedSubExpression(p)
-...
-```
-
-### 2. Inspect the process with node debug
-
-Here we are going to start the tests selectively in node debug mode. Since the
-codemod is using [jest](https://jestjs.io/) in turn
-to run the tests, jest is having an option `-t <name-of-spec>` to run a particular
-set of tests instead of running the whole test suite.
-
-We are making use of both these features to start our tests in this particular fashion.
-For more details on node debug, visit the [official](https://nodejs.org/en/docs/guides/debugging-getting-started/)
-Node.js debugging guide, and for jest documentation on tests, please refer [here](https://jestjs.io/docs/en/cli).
-
-```sh
-node --inspect-brk ./node_modules/.bin/jest --runInBand --testNamePattern <test-name> 
-```
-
-For example, if you want to debug the `null-subexp` test or only that particular test case is failing because of an issue.
-
-```sh
-node --inspect-brk ./node_modules/.bin/jest --runInBand --testNamePattern 'null-subexp' 
-```
-
-Or you can make use of the npm scripts defined in package.json. All you need to pass the test name as the extra parameter with the script.
-
-```sh
-npm run debug:test 'null-subexp'
-```
-
-Using yarn
-```sh
-yarn debug:test 'null-subexp'
-```
-
-Once you run the above command, your tests will start running in debug mode and your breakpoints will be
-triggered appropriately when that particular block of code gets executed. You can run the debugger inside
-Chrome browser dev-tools. More details on [here](https://developers.google.com/web/tools/chrome-devtools/javascript/)
-
-## AST Explorer playground
-
-1. Go to the [AST Explorer](https://astexplorer.net/#/gist/b128d5545d7ccc52400b922f3b5010b4/642c6a8d3cc021257110bcf6b1714d1065891aec)
-2. Paste your curly brace syntax code in the top left corner window (Source)
-3. You will get the converted angle bracket syntax in the bottom right corner window (Transform Output)
-
-## RFC
-
-- [Angle Bracket Invocation](https://github.com/emberjs/rfcs/blob/master/text/0311-angle-bracket-invocation.md)
-- [Angle Bracket Invocations For Built-in Components](https://github.com/emberjs/rfcs/blob/32a25b31d67d67bc7581dd0bead559063b06f076/text/0459-angle-bracket-built-in-components.md)
-
-## Known issues
-
-- No formatting preserved
-
-## References:
-
-- https://github.com/glimmerjs/glimmer-vm/issues/685
-- https://github.com/q2ebanking/ember-template-rewrite
-- https://github.com/ember-template-lint/ember-template-recast
+##### TODOs:
+  - Support peerDependencies with bundled packages
