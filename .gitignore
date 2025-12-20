@@ -1,8 +1,0 @@
-*.swp
-.DS_Store
-tmp
-lib
-node_modules
-coverage
-package-lock.json
-yarn-error.log
