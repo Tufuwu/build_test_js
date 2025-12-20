@@ -1,16 +1,15 @@
 {
+  "include": ["src"],
   "compilerOptions": {
-    "module": "commonjs",
-    "noImplicitAny": true,
+    "target": "es5",
+    "lib": ["es2015.core", "ESNext"],
+    "outDir": "./lib",
+    "rootDir": "./src",
+    "strict": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "declaration": true
-  },
-  "include": [
-    "dist/**/*",
-    "types/**/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "sourceMap": true,
+  }
 }

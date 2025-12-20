@@ -1,17 +1,9 @@
-node_modules/
-bower_components/
-.idea
+lib
+lib-test
+node_modules
 .DS_Store
-.env
-bin
-*.map
-!lib
-test_cache/
 .nyc_output
-docs
+.vscode
 coverage
-# contains temporary cloudianry_url for test accounts
-tools/cloudinary_url.sh
-package-lock.json
-npm-debug.log
-.vscode/
+*.original.coffee
+yarn-error.log
