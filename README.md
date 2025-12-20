@@ -1,151 +1,110 @@
-# serve-index
+# definitelytyped.github.io [![Build Status](https://travis-ci.org/DefinitelyTyped/definitelytyped.github.io.svg?branch=source)](https://travis-ci.org/DefinitelyTyped/definitelytyped.github.io)
 
-[![NPM Version][npm-image]][npm-url]
-[![NPM Downloads][downloads-image]][downloads-url]
-[![Linux Build Status][ci-image]][ci-url]
-[![Windows Build][appveyor-image]][appveyor-url]
-[![Coverage Status][coveralls-image]][coveralls-url]
+> Website content for [definitelytyped.org](http://definitelytyped.org).
 
-  Serves pages that contain directory listings for a given path.
+The [master](https://github.com/DefinitelyTyped/definitelytyped.github.io/tree/master) branch holds live github.io content generated from the [source](https://github.com/DefinitelyTyped/definitelytyped.github.io/tree/source) branch.
 
-## Install
+The site build with [Grunt](http://www.gruntjs.com) and generated using [docpad](http://docpad.org), a static site generator complete with watch tasks, development server with LiveReload and [many plugins](http://docpad.org/docs/plugins). Publishing happens using [grunt-gh-pages](https://github.com/tschaub/grunt-gh-pages).
 
-This is a [Node.js](https://nodejs.org/en/) module available through the
-[npm registry](https://www.npmjs.com/). Installation is done using the
-[`npm install` command](https://docs.npmjs.com/getting-started/installing-npm-packages-locally):
 
-```sh
-$ npm install serve-index
-```
+## Edit online
 
-## API
+1. Use the github web interface to quickly make text edits like updating the [guides](/guides.html) and the [directory](/directory.html). Github will create a fork and you can modify content without leaving your browser.
 
-```js
-var serveIndex = require('serve-index')
-```
+1. The content is saved as markdown and located in `./src/documents`.
 
-### serveIndex(path, options)
 
-Returns middlware that serves an index of the directory in the given `path`.
+## Bulk editing
 
-The `path` is based off the `req.url` value, so a `req.url` of `'/some/dir`
-with a `path` of `'public'` will look at `'public/some/dir'`. If you are using
-something like `express`, you can change the URL "base" with `app.use` (see
-the express example).
+If you like to use your own tools you can follow these steps:
 
-#### Options
+1. Fork the repository.
 
-Serve index accepts these properties in the options object.
+1. Checkout the `source` branch.
 
-##### filter
+1. If you already have a checkout make sure you pull the latest revision. 
 
-Apply this filter function to files. Defaults to `false`. The `filter` function
-is called for each file, with the signature `filter(filename, index, files, dir)`
-where `filename` is the name of the file, `index` is the array index, `files` is
-the array of files and `dir` is the absolute path the file is located (and thus,
-the directory the listing is for).
+1. Locate the content your want to change in `./src/documents`. Most of the editable content is in markdown format (some with a `.eco` template filter).
 
-##### hidden
+1. Make your edits and commit your changes. A flat commit with sensible commit-note is appreciated.
 
-Display hidden (dot) files. Defaults to `false`.
+1. Push to your changes to your fork.
 
-##### icons
+1. Send a pull request to the `source` branch.
 
-Display icons. Defaults to `false`.
+1. After review a committer will merge and Travis-CI will republish the site.
 
-##### stylesheet
+1. See below for the steps to get a local preview (this is not essential for simple markdown edits).
 
-Optional path to a CSS stylesheet. Defaults to a built-in stylesheet.
 
-##### template
+## Edit the site
 
-Optional path to an HTML template or a function that will render a HTML
-string. Defaults to a built-in template.
+To do structural authoring with a build-preview you can follow the development flow.
 
-When given a string, the string is used as a file path to load and then the
-following tokens are replaced in templates:
+Working with the site is done using your commandline terminal and should work on any platform. So it can be bash, shell, cmd.exe or anything else (like WebStorm embedded terminal).
 
-  * `{directory}` with the name of the directory.
-  * `{files}` with the HTML of an unordered list of file links.
-  * `{linked-path}` with the HTML of a link to the directory.
-  * `{style}` with the specified stylesheet and embedded images.
 
-When given as a function, the function is called as `template(locals, callback)`
-and it needs to invoke `callback(error, htmlString)`. The following are the
-provided locals:
+### Prerequisites
 
-  * `directory` is the directory being displayed (where `/` is the root).
-  * `displayIcons` is a Boolean for if icons should be rendered or not.
-  * `fileList` is a sorted array of files in the directory. The array contains
-    objects with the following properties:
-    - `name` is the relative name for the file.
-    - `stat` is a `fs.Stats` object for the file.
-  * `path` is the full filesystem path to `directory`.
-  * `style` is the default stylesheet or the contents of the `stylesheet` option.
-  * `viewName` is the view name provided by the `view` option.
+1. Get [node.js](http://nodejs.org/) (`> 0.10.0`) for your local platform, it comes with the `npm` package manager.
 
-##### view
+1. Have the global grunt cli command: run `npm install grunt-cli -g` in your command line.
 
-Display mode. `tiles` and `details` are available. Defaults to `tiles`.
+1. You *dont* need a global docpad install; it comes as local dependency.
 
-## Examples
 
-### Serve directory indexes with vanilla node.js http server
+### Get the project
 
-```js
-var finalhandler = require('finalhandler')
-var http = require('http')
-var serveIndex = require('serve-index')
-var serveStatic = require('serve-static')
+1. Fork the repository (or just clone if you got commit access).
 
-// Serve directory indexes for public/ftp folder (with icons)
-var index = serveIndex('public/ftp', {'icons': true})
+1. Checkout the `source` branch.
 
-// Serve up public/ftp folder files
-var serve = serveStatic('public/ftp')
+1. Run `npm install` to pull all local dependencies. (this can take a minute)
 
-// Create server
-var server = http.createServer(function onRequest(req, res){
-  var done = finalhandler(req, res)
-  serve(req, res, function onNext(err) {
-    if (err) return done(err)
-    index(req, res, done)
-  })
-})
 
-// Listen
-server.listen(3000)
-```
+### Do some work in the project
 
-### Serve directory indexes with express
+Use grunt to run various commands.
 
-```js
-var express    = require('express')
-var serveIndex = require('serve-index')
+1. The main tasks are:
 
-var app = express()
+	1. Run `grunt clean` - remove all generated content.
 
-// Serve URLs like /ftp/thing as public/ftp/thing
-// The express.static serves the file contents
-// The serveIndex is this module serving the directory
-app.use('/ftp', express.static('public/ftp'), serveIndex('public/ftp', {'icons': true}))
+	1. Run `grunt watch` - regenerate and start a watch with LiveReload server at [http://localhost:9778/](http://localhost:9778/)
 
-// Listen
-app.listen(3000)
-```
+	1. Run `grunt build` - regenerate the site for production environment (best to stop the watch if you have it active).
+
+	1. Run `grunt publish` - build and push to github `master` (live at [definitelytyped.org](http://definitelytyped.org/)). This will ask for your github credentials so you need commit access to the repository (otherwise send a PR with the your source). Make sure you also push the changes to `source`.
+
+	1. See `grunt -h` or the `Gruntfile.js` for additional commands.
+
+
+### Publish the changes
+
+1. Push your changes to the `source` branch (or send a pull request).
+
+1. If you like some feedback first then use a fork (or branch).
+
+1. The every commit that lands on `source` will automatically be rebuild and deployed via Travis-CI.
+
+1. Give Travis a minute or two to deploy the site, then verify your changes.
+
+1. Optional: Fix some typos.
+
+Notes:
+
+1. If you build or watch the content then you might get some yellow `warning`'s in the console. These can usually be ignored when docpad telling us that some transforms didn't have any effect: this is correct if you use a template transform (`.eco`) but have no template fields in the file (*yet*).
+
+2. :warning: Direct changes to `master` branch will be overwritten or discarded so always edit through `source`!
+
+
+## Contributions
+
+Contributions are welcome! Check the website [for more info](http://definitelytyped.org/pages/website-contributions.html), then return here and follow the instructions above.
+
 
 ## License
 
-[MIT](LICENSE). The [Silk](http://www.famfamfam.com/lab/icons/silk/) icons
-are created by/copyright of [FAMFAMFAM](http://www.famfamfam.com/).
+Copyright (c) 2014 DefinitelyTyped
 
-[appveyor-image]: https://img.shields.io/appveyor/ci/dougwilson/serve-index/master.svg?label=windows
-[appveyor-url]: https://ci.appveyor.com/project/dougwilson/serve-index
-[ci-image]: https://badgen.net/github/checks/expressjs/serve-index/master?label=ci
-[ci-url]: https://github.com/expressjs/serve-index/actions/workflows/ci.yml
-[coveralls-image]: https://img.shields.io/coveralls/expressjs/serve-index/master.svg
-[coveralls-url]: https://coveralls.io/r/expressjs/serve-index?branch=master
-[downloads-image]: https://img.shields.io/npm/dm/serve-index.svg
-[downloads-url]: https://npmjs.org/package/serve-index
-[npm-image]: https://img.shields.io/npm/v/serve-index.svg
-[npm-url]: https://npmjs.org/package/serve-index
+Licensed under the MIT license.

@@ -1,40 +1,48 @@
 {
-  "name": "serve-index",
-  "description": "Serve directory listings",
-  "version": "1.9.1",
-  "author": "Douglas Christopher Wilson <doug@somethingdoug.com>",
-  "license": "MIT",
-  "repository": "expressjs/serve-index",
-  "dependencies": {
-    "accepts": "~1.3.7",
-    "batch": "0.6.1",
-    "debug": "2.6.9",
-    "escape-html": "~1.0.3",
-    "http-errors": "~1.8.0",
-    "mime-types": "~2.1.29",
-    "parseurl": "~1.3.3"
-  },
-  "devDependencies": {
-    "after": "0.8.2",
-    "eslint": "7.23.0",
-    "eslint-plugin-markdown": "2.0.0",
-    "mocha": "10.4.0",
-    "nyc": "15.1.0",
-    "supertest": "7.0.0"
-  },
-  "files": [
-    "public/",
-    "LICENSE",
-    "HISTORY.md",
-    "index.js"
+  "private": true,
+  "name": "definitelytyped.github.io",
+  "version": "0.1.0",
+  "description": "DefinitelyTyped website",
+  "homepage": "http://definitelytyped.github.io",
+  "keywords": [
+    "DefinitelyTyped",
+    "website"
   ],
-  "engines": {
-    "node": ">= 0.8.0"
+  "author": "DefinitelyTyped",
+  "maintainers": [],
+  "contributors": [],
+  "bugs": {
+    "url": "https://github.com/DefinitelyTyped/definitelytyped.github.io/issues"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DefinitelyTyped/definitelytyped.github.io.git"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://raw.github.com/DefinitelyTyped/definitelytyped.github/master/LICENSE-MIT.txt"
+    }
+  ],
   "scripts": {
-    "lint": "eslint .",
-    "test": "mocha --reporter spec --bail --check-leaks test/",
-    "test-ci": "nyc --reporter=lcov --reporter=text npm test",
-    "test-cov": "nyc --reporter=html --reporter=text npm test"
-  }
+    "test": "grunt test",
+    "deploy": "grunt deploy"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "docpad": "^6.79.0",
+    "docpad-plugin-eco": "^2.1.0",
+    "docpad-plugin-marked": "^2.2.0",
+    "docpad-plugin-partials": "^2.9.0",
+    "docpad-plugin-less": "^2.4.1",
+    "docpad-plugin-livereload": "^2.6.0",
+    "grunt": "^1.0.1",
+    "grunt-cli": "^1.2.0",
+    "grunt-gh-pages": "^2.0.0",
+    "grunt-contrib-clean": "^1.1.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "highlight.js": "^9.12.0",
+    "marked": "^0.3.2"
+  },
+  "main": "node_modules/docpad/bin/docpad-server"
 }
