@@ -1,0 +1,24 @@
+
+jobs:
+  checkout_and_test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - node-version: "16"
+            lint: true # Linter is run only once to shorten the total build time
+
+    steps:
+      - name: Checkout code from ${{ github.repository }}
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm i
+      - name: Run linter
+        if: ${{ matrix.lint }}
+        run: make verify
+      - name: Run tests
+        run: make test
