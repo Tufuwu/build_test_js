@@ -1,236 +1,68 @@
-# flat [![Build Status](https://github.com/hughsk/flat/actions/workflows/main.yml/badge.svg)](https://github.com/hughsk/flat/actions/workflows/main.yml)
+# transportation
 
-Take a nested Javascript object and flatten it, or unflatten an object with
-delimited keys.
+Import [GTFS](https://developers.google.com/transit/gtfs/reference) data into a semantic model
+
+![Screenshot](screenshot.png)
 
 ## Installation
 
-``` bash
-$ npm install flat
+```sh
+npm install transportation
 ```
 
-## Methods
+## Usage
 
-### flatten(original, options)
+```
+var Transit = require('transportation')
+var transit = new Transit()
 
-Flattens the object - it'll return an object one level deep, regardless of how
-nested the original object was:
-
-``` javascript
-var flatten = require('flat')
-
-flatten({
-    key1: {
-        keyA: 'valueI'
-    },
-    key2: {
-        keyB: 'valueII'
-    },
-    key3: { a: { b: { c: 2 } } }
+// import GTFS data
+transit.importGTFS('/path/to/gtfs/dir', function (err) {
+  // have a look at the Transit instance
+  console.log(transit)
 })
-
-// {
-//   'key1.keyA': 'valueI',
-//   'key2.keyB': 'valueII',
-//   'key3.a.b.c': 2
-// }
 ```
 
-### unflatten(original, options)
+transportation provides a replacement for node's `console` by using [tconsole](https://www.npmjs.com/package/tconsole), so you can inspect the objects in the node.js REPL by using `require('transportation/console')`:
 
-Flattening is reversible too, you can call `flatten.unflatten()` on an object:
-
-``` javascript
-var unflatten = require('flat').unflatten
-
-unflatten({
-    'three.levels.deep': 42,
-    'three.levels': {
-        nested: true
-    }
-})
-
-// {
-//     three: {
-//         levels: {
-//             deep: 42,
-//             nested: true
-//         }
-//     }
-// }
+```
+> var konsole = require('transportation/console')
+> konsole(transit)
+┌────────────┬─────┐
+│ Agencies   │ SWU │
+├────────────┼─────┤
+│ # Stops    │ 773 │
+├────────────┼─────┤
+│ # Services │ 14  │
+├────────────┼─────┤
+│ # Shapes   │ 65  │
+└────────────┴─────┘
+> konsole(transit.agencies.SWU.routes)
+┌───────┬────────────┬───────────────────────────────────────────────┬─────────┐
+│ ID    │ Short Name │ Long Name                                     │ # Trips │
+├───────┼────────────┼───────────────────────────────────────────────┼─────────┤
+│ 87001 │ 1          │ Söflingen–Böfingen                            │ 613     │
+├───────┼────────────┼───────────────────────────────────────────────┼─────────┤
+│ 87003 │ 3          │ Wiblingen (Alte Siedlung)–Wissenschaftsstadt  │ 649     │
+├───────┼────────────┼───────────────────────────────────────────────┼─────────┤
+│ 87004 │ 4          │ Grimmelfingen–Kuhberg–Böfingen Süd            │ 590     │
+└───────┴────────────┴───────────────────────────────────────────────┴─────────┘
 ```
 
-## Options
-
-### delimiter
-
-Use a custom delimiter for (un)flattening your objects, instead of `.`.
-
-### safe
-
-When enabled, both `flat` and `unflatten` will preserve arrays and their
-contents. This is disabled by default.
-
-``` javascript
-var flatten = require('flat')
-
-flatten({
-    this: [
-        { contains: 'arrays' },
-        { preserving: {
-              them: 'for you'
-        }}
-    ]
-}, {
-    safe: true
-})
-
-// {
-//     'this': [
-//         { contains: 'arrays' },
-//         { preserving: {
-//             them: 'for you'
-//         }}
-//     ]
-// }
-```
-
-### object
-
-When enabled, arrays will not be created automatically when calling unflatten, like so:
-
-``` javascript
-unflatten({
-    'hello.you.0': 'ipsum',
-    'hello.you.1': 'lorem',
-    'hello.other.world': 'foo'
-}, { object: true })
-
-// hello: {
-//     you: {
-//         0: 'ipsum',
-//         1: 'lorem',
-//     },
-//     other: { world: 'foo' }
-// }
-```
-
-### overwrite
-
-When enabled, existing keys in the unflattened object may be overwritten if they cannot hold a newly encountered nested value:
-
-```javascript
-unflatten({
-    'TRAVIS': 'true',
-    'TRAVIS.DIR': '/home/travis/build/kvz/environmental'
-}, { overwrite: true })
-
-// TRAVIS: {
-//     DIR: '/home/travis/build/kvz/environmental'
-// }
-```
-
-Without `overwrite` set to `true`, the `TRAVIS` key would already have been set to a string, thus could not accept the nested `DIR` element.
-
-This only makes sense on ordered arrays, and since we're overwriting data, should be used with care.
-
-
-### maxDepth
-
-Maximum number of nested objects to flatten.
-
-``` javascript
-var flatten = require('flat')
-
-flatten({
-    key1: {
-        keyA: 'valueI'
-    },
-    key2: {
-        keyB: 'valueII'
-    },
-    key3: { a: { b: { c: 2 } } }
-}, { maxDepth: 2 })
-
-// {
-//   'key1.keyA': 'valueI',
-//   'key2.keyB': 'valueII',
-//   'key3.a': { b: { c: 2 } }
-// }
-```
-
-### transformKey
-
-Transform each part of a flat key before and after flattening.
-
-```javascript
-var flatten = require('flat')
-var unflatten = require('flat').unflatten
-
-flatten({
-    key1: {
-        keyA: 'valueI'
-    },
-    key2: {
-        keyB: 'valueII'
-    },
-    key3: { a: { b: { c: 2 } } }
-}, {
-    transformKey: function(key){
-      return '__' + key + '__';
-    }
-})
-
-// {
-//   '__key1__.__keyA__': 'valueI',
-//   '__key2__.__keyB__': 'valueII',
-//   '__key3__.__a__.__b__.__c__': 2
-// }
-
-unflatten({
-      '__key1__.__keyA__': 'valueI',
-      '__key2__.__keyB__': 'valueII',
-      '__key3__.__a__.__b__.__c__': 2
-}, {
-    transformKey: function(key){
-      return key.substring(2, key.length - 2)
-    }
-})
-
-// {
-//     key1: {
-//         keyA: 'valueI'
-//     },
-//     key2: {
-//         keyB: 'valueII'
-//     },
-//     key3: { a: { b: { c: 2 } } }
-// }
-```
-
-## Command Line Usage
-
-`flat` is also available as a command line tool. You can run it with 
-[`npx`](https://ghub.io/npx):
+## Command Line
 
 ```sh
-npx flat foo.json
+npm install -g transportation
 ```
 
-Or install the `flat` command globally:
- 
-```sh
-npm i -g flat && flat foo.json
-```
+transportation provides a binary `transportation`. It supports the following commands.
 
-Accepts a filename as an argument:
+### Export Vehicles' Positions as GeoJSON
+
+Prints all vehicles' positions of a specific date as GeoJSON linestrings with time components:
 
 ```sh
-flat foo.json
+transportation positions /path/to/gtfs/dir
 ```
 
-Also accepts JSON on stdin:
-
-```sh
-cat foo.json | flat
-```
+By default multiple trips are simply newline-separated GeoJSON to support streaming. If you want to return a single JSON array use the `--array` flag. Additional options are available via `transportation positions --help`. The generated GeoJSON LineString has its `time` property set as an array of timestamps and is therefore compatible with tools like [LeafletPlayback](https://github.com/hallahan/LeafletPlayback) and [others](https://github.com/fnogatz/zeitpunkt#compatible-tools).
