@@ -51,9 +51,6 @@ commander
 		'-T, --threshold <number>',
 		'permit this number of errors, warnings, or notices, otherwise fail with exit code 2',
 		'0'
-	).option(
-		'--reporter <reporter>',
-		'the reporter to use. Can be a npm module or a path to a local file.'
 	)
 	.parse(process.argv);
 
@@ -77,10 +74,6 @@ Promise.resolve()
 		return config;
 	})
 	.then(config => {
-		// Override config reporters with CLI argument
-		if (commander.reporter) {
-			config.defaults.reporters = [commander.reporter];
-		}
 		// Actually run Pa11y CI
 		return pa11yCi(urls.concat(config.urls || []), config.defaults);
 	})
@@ -149,7 +142,7 @@ function loadConfig(configPath) {
 function resolveConfigPath(configPath) {
 	// Specify a default
 	configPath = configPath || '.pa11yci';
-	if (!path.isAbsolute(configPath)) {
+	if (configPath[0] !== '/') {
 		configPath = path.join(process.cwd(), configPath);
 	}
 	if (/\.js(on)?$/.test(configPath)) {
@@ -211,51 +204,51 @@ function defaultConfig(config) {
 function loadSitemapIntoConfig(program, initialConfig) {
 	const sitemapFind = (
 		program.sitemapFind ?
-			new RegExp(program.sitemapFind, 'gi') :
-			null
+		new RegExp(program.sitemapFind, 'gi') :
+		null
 	);
 	const sitemapReplace = program.sitemapReplace || '';
 	const sitemapExclude = (
 		program.sitemapExclude ?
-			new RegExp(program.sitemapExclude, 'gi') :
-			null
+		new RegExp(program.sitemapExclude, 'gi') :
+		null
 	);
 
 	function getUrlsFromSitemap(sitemapUrl, config) {
 		return Promise.resolve()
-			.then(() => fetch(sitemapUrl))
-			.then(response => response.text())
-			.then(body => {
-				const $ = cheerio.load(body, {xmlMode: true});
+		.then(() => fetch(sitemapUrl))
+		.then(response => response.text())
+		.then(body => {
+			const $ = cheerio.load(body, {xmlMode: true});
 
-				const isSitemapIndex = $('sitemapindex').length > 0;
-				if (isSitemapIndex) {
-					return Promise.all($('sitemap > loc').toArray().map(element => {
-						return getUrlsFromSitemap($(element).text(), config);
-					})).then(configs => {
-						return configs.pop();
-					});
-				}
-
-				$('url > loc').toArray().forEach(element => {
-					let url = $(element).text();
-					if (sitemapExclude && url.match(sitemapExclude)) {
-						return;
-					}
-					if (sitemapFind) {
-						url = url.replace(sitemapFind, sitemapReplace);
-					}
-					config.urls.push(url);
+			const isSitemapIndex = $('sitemapindex').length > 0;
+			if (isSitemapIndex) {
+				return Promise.all($('sitemap > loc').toArray().map(element => {
+					return getUrlsFromSitemap($(element).text(), config);
+				})).then(configs => {
+					return configs.pop();
 				});
+			}
 
-				return config;
-			})
-			.catch(error => {
-				if (error.stack && error.stack.includes('node-fetch')) {
-					throw new Error(`The sitemap "${sitemapUrl}" could not be loaded`);
+			$('url > loc').toArray().forEach(element => {
+				let url = $(element).text();
+				if (sitemapExclude && url.match(sitemapExclude)) {
+					return;
 				}
-				throw new Error(`The sitemap "${sitemapUrl}" could not be parsed`);
+				if (sitemapFind) {
+					url = url.replace(sitemapFind, sitemapReplace);
+				}
+				config.urls.push(url);
 			});
+
+			return config;
+		})
+		.catch(error => {
+			if (error.stack && error.stack.includes('node-fetch')) {
+				throw new Error(`The sitemap "${sitemapUrl}" could not be loaded`);
+			}
+			throw new Error(`The sitemap "${sitemapUrl}" could not be parsed`);
+		});
 	}
 
 	return getUrlsFromSitemap(program.sitemap, initialConfig);

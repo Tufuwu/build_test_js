@@ -1,7 +1,6 @@
 /* eslint max-len: 'off' */
 'use strict';
 
-const path = require('path');
 const assert = require('proclaim');
 
 describe('pa11y-ci (with the `--json` flag set)', () => {
@@ -16,15 +15,14 @@ describe('pa11y-ci (with the `--json` flag set)', () => {
 
 	it('outputs the results as JSON', () => {
 		const outputData = JSON.parse(global.lastResult.output);
-		const filePath = path.resolve(__dirname, 'mock/config/foo/erroring.html');
 		assert.deepEqual(outputData, {
 			total: 3,
 			errors: 1,
 			passes: 1,
 			results: {
-				'./foo/erroring.html': [
+				'http://notahost:8090/erroring-1': [
 					{
-						message: `net::ERR_FILE_NOT_FOUND at file://${filePath}`
+						message: 'net::ERR_NAME_NOT_RESOLVED at http://notahost:8090/erroring-1'
 					}
 				],
 				'http://localhost:8090/failing-1': [
