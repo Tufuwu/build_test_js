@@ -1,182 +1,196 @@
-<img align="right" src="https://raw.github.com/basti1302/repoman/master/avatar.jpg" alt="Avatar"/>
+# Calipers [![npm version](https://badge.fury.io/js/calipers.svg)](http://badge.fury.io/js/calipers) [![Build Status](https://travis-ci.org/calipersjs/calipers.svg)](https://travis-ci.org/calipersjs/calipers)
 
-[![Build Status](https://img.shields.io/travis/basti1302/repoman.svg)](http://travis-ci.org/basti1302/repoman)
-[![Dependencies Status](https://img.shields.io/david/basti1302/repoman.svg)](http://david-dm.org/basti1302/repoman)
-[![Published Version](https://img.shields.io/npm/v/repoman.svg)](http://www.npmjs.com/package/repoman)
-<br/>
-[![npm Badge](https://nodei.co/npm/repoman.png)](http://npmjs.org/package/repoman)
+Current file types supported: **PDF, PNG, JPEG, GIF, BMP, WEBP, SVG**
 
-Repoman
--------
+Calipers was built to provide a method of determining the dimensions of an image or PDF much faster and less resource-intensive than shelling-out to ImageMagick. At [Lob](https://lob.com) we must validate image and PDF sizes during the lifecyle of an API request. The simplest way to do this is to shell-out to ImageMagick to identify the type and size of a file. For high-traffic servers, this becomes a major bottleneck due to the inefficiency of shelling-out.
 
-Multi-repository management command-line tool with support for Git and Subversion.
+Calipers remains performant because it avoids spawning child processes and it doesn't read entire files into memory. Instead, it intelligently reads only parts of the files that are necessary to determine the type and the dimensions of the file.
 
-Repoman is a handy tool when you're working on multiple related version control repositories. Rather than updating each repository one by one, repoman allows you to just run `repoman get` and update all of them in one go. Rather than checking for uncommitted local changes one by one, you can run `repoman changes` or `repoman report` and check all in one go.
+# Installation
 
-If you often switch between multiple computers, you can use the same .repoman.json file on those computers and easily manage the same set of repositories or share a .repoman.json file with you team so everyone can clone the required set of repositories in one step.
+Calipers uses a plugin architecture to allow users to include support for only the specific file types they need to measure. This helps avoid wasting CPU cycles measuring file types that an application doesn't support, and ensures users must only install dependencies that are absolutely needed (e.g. Poppler for PDF support).
 
-If you are have a GitHub account, you can use Repoman to clone all of your repositories from GitHub with a one liner: `repoman config --github-user <user> && repoman init` .
-
-Installation
-------------
+To use Calipers, you must install the core library and at least one plugin. For example, for PNG support:
 
 ```
-npm install -g repoman
+npm install --save calipers calipers-png
 ```
 
-Usage
------
+### Official Plugins
 
-### Initial Configuration
+Here is a list of officially supported plugins:
 
-* `repoman config`: Create sample .repoman.json configuration file.
-* `repoman config --github-user basti1302`: Create .repoman.json containing public GitHub projects of a user.
-* `repoman config --github-user basti1302 --github-auth-user basti1302 --github-auth-pass somepassword`: Create .repoman.json containing private and public GitHub projects. Basic authentication will be used to get the private projects. This will not work if you have two-factor authentication enabled, see `repoman signin` for support for two factor authentication.
-* `repoman signin`: Starts repoman's GitHub authentication assistant (asking for your GitHub user name, password and a two factor auth token). The generated authentication token is stored in `~/.repomanrc.json` and used for subsequent requests to GitHub (for example, with repoman config --github-user username`).
-* `repoman config --github-org jenkinsci`: Create .repoman.json containing GitHub projects of an organisation.
-* `repoman config --github-user basti1302 --github-org jenkinsci,github`: Create .repoman.json containing GitHub projects of multiple users and organisations.
-* `repoman config --bitbucket-auth-user basti1302 --bitbucket-auth-pass somepassword`: Create .repoman.json containing Bitbucket projects.
-* `repoman config --local`: Create .repoman.json configuration file from local repositories in current directory.
-* `repoman clean`: Delete local repositories not managed by Repoman (that is, not configured in .repoman.json).
+File Type | Plugin
+--------- | ------
+PNG       | [calipers-png](https://github.com/calipersjs/calipers-png)
+JPEG      | [calipers-jpeg](https://github.com/calipersjs/calipers-jpeg)
+PDF <sup>†</sup>    | [calipers-pdf](https://github.com/calipersjs/calipers-pdf)
+GIF       | [calipers-gif](https://github.com/calipersjs/calipers-gif)
+BMP       | [calipers-bmp](https://github.com/calipersjs/calipers-bmp)
+WEBP      | [calipers-webp](https://github.com/calipersjs/calipers-webp)
+SVG       | [calipers-svg](https://github.com/calipersjs/calipers-svg)
 
-### Initial Clone/Checkout
+##### <sup>†</sup> PDF Support
 
-* `repoman init`: Initialise local repositories. `repoman init` clones/checks out all repositories mentioned in .repoman.json into the current folder. You can also run this safely when you already have cloned some of those repositories before, after adding more repositories to the .repoman.json file. Existing repositories/directories will simply be skipped.
+The [Poppler](http://poppler.freedesktop.org/) library C++ interface is required for PDF support. You must install Poppler before running `npm install calipers-pdf`.
 
-### Everyday Workflow Commands
-
-* `repoman get`: Update local repositories with changes from remote repositories. For git, it executes `git pull --rebase`, for SVN, `svn up` is executed.
-* `repoman changes`: Display the changes in local repositories.
-* `repoman report`: Display a brief status summary for each repository (branch name, uncommitted changes, unpushed commits). Here is an example of how this looks like:
-```
-┌────────────────┬────────────────────────┬─────────────┬──────────┐
-│ Repository     │ Branch                 │ Uncommitted │ Unpushed │
-│ httpd          │ master                 │ Clean       │ 0        │
-│ nodejs         │ feature-branch-xyz     │ Clean       │ 11       │
-│ benchmarks     │ master                 │ Clean       │ 0        │
-│ internal-tools │ master                 │ Clean       │ 0        │
-│ svn-repo       │ trunk                  │ Clean       │ N. A.    │
-│ documentation  │ master                 │ Dirty       │ 0        │
-│ ui             │ another-feature-branch │ Clean       │ 9        │
-└────────────────┴────────────────────────┴─────────────┴──────────┘
-```
-* `repoman save`: Update remote repositories with changes from local repositories.
-* `repoman delete`: Delete local repositories.
-* `repoman undo`: Remove uncommitted changes from local repositories.
-
-### Custom commands
-
-* `repoman exec <command>`: Execute custom command against local repositories.
-
-You can use [mustache.js](https://github.com/janl/mustache.js) templates in the custom command. The variables `workspace` and `name` will be substituted by the workspace directory (where your `.repoman.json` lives) and the directory name of the repository respectively. Additionally, the variable `pathseparator` will be replaced by [`path.sep`](https://nodejs.org/api/path.html#path_path_sep), that is by `\\` on Windows and `/` on all Unix-based operating systems. Note: It is recommended to use `{{{` and `}}}` instead of `{{` and `}}` to avoid the HTML-escaping mustache.js does for the latter.
-
-Here are some examples for custom commands:
-
-* `repoman exec 'touch .gitignore && echo "Created {{{workspace}}}/{{{name}}}/.gitignore file;"'`: Create a .gitignore file in each repository and print a message.
-* `repoman --fail-fast exec 'chown -R user:group /some/path/{name}';`: Execute custom command and exit as soon as there is any command failure.
-
-### Advanced Examples
-
-* `repoman list | parallel nestor build {}`: Write repository names to standard output and pipe to another command.
-* `repoman -c somerepoman.json init|get|changes|save|delete|clean|exec|report|list`: Use `somerepoman.json` instead of the default `.repoman.json` configuration file.
-* `repoman --tags apache,github init|get|changes|save|delete|exec|report|list`: Filter repositories by tags, if multiple tags (comma-separated) are specified then repo will be included if it matches at least one tag.
-* `repoman --regex .*github.* init|get|changes|save|delete|exec|report|list`: Filter repositories by regex against repo name or URL.
-
-Configuration
--------------
-
-Repositories can be configured in .repoman.json file:
+To install Poppler on Mac OS X using Homebrew:
 
 ```
-{
-  "couchdb": {
-    "type": "git",
-    "url": "http://git-wip-us.apache.org/repos/asf/couchdb.git",
-    "tags": ["apache", "database"]
+brew install poppler
+```
+
+To install Poppler on Ubuntu:
+
+```
+apt-get install pkg-config
+apt-get install libpoppler-cpp-dev
+```
+
+# Usage
+
+Calipers must be initialized by calling the required function with supported file types passed in. Use the plugin name's suffix (everything after the first "-") as an argument.
+
+```javascript
+// Initializes Calipers with support for calipers-png, calipers-jpeg, calipers-pdf.
+var Calipers = require('calipers')('png', 'jpeg', 'pdf');
+```
+
+Calipers exposes a single function, `measure`, once initialized.
+
+### `measure(filePath, [callback])`
+
+Measures the file at the given path.
+- `filePath` - The path of the file.
+- `callback` - called when the file has been measured
+  - `err` - An Error is thrown for unsupported file types or corrupt files.
+  - `result` - Contains keys `type` and `pages`, where `type` is a string representing the file type (e.g. `'png'`), and `pages` is an array of objects with keys `width` and `height`. For image files, `pages` always has 1 element and `width` and `height` are the integer pixel dimensions. For PDF `width` and `height` are floating-point PostScript Point dimensions.
+
+# Examples
+
+```js
+var Calipers = require('calipers')('png', 'pdf');
+
+// You can use a callback:
+Calipers.measure('/path/to/document.pdf', function (err, result) {
+  // result:
+  // {
+  //   type: 'pdf',
+  //   pages: [
+  //     {
+  //       width: 450,
+  //       height: 670
+  //     },
+  //     {
+  //       width: 450,
+  //       height: 670
+  //     }
+  //   ]
+  // }
+});
+
+// Or you can use promises:
+Calipers.measure('/path/to/file.png')
+.then(function (result) {
+  // result:
+  // {
+  //   type: 'png',
+  //   pages: [
+  //     {
+  //       width: 450,
+  //       height: 670
+  //     }
+  //   ]
+  // }
+});
+```
+
+# Custom Plugins
+
+Calipers also allows custom plugins for file types that are not officially supported or application-specific measuring. A Calipers plugin is simply an object with two functions, `detect` and `measure`. 
+
+##### `detect(buffer)`
+
+```
+@param {Buffer} buffer - a Node buffer containing the first 16 bytes of the file
+@returns {Boolean} true if the given buffer is a file type supported by the plugin
+```
+
+##### `measure(path, fd)`
+
+```
+@param {String} path - the file to measure
+@param {Integer} fd - an opened, read-only file descriptor of the file; do not close,
+  Calipers will close file descriptors automatically
+@returns {Promise<Object> | Object} an object or promise resolving an object
+  containing 'type' and 'pages' fields. 'pages' is an array of objects, each with
+  a 'width' and 'height'
+```
+
+The simple (and useless) example below illustrates how to create and use a custom plugin.
+
+```javascript
+var fakePlugin = {
+  detect: function (buffer) {
+    // Return true if the file starts with 'fake'.
+    return buffer.toString('ascii', 0, 4) === 'fake';
   },
-  "httpd": {
-    "type": "svn",
-    "url": "http://svn.apache.org/repos/asf/httpd/httpd/trunk/",
-    "tags": ["apache", "webserver"]
-  },
-  "node": {
-    "type": "git",
-    "url": "http://github.com/joyent/node",
-    "tags": ["github", "javascript"]
+  measure: function (path, fd) {
+    // Return an arbitrary measurement.
+    return {
+      type: 'fake',
+      pages: [{
+        width: 0,
+        height: 0
+      }]
+    };
   }
-}
+};
+
+var Calipers = require('calipers')('png', 'jpeg', fakePlugin);
+
+Calipers.measure('path/to/file/that/starts/with/fake')
+.then(function (result) {
+  // result:
+  // {
+  //   type: 'fake',
+  //   pages: [{
+  //     width: 0,
+  //     height: 0
+  //   }]
+  // }
+});
 ```
 
-Type property is optional. If not provided, Repoman will try to determine the type from the URL by checking the existence of keywords: git, svn, subversion. If type can't be determined from the URL, it defaults to git.
+# Benchmarks
 
-Repoman will choose which configuration file to use in this order:
+As with all benchmarks, take these with a grain of salt. You can run the benchmarks on your own hardware by cloning the benchmark repository: https://github.com/calipersjs/benchmark.
 
-1. Any file specified in -c/--config-file flag
-2. .repoman.json file in the current directory
-3. .repoman.json file in home directory (process.env.USERPROFILE on Windows, process.env.HOME on *nix)
+These benchmarks show the time taken to measure 500 iterations of each file type and each method with a concurrency of 50. They were run on a Mid-2014 13" MacBook Pro with a 2.6 GHz Intel Core i5.
 
+File Type | Shell Out Time (ms) | Calipers Time (ms)
+--------- | ------------------: | -----------------:
+PDF  | 2001 <sup>†</sup> | 92
+PNG  | 1814 <sup>††</sup> | 34
+JPEG | 1819 <sup>††</sup> | 56
+GIF  | 2411 <sup>††</sup> | 36
+BMP  | 1788 <sup>††</sup> | 35
 
+<sup>†</sup> Measured by spawning a child process which runs Poppler's `pdfinfo` command.
 
-SCM Command Mappings
---------------------
+<sup>††</sup> Measured by spawning a child process which runs ImageMagicks's `identify` command.
 
-Repoman uses the following SCM command mapping.
+# Contribute
 
-<table>
-  <tr>
-    <th>Repoman</th>
-    <th>Git</th>
-    <th>Subversion</th>
-  </tr>
-  <tr>
-    <td>repoman init</td>
-    <td>git clone {url}</td>
-    <td>svn checkout {url}</td>
-  </tr>
-  <tr>
-    <td>repoman get</td>
-    <td>git pull --rebase</td>
-    <td>svn up</td>
-  </tr>
-  <tr>
-    <td>repoman changes</td>
-    <td>git status -s && git log --branches --not --remotes --oneline</td>
-    <td>svn stat</td>
-  </tr>
-  <tr>
-    <td>repoman save</td>
-    <td>git push origin master</td>
-    <td>svn commit -m "Commited by Repoman"</td>
-  </tr>
-  <tr>
-    <td>repoman undo</td>
-    <td>git reset --hard</td>
-    <td>svn revert -R .</td>
-  </tr>
-</table>
+### Bug Reporting
 
-Contributing
-------------
+The easiest and most helpful way to contribute is to find a file that Calipers incorrectly measures, and submit an issue or PR with the file.
 
-Run `npm run build` to kick off the full build including tests, integration tests, coverage etc. Note: Currently, the integration tests will fail on systems where git uses a different localization than English.
+### New Plugins
 
-Articles
---------
+If there is a file type you'd like to see supported, create an issue for it and we'll do our best to support it. Also, if you've created a custom plugin that you've found useful, please consider offering it as an official plugin.
 
-* [Introducing Repoman](http://blog.cliffano.com/2013/05/26/introducing-repoman/)
+<br/><br/>
+##### Inspiration
 
-History
--------
-
-Repoman has been developed by @cliffano until late 2015. Nowadays it is maintained by @basti1302.
-
-* 1.6.0 (13.11.2019): Add new commands `add` and `remove` to add/remove repos from a config.
-* 1.5.5 (12.11.2019): Fix "repoman config --local crashes when a repo has no origin" (#30, thanks @stennie).
-* 1.5.4 (11.03.2018): Fix breaking changes from upgrade to octokit/rest.js, add documentation about `repoman signin` and `--github-auth-user`/`--github-auth-pass`.
-* 1.5.3 (18.02.2018): Update all dependencies, upgrade to octokit/rest.js
-* 1.5.2 (14.02.2018): Update to bagofcli@1.1.0.
-* 1.5.1 (14.02.2018): README overhaul.
-* 1.5.0 (13.02.2018): Improve layout for `report` command.
-* 1.4.0 (11.02.2018): Add new command `report`.
-* 1.3.0 (30.05.2017): Add new options `--github-use-ssh` and `--remove-extraneous` (see #23 and #24, thanks to @scamden).
-* 1.1.0 (21.06.2016): Improve error message when .repoman.json is not found (#19).
+Inspired by netroy's image-size library: https://github.com/netroy/image-size

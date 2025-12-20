@@ -1,92 +1,39 @@
-### 1.0.0 &ndash; 2016-01-31
-* Use Mustache.js templates instead of Jazz templates for `repoman exec`. This is a breaking change for you if you used Jazz template substitutions in your `repoman exec` commands &ndash; that is, if you used something like `repoman exec 'touch .gitignore && echo "Created {workspace}/{name}/.gitignore file;"`. You would need to change this to `repoman exec 'touch .gitignore && echo "Created {{{workspace}}}/{{{name}}}/.gitignore file;"`.
-* Make `repoman exec` work on Windows ([#20](https://github.com/basti1302/repoman/issues/20), thanks to @Guysbert for the report).
-* Use `&&` instead of `;` in command lines with multiple commands, in particular, when a `cd` command is required before the actual command. That means, if repoman cannot successfully `cd` into the repository directory, it will not attempt to execute the action for this repository.
-* Use `git reset --head` instead of `git stash && git stash clear` for `repoman undo`.
+#### 2.0.1 (2018-06-08)
 
-### 0.2.5
-* Improved output for `repoman changes` for git.
+## Change Log
 
-### 0.2.4
-* Add build reports to readme
+**2.0.0** — <small>_November 3, 2015_</small> — [Diff](https://github.com/calipersjs/calipers/compare/1.5.1...2.0.0)
 
-### 0.2.3
-* Fix Bitbucket repo config URL construction [faandi](https://github.com/faandi)
+*   Measurement of different file types is now available through plugins. You must now install a plugin for each file type you wish to measure. Please see the README for how to install and use version 2 plugins.
 
-### 0.2.2
-* Add Bitbucket generator
+**1.5.0** — <small>_November 3, 2015_</small> — [Diff](https://github.com/lob/calipers/compare/v1.4.0...v1.5.0)
 
-### 0.2.1
-* Add tags and regex filter support to list command
+*   Added support for BMP images. #33
 
-### 0.2.0
-* Change --config flag to --config-file as per README
-* Add tags filter support
-* Add regex filter support
-* Modify config generator to merge repositories in configuration file
+**1.4.0** — <small>_November 3, 2015_</small> — [Diff](https://github.com/lob/calipers/compare/v1.3.0...v1.4.0)
 
-### 0.1.0
-* Set min node engine to >= 0.10.0
+*   Added support for WEBP images. #31
 
-### 0.0.16
-* Add --local flag to config command, for generating config file from local repositories [Stephen Steneker](https://github.com/stennie)
+**1.3.0** — <small>_October 8, 2015_</small> — [Diff](https://github.com/lob/calipers/compare/v1.2.0...v1.3.0)
 
-### 0.0.15
-* Change get command for git to use --rebase
+*   Added support for Node 4. #24, #25, #27
 
-### 0.0.14
-* Fix clean command prompt handling
-* Change test lib to buster-node + referee
-* Set min node engine to >= v0.8.0
+**1.2.0** — <small>_October 2, 2015_</small> — [Diff](https://github.com/lob/calipers/compare/v1.1.0...v1.2.0)
 
-### 0.0.13
-* Fix exec command argument handling.
+*   Added support for GIFs. #22
 
-### 0.0.12
-* Add -f/--fail-fast flag
-* Add list command
-* Add Gitorious repositories configuration file generation
-* Replace underscore with lodash, replace bagofholding with bagofcli and bagofrequest
-* Display commands to be executed on each repo
+**1.1.0** — <small>_July 30, 2015_</small> — [Diff](https://github.com/lob/calipers/compare/v1.0.2...v1.1.0)
 
-### 0.0.11
-* Re-add custom config file override (accidentally removed)
+*   Throw an error when given a PDF with no pages. #19
 
-### 0.0.10
-* Add GitHub client proxy setting
+**1.0.2** — <small>_May 16, 2015_</small> — [Diff](https://github.com/lob/calipers/compare/v1.0.1...v1.0.2)
 
-### 0.0.9
-* GitHub configuration file uses clone URL
+*   Fixed a file descriptor leak. #18
 
-### 0.0.8
-* Add support for creating configuration file containing GitHub repositories
-* Add undo command
-* Add clean command
+**1.0.1** — <small>_May 12, 2015_</small> — [Diff](https://github.com/lob/calipers/compare/v1.0.0...v1.0.1)
 
-### 0.0.7
-* Add custom config file override
-* Add exec command
+*   Added support for Node v0.12. #16
 
-### 0.0.6
-* Set max node engine to < 0.9.0
+**1.0.0** — <small>_April 2, 2015_</small>
 
-### 0.0.5
-* Add Windows support
-* Configuration file in current directory now takes precedence over one in home directory
-
-### 0.0.4
-* Add config command for creating sample .repoman.json file
-
-### 0.0.3
-* Use cly to handle process exit
-* Config file name is now .repoman.json
-* Replace cly with bagofholding, replace vows with mocha
-* Config file .repoman.json can now be placed at user home directory, or at current directory
-
-### 0.0.2
-* Display usage on arg-less comamand
-* Upgrade vows to v0.6.1
-* Use cly to parse CLI arguments and execute shell commands
-
-### 0.0.1
-* Initial version
+*   Support for JPEG, PNG, and PDF.
