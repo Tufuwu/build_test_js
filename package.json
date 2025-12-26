@@ -1,48 +1,52 @@
 {
-  "private": true,
-  "name": "definitelytyped.github.io",
-  "version": "0.1.0",
-  "description": "DefinitelyTyped website",
-  "homepage": "http://definitelytyped.github.io",
-  "keywords": [
-    "DefinitelyTyped",
-    "website"
-  ],
-  "author": "DefinitelyTyped",
-  "maintainers": [],
-  "contributors": [],
-  "bugs": {
-    "url": "https://github.com/DefinitelyTyped/definitelytyped.github.io/issues"
+  "name": "ace-diff",
+  "version": "0.0.0-development",
+  "description": "A diff/merging wrapper for Ace Editor built on google-diff-match-patch",
+  "main": "dist/ace-diff.min.js",
+  "module": "src/index.js",
+  "unpkg": "dist/ace-diff.min.js",
+  "scripts": {
+    "build": "parcel build src/index.js --global AceDiff --out-file ace-diff.min.js && npm run build-css",
+    "build-css": "parcel build src/styles/ace-diff.scss --out-file ace-diff.min.css && parcel build src/styles/ace-diff-dark.scss --out-file ace-diff-dark.min.css",
+    "dev": "parcel serve test/fixtures/index.html --open -d .parcel-cache",
+    "serve": "parcel test/fixtures/*.html --global AceDiff -p 8081 --no-hmr -d .parcel-cache",
+    "test": "NODE_ENV=test npm run mocha && cypress run",
+    "mocha": "mocha test/**/*.test.js",
+    "cypress": "cypress open",
+    "semantic-release": "semantic-release"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/DefinitelyTyped/definitelytyped.github.io.git"
+    "url": "https://github.com/ace-diff/ace-diff.git"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://raw.github.com/DefinitelyTyped/definitelytyped.github/master/LICENSE-MIT.txt"
-    }
+  "keywords": [
+    "ace",
+    "dif",
+    "diffing",
+    "merge",
+    "merging",
+    "ace editor",
+    "syntax highlighting"
   ],
-  "scripts": {
-    "test": "grunt test",
-    "deploy": "grunt deploy"
+  "author": "Ben Keen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ace-diff/ace-diff/issues"
   },
-  "dependencies": {},
+  "homepage": "https://ace-diff.github.io/ace-diff/",
+  "dependencies": {
+    "diff-match-patch": "^1.0.5"
+  },
   "devDependencies": {
-    "docpad": "^6.79.0",
-    "docpad-plugin-eco": "^2.1.0",
-    "docpad-plugin-marked": "^2.2.0",
-    "docpad-plugin-partials": "^2.9.0",
-    "docpad-plugin-less": "^2.4.1",
-    "docpad-plugin-livereload": "^2.6.0",
-    "grunt": "^1.0.1",
-    "grunt-cli": "^1.2.0",
-    "grunt-gh-pages": "^2.0.0",
-    "grunt-contrib-clean": "^1.1.0",
-    "grunt-contrib-copy": "^1.0.0",
-    "highlight.js": "^9.12.0",
-    "marked": "^0.3.2"
-  },
-  "main": "node_modules/docpad/bin/docpad-server"
+    "chai": "^4.2.0",
+    "cypress": "^4.6.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-cypress": "^2.1.2",
+    "eslint-plugin-import": "^2.20.2",
+    "mocha": "^7.2.0",
+    "parcel-bundler": "^1.12.4",
+    "sass": "^1.26.5",
+    "semantic-release": "^17.0.8"
+  }
 }
