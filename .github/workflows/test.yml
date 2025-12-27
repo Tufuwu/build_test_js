@@ -1,25 +1,20 @@
-name: Cypress Tests
+name: Node.js CI
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+on: [push]
 
 jobs:
-  cypress-run:
-    name: Cypress Run
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # This single action replaces most of the Travis CI configuration.
-      # It is the official and recommended way to run Cypress on GitHub Actions.
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: npm install
+      - name: Install libgconf-2-4
+        run: sudo apt-get update && sudo apt-get install -y libgconf-2-4
+      - name: Install Cypress
+        run: npm install cypress
+      - name: Install Cypress plugins
+        run: $(npm bin)/cypress install
       - name: Run Cypress tests
-        uses: cypress-io/github-action@v6
-        with:
-          # Specifies the node version to use, matching `node_js: 10`
-          node-version: 16
+        run: $(npm bin)/cypress run
