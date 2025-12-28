@@ -28,7 +28,7 @@ jobs:
           docker pull localstack/localstack
           docker run -d \
             -p 4566:4566 \
-            -e SERVICES=lambda,cloudformation,iam,s3 \
+            -e SERVICES=lambda,cloudformation,iam,logs,s3 \
             localstack/localstack
 
       - name: Wait for LocalStack
