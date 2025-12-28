@@ -1,227 +1,193 @@
-[![Build Status](https://travis-ci.org/localstack/serverless-localstack.svg?branch=master)](https://travis-ci.org/localstack/serverless-localstack)
+# Ace-diff
 
-# LocalStack Serverless Plugin
+This is a wrapper for [Ace Editor](http://ace.c9.io/) to provide a 2-panel diffing/merging tool that visualizes differences in two documents and allows users to copy changes from to the other.
 
-[Serverless](https://serverless.com/) Plugin to support running against [Localstack](https://github.com/localstack/localstack).
+![Ace-diff demo](https://ace-diff.github.io/ace-diff/demos/screenshot1.png)
 
-This plugin allows Serverless applications to be deployed and tested on your local machine. Any requests to AWS to be redirected to a running LocalStack instance.
+It's built on top of [google-diff-match-patch](https://code.google.com/p/google-diff-match-patch/) library. That lib handles the hard part: the computation of the document diffs. Ace-diff just visualizes that information as line-diffs in the editors.
 
-Pre-requisites:
-* LocalStack
+## Dependencies
+- Ace Editor: this could the [official Ace builds](https://github.com/ajaxorg/ace-builds), [Brace](https://github.com/thlorenz/brace) and any other similar Ace editor build (like the ones from public CDNs)
 
-## Installation
+## Demos
+Take a look at [demos on Ace-diff page](https://ace-diff.github.io/ace-diff/). The demos illustrate a few different configurations and styles. Hopefully they'll give you a rough sense of what it does and how it works.
 
-The easiest way to get started is to install via npm.
+## Features
 
-    npm install -g serverless
-    npm install --save-dev serverless-localstack
+- Compatible with any Ace/Brace Editor mode or theme
+- Accommodates realtime changes to one or both editors
+- Readonly option for left/right editors
+- Control how aggressively diffs are combined
+- Allow users to copy diffs from one side to the other
 
-## Configuring
+## How to install
 
-There are two ways to configure the plugin, via a JSON file or via `serverless.yml`.
-There are two supported methods for configuring the endpoints, globally via the
-`host` property, or individually. These properties may be mixed, allowing for
-global override support while also override specific endpoints.
+```bash
+npm i ace-diff -S
 
-A `host` or individual endpoints must be configured or this plugin will be deactivated.
+…
 
-### Configuration via serverless.yml
-
-Please refer to the example configuration template below. (Please note that most configurations
-in the sample are optional and need not be specified.)
-
-```
-service: myService
-
-plugins:
-  - serverless-localstack
-
-custom:
-  localstack:
-    stages:
-      # list of stages for which the plugin should be enabled
-      - local
-    host: http://localhost  # optional - LocalStack host to connect to
-    edgePort: 4566  # optional - LocalStack edge port to connect to
-    autostart: true  # optional - Start LocalStack in Docker on Serverless deploy
-    networks: #optional - attaches the list of networks to the localstack docker container after startup
-      - host
-      - overlay
-      - my_custom_network
-    lambda:
-      # Enable this flag to improve performance
-      mountCode: True
-    docker:
-      # Enable this flag to run "docker ..." commands as sudo
-      sudo: False
-  stages:
-    local:
-      ...
+yarn add ace-diff
 ```
 
-### Activating the plugin for certain stages
+```js
+import AceDiff from 'ace-diff';
 
-Note the `stages` attribute in the config above. The `serverless-localstack` plugin gets activated if either:
-  1. the serverless stage (explicitly defined or default stage "dev") is included in the `stages` config; or
-  2. serverless is invoked without a `--stage` flag (default stage "dev") and no `stages` config is provided
-
-### Mounting Lambda code for better performance
-
-Note that the `localstack.lambda.mountCode` flag above will mount the local directory
-into the Docker container that runs the Lambda code in LocalStack. If you remove this
-flag, your Lambda code is deployed in the traditional way which is more in line with
-how things work in AWS, but also comes with a performance penalty: packaging the code,
-uploading it to the local S3 service, downloading it in the local Lambda API, extracting
-it, and finally copying/mounting it into a Docker container to run the Lambda. Mounting code
-from multiple projects is not supported with simple configuration, and you must use the
-`autostart` feature, as your code will be mounted in docker at start up. If you do need to
-mount code from multiple serverless projects, manually launch
-localstack with volumes specified. For example:
-
-```sh
-localstack start --docker -d \
-  -v /path/to/project-a:/path/to/project-a \
-  -v /path/to/project-b:/path/to/project-b
+// optionally, include CSS, or use your own
+import 'ace-diff/dist/ace-diff.min.css';
+// Or use the dark mode
+import 'ace-diff/dist/ace-diff-dark.min.css';
 ```
 
-If you use either `serverless-webpack` or `serverless-plugin-typescript`, `serverless-localstack`
-will detect it and modify the mount paths to point to your output directory. You will need to invoke
-the build command in order for the mounted code to be updated. (eg: `serverless webpack`). There is no
-`--watch` support for this out of the box, but could be accomplished using nodemon:
+### Use CDN
+Grab ace-diff from CDN:
 
-```sh
-npm i --save-dev nodemon
+```html
+<!-- Inlude Ace Editor - e.g. with this: -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.11/ace.js"></script>
+
+<script src="https://unpkg.com/ace-diff@^3.0.0"></script>
+
+<!-- optionally include CSS, or use your own -->
+<link href="https://unpkg.com/ace-diff@^3.0.0/dist/ace-diff.min.css" rel="stylesheet">
+
+<!-- optionally there is also a dark mode CSS -->
+<link href="https://unpkg.com/ace-diff@^3.0.0/dist/ace-diff-dark.min.css" rel="stylesheet">
 ```
 
-`package.json`:
+### HTML
 
-```json
-  "scripts": {
-    "build": "serverless webpack --stage local",
-    "deploy": "serverless deploy --stage local",
-    "watch": "nodemon -w src -e '.*' -x 'npm run build'",
-    "start": "npm run deploy && npm run watch"
+```html
+<div class="acediff"></div>
+```
+
+### JavaScript
+Here's an example of how you'd instantiate AceDiff.
+
+```js
+const differ = new AceDiff({
+  ace: window.ace, // You Ace Editor instance
+  element: '.acediff',
+  left: {
+    content: 'your first file content here',
   },
+  right: {
+    content: 'your second file content here',
+  },
+});
 ```
 
-```sh
-npm run start
+When using with Brace or any build system like Webpack, you can pass the editor as an option:
+
+```js
+// If you are using Brace editor, you can pass it as well
+const ace = require('brace');
+
+const differ = new AceDiff({
+  ace, // using Brace
+  element: '.acediff',
+  left: {
+    content: 'your first file content here',
+  },
+  right: {
+    content: 'your second file content here',
+  },
+});
 ```
 
-#### A note on using webpack
+### CSS
 
-`serverless-webpack` is supported, with code mounting. However, there are some assumptions
-and configuration requirements. First, your output directory must be `.webpack`. Second, you must retain
-your output directory contents. You can do this by modifying the `custom > webpack` portion of your
-serverless configuration file.
+**Because of the way how ACE is positioned, it's important to have Ace-diff running in some container with specified dimensions (and optionally with a `position: relative`)**
 
-```yml
-custom:
-  webpack:
-    webpackConfig: webpack.config.js
-    includeModules: true
-    keepOutputDirectory: true
-  localstack:
-    stages:
-      - local
-    lambda:
-      mountCode: true
-    autostart: true
+Styling the elements is vitally important: the gutter should retain its width even if the user resizes his or her browser. But honestly, how you go about that is very much up to you: you can provide whatever CSS you want, depending on your scenario.
+
+If you want the ace editor's to change height/width based on a user's browser, I find using flexbox the best option - but hell, if you want to use a `<table>`, knock yourself out. :)
+
+Take a look at the [demos](https://ace-diff.github.io/ace-diff/) for some ideas. They all use flexbox for the layouts, but include some different styles and class names just so you can see.
+
+
+## Configuration
+
+You can configure your Ace-diff instance through a number of config settings. This object is what you pass to the constructor, like the **JavaScript** section above.
+
+
+### Default settings
+
+Here are all the defaults. I'll explain each one in details below. Note: you only need to override whatever you want.
+
+```javascript
+{
+  ace: window.ace,
+  mode: null,
+  theme: null,
+  element: null,
+  diffGranularity: 'broad',
+  showDiffs: true,
+  showConnectors: true,
+  maxDiffs: 5000,
+  left: {
+    content: null,
+    mode: null,
+    theme: null,
+    editable: true,
+    copyLinkEnabled: true
+  },
+  right: {
+    content: null,
+    mode: null,
+    theme: null,
+    editable: true,
+    copyLinkEnabled: true
+  },
+  classes: {
+    diff: 'acediff__diffLine',
+    connector: 'acediff__connector',
+    newCodeConnectorLinkContent: '&#8594;',
+    deletedCodeConnectorLinkContent: '&#8592;',
+  },
+}
 ```
 
-### Environment Configurations
 
-* `LAMBDA_MOUNT_CWD`: Allow users to define a custom working directory for Lambda mounts.
-   For example, when deploying a Serverless app in a Linux VM (that runs Docker) on a
-   Windows host where the `-v <local_dir>:<cont_dir>` flag to `docker run` requires us
-   to specify a `local_dir` relative to the Windows host file system that is mounted
-   into the VM (e.g., `"c:/users/guest/..."`).
-* `LAMBDA_EXECUTOR`: Executor type to use for running Lambda functions (default `docker`) -
-   see [LocalStack repo](https://github.com/localstack/localstack)
-* `LAMBDA_REMOTE_DOCKER`: Whether to assume that we're running Lambda containers against
-   a remote Docker daemon (default `false`) - see [LocalStack repo](https://github.com/localstack/localstack)
+### Diffing settings
 
-### Only enable serverless-localstack for the listed stages
-* ```serverless deploy --stage local``` would deploy to LocalStack.
-* ```serverless deploy --stage production``` would deploy to aws.
+- `ace` (object, optional, default: `window.ace`). The Ace Editor instance to use.
+- `element` (string<DOM selector> or element object, required). The element used for Ace-diff
+- `mode` (string, optional). this is the mode for the Ace Editor, e.g. `"ace/mode/javascript"`. Check out the Ace docs for that. This setting will be applied to both editors. I figured 99.999999% of the time you're going to want the same mode for both of them so you can just set it once here. If you're a mad genius and want to have different modes for each side, (a) *whoah man, what's your use-case?*, and (b) you can override this setting in one of the settings below. Read on.
+- `theme` (string, optional). This lets you set the theme for both editors.
+- `diffGranularity` (string, optional, default: `broad`). this has two options (`specific`, and `broad`). Basically this determines how aggressively AceDiff combines diffs to simplify the interface. I found that often it's a judgement call as to whether multiple diffs on one side should be grouped. This setting provides a little control over it.
+- `showDiffs` (boolean, optional, default: `true`). Whether or not the diffs are enabled. This basically turns everything off.
+- `showConnectors` (boolean, optional, default: `true`). Whether or not the gutter in the middle show show connectors visualizing where the left and right changes map to one another.
+- `maxDiffs` (integer, optional, default: `5000`). This was added a safety precaution. For really massive files with vast numbers of diffs, it's possible the Ace instances or AceDiff will become too laggy. This simply disables the diffing altogether once you hit a certain number of diffs.
+- `left/right`. this object contains settings specific to the leftmost editor.
+- `left.content / right.content` (string, optional, default: `null`). If you like, when you instantiate AceDiff you can include the content that should appear in the leftmost editor via this property.
+- `left.mode / right.mode` (string, optional, defaults to whatever you entered in `mode`). This lets you override the default Ace Editor mode specified in `mode`.
+- `left.theme / right.theme` (string, optional, defaults to whatever you entered in `theme`). This lets you override the default Ace Editor theme specified in `theme`.
+- `left.editable / right.editable` (boolean, optional, default: `true`). Whether the left editor is editable or not.
+- `left.copyLinkEnabled / right.copyLinkEnabled` (boolean, optional, default: `true`). Whether the copy to right/left arrows should appear.
 
-```
-service: myService
 
-plugins:
-  - serverless-localstack
+### Classes
+- `diff`: the class for a diff line on either editor
+- `connector`: the SVG connector
+- `newCodeConnectorLinkContent`: the content of the copy to right link. Defaults to a unicode right arrow ('&#8594;')
+- `deletedCodeConnectorLinkContent`: the content of the copy to left link. Defaults to a unicode right arrow ('&#8592;')
 
-custom:
-  localstack:
-    stages:
-      - local
-      - dev
-    endpointFile: path/to/file.json
-```
 
-## LocalStack
+## API
 
-For full documentation, please refer to https://github.com/localstack/localstack
+There are a few API methods available on your AceDiff instance.
 
-## Contributing
+- `aceInstance.getEditors()`: this returns an object with left and right properties. Each contains a reference to the Ace editor, in case you need to do anything with them. Ace has a ton of options which I wasn't going to support via the wrapper. This should allow you to do whatever you need
+- `aceInstance.setOptions()`: this lets you set many of the above options on the fly. Note: certain things used during the construction of the editor, like the classes can't be overridden.
+- `aceInstance.getNumDiffs()`: returns the number of diffs currently being displayed.
+- `aceInstance.diff()`: updates the diff. This shouldn't ever be required because AceDiff automatically recognizes the key events like changes to the editor and window resizing. But I've included it because there may always be that fringe case...
+- `aceInstance.destroy()`: destroys the AceDiff instance. Basically this just destroys both editors and cleans out the gutter.
 
-Setting up a development environment is easy using Serverless' plugin framework.
 
-### Clone the Repo
+## Browser Support
+All modern browsers. Open a ticket if you find otherwise.
 
-```
-git clone https://github.com/localstack/serverless-localstack
-```
 
-### Setup your project
-
-```
-cd /path/to/serverless-localstack
-npm link
-
-cd myproject
-npm link serverless-localstack
-```
-
-### Optional Debug Flag
-
-An optional debug flag is supported via `serverless.yml` that will enable additional debug logs.
-
-```
-custom:
-  localstack:
-    debug: true
-```
-
-## Change Log
-
-* v0.4.35: Add config option to connect to additional docker networks
-* v0.4.33: Fix parsing StepFunctions endpoint if the endpointInfo isn't defined
-* v0.4.32: Add endpoint to AWS credentials for compatibility with serverless-domain-manager plugin
-* v0.4.31: Fix format of API GW endpoints printed in stack output
-* v0.4.30: Fix plugin for use with Serverless version 2.30+
-* v0.4.29: Add missing service endpoints to config
-* v0.4.28: Fix plugin activation for variable refs in profile names
-* v0.4.27: Fix loading of endpoints file with variable references to be resolved
-* v0.4.26: Fix resolution of template variables during plugin initialization
-* v0.4.25: Use single edge port instead of deprecated service-specific ports
-* v0.4.24: Fix resolving of stage/profiles via variable expansion
-* v0.4.23: Fix config loading to enable file imports; fix output of API endpoints if plugin is not activated; enable SSM and CF output refs by performing early plugin loading
-* v0.4.21: Fix integration with `serverless-plugin-typescript` when `mountCode` is enabled
-* v0.4.20: Use `LAMBDA_EXECUTOR`/`LAMBDA_REMOTE_DOCKER` configurations from environment
-* v0.4.19: Fix populating local test credentials in AWS provider
-* v0.4.18: Fix output of API Gateway endpoints; add port mappings; fix config init code
-* v0.4.17: Enable configuration of `$START_WEB`
-* v0.4.16: Add option for running Docker as sudo; add fix for downloadPackageArtifacts
-* v0.4.15: Enable plugin on aws:common:validate events
-* v0.4.14: Initialize LocalStack using hooks for each "before:" event
-* v0.4.13: Add endpoint for SSM; patch serverless-secrets plugin; allow customizing $DOCKER_FLAGS
-* v0.4.12: Fix Lambda packaging for `mountCode:false`
-* v0.4.11: Add polling loop for starting LocalStack in Docker
-* v0.4.8: Auto-create deployment bucket; autostart LocalStack in Docker
-* v0.4.7: Set S3 path addressing; add eslint to CI config
-* v0.4.6: Fix port mapping for service endpoints
-* v0.4.5: Fix config to activate or deactivate the plugin for certain stages
-* v0.4.4: Add `LAMBDA_MOUNT_CWD` configuration for customizing Lambda mount dir
-* v0.4.3: Support local mounting of Lambda code to improve performance
-* v0.4.0: Add support for local STS
+## License
+MIT.

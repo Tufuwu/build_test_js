@@ -1,683 +1,803 @@
-'use strict';
-const AWS = require('aws-sdk');
-const fs = require('fs');
-const {promisify} = require('es6-promisify');
-const exec = promisify(require('child_process').exec);
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-console */
+/* eslint-disable max-len */
 
-// Default stage used by Serverless
-const DEFAULT_STAGE = 'dev';
-// Strings or other values considered to represent "true"
-const TRUE_VALUES = ['1', 'true', true];
-// Plugin naming and build directory of serverless-plugin-typescript plugin
-const TS_PLUGIN_TSC = 'TypeScriptPlugin'
-const TYPESCRIPT_PLUGIN_BUILD_DIR_TSC = '.build'; //TODO detect from tsconfig.json
-// Plugin naming and build directory of serverless-webpack plugin
-const TS_PLUGIN_WEBPACK = 'ServerlessWebpack'
-const TYPESCRIPT_PLUGIN_BUILD_DIR_WEBPACK = '.webpack/service'; //TODO detect from webpack.config.js
+// Diffing library
+const DiffMatchPatch = require('diff-match-patch');
 
-// Default edge port to use with host
-const DEFAULT_EDGE_PORT = '4566';
+const merge = require('./helpers/merge');
+const throttle = require('./helpers/throttle');
+const debounce = require('./helpers/debounce');
+const normalizeContent = require('./helpers/normalizeContent');
 
-class LocalstackPlugin {
-  constructor(serverless, options) {
+const getCurve = require('./visuals/getCurve');
+const getMode = require('./visuals/getMode');
+const getTheme = require('./visuals/getTheme');
+const getLine = require('./visuals/getLine');
+const getEditorHeight = require('./visuals/getEditorHeight');
+const createArrow = require('./visuals/createArrow');
 
-    this.serverless = serverless;
-    this.options = options;
+const ensureElement = require('./dom/ensureElement');
+const query = require('./dom/query');
+const C = require('./constants');
 
-    this.hooks = {};
-    // Define a before-hook for all event types
-    for (let event in this.serverless.pluginManager.hooks) {
-      const doAdd = event.startsWith('before:');
-      if (doAdd && !this.hooks[event]) {
-        this.hooks[event] = this.beforeEventHook.bind(this);
-      }
-    }
-    // Define a hook for aws:info to fix output data
-    this.hooks['aws:info:gatherData'] = this.fixOutputEndpoints.bind(this);
+// Range module placeholder
+let Range;
 
-    // Define a hook for deploy:deploy to fix handler location for mounted lambda
-    this.addHookInFirstPosition('deploy:deploy', this.patchTypeScriptPluginMountedCodeLocation);
-
-    // Add a before hook for aws:common:validate and make sure it is in the very first position
-    this.addHookInFirstPosition('before:aws:common:validate:validate', this.beforeEventHook);
-
-    this.awsServices = [
-      'acm',
-      'amplify',
-      'apigateway',
-      'apigatewayv2',
-      'application-autoscaling',
-      'appsync',
-      'athena',
-      'autoscaling',
-      'batch',
-      'cloudformation',
-      'cloudfront',
-      'cloudsearch',
-      'cloudtrail',
-      'cloudwatch',
-      'cloudwatchlogs',
-      'codecommit',
-      'cognito-idp',
-      'cognito-identity',
-      'docdb',
-      'dynamodb',
-      'dynamodbstreams',
-      'ec2',
-      'ecr',
-      'ecs',
-      'eks',
-      'elasticache',
-      'elasticbeanstalk',
-      'elb',
-      'elbv2',
-      'emr',
-      'es',
-      'events',
-      'firehose',
-      'glacier',
-      'glue',
-      'iam',
-      'iot',
-      'iotanalytics',
-      'iotevents',
-      'iot-data',
-      'iot-jobs-data',
-      'kafka',
-      'kinesis',
-      'kinesisanalytics',
-      'kms',
-      'lambda',
-      'logs',
-      'mediastore',
-      'neptune',
-      'organizations',
-      'qldb',
-      'rds',
-      'redshift',
-      'route53',
-      's3',
-      's3control',
-      'sagemaker',
-      'sagemaker-runtime',
-      'secretsmanager',
-      'ses',
-      'sns',
-      'sqs',
-      'ssm',
-      'stepfunctions',
-      'sts',
-      'timestream',
-      'transfer',
-      'xray',
-    ];
-
-    // Activate the synchronous parts of plugin config here in the constructor, but
-    // run the async logic in enablePlugin(..) later via the hooks.
-    this.activatePlugin(true);
-
-    // If we're using webpack, we need to make sure we retain the compiler output directory
-    if (this.detectTypescriptPluginType() === TS_PLUGIN_WEBPACK) {
-      const p = this.serverless.pluginManager.plugins.find((x) => x.constructor.name === TS_PLUGIN_WEBPACK);
-      if (
-        this.shouldMountCode() && (
-          !p ||
-          !p.serverless ||
-          !p.serverless.configurationInput ||
-          !p.serverless.configurationInput.custom ||
-          !p.serverless.configurationInput.custom.webpack ||
-          !p.serverless.configurationInput.custom.webpack.keepOutputDirectory
-        )
-      ) {
-        throw new Error('When mounting Lambda code, you must retain webpack output directory. '
-          + 'Set custom.webpack.keepOutputDirectory to true.');
-      }
-    }
+function getRangeModule(ace) {
+  if (ace.Range) {
+    return ace.Range;
   }
 
-  addHookInFirstPosition(eventName, hookFunction) {
-    this.serverless.pluginManager.hooks[eventName] = this.serverless.pluginManager.hooks[eventName] || [];
-    this.serverless.pluginManager.hooks[eventName].unshift(
-      { pluginName: 'LocalstackPlugin', hook: hookFunction.bind(this, eventName) });
+  const requireFunc = (ace.acequire || ace.require);
+  if (requireFunc) {
+    return requireFunc('ace/range');
   }
 
-  activatePlugin(preHooks) {
-    this.readConfig(preHooks);
-
-    if (this.pluginActivated || !this.isActive()) {
-      return Promise.resolve();
-    }
-
-    // Intercept Provider requests
-    if (!this.awsProviderRequest) {
-      const awsProvider = this.getAwsProvider();
-      this.awsProviderRequest = awsProvider.request.bind(awsProvider);
-      awsProvider.request = this.interceptRequest.bind(this);
-    }
-
-    // Reconfigure AWS clients
-    try {
-      this.reconfigureAWS();
-    } catch (e) {
-      // This can happen if we are executing in the plugin initialization context and
-      // the template variables have not been fully initialized yet
-      // (e.g., "Error: Profile ${self:custom.stage}Profile does not exist")
-      return;
-    }
-
-    // Patch plugin methods
-    this.skipIfMountLambda('Package', 'packageService')
-    function compileFunction(functionName) {
-      if (!this.shouldMountCode()) {
-        return compileFunction._functionOriginal.apply(null, arguments);
-      }
-      const functionObject = this.serverless.service.getFunction(functionName);
-      functionObject.package = functionObject.package || {};
-      functionObject.package.artifact = __filename;
-      return compileFunction._functionOriginal.apply(null, arguments).then(() => {
-        const resources = this.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-        Object.keys(resources).forEach(id => {
-          const res = resources[id];
-          if (res.Type === 'AWS::Lambda::Function') {
-            res.Properties.Code.S3Bucket = '__local__';
-            res.Properties.Code.S3Key = process.cwd();
-            if (process.env.LAMBDA_MOUNT_CWD) {
-              // Allow users to define a custom working directory for Lambda mounts.
-              // For example, when deploying a Serverless app in a Linux VM (that runs Docker) on a
-              // Windows host where the "-v <local_dir>:<cont_dir>" flag to "docker run" requires us
-              // to specify a "local_dir" relative to the Windows host file system that is mounted
-              // into the VM (e.g., "c:/users/guest/...").
-              res.Properties.Code.S3Key = process.env.LAMBDA_MOUNT_CWD;
-            }
-          }
-        });
-      });
-    }
-    this.skipIfMountLambda('AwsCompileFunctions', 'compileFunction', compileFunction);
-    this.skipIfMountLambda('AwsCompileFunctions', 'downloadPackageArtifacts');
-    this.skipIfMountLambda('AwsDeploy', 'extendedValidate');
-    this.skipIfMountLambda('AwsDeploy', 'uploadFunctionsAndLayers');
-    if (this.detectTypescriptPluginType()) {
-      this.skipIfMountLambda(this.detectTypescriptPluginType(), 'cleanup', null, [
-        'after:package:createDeploymentArtifacts', 'after:deploy:function:packageFunction']);
-    }
-
-    this.pluginActivated = true;
-  }
-
-  beforeEventHook() {
-    if (this.pluginEnabled) {
-      return Promise.resolve();
-    }
-
-    this.activatePlugin();
-
-    this.pluginEnabled = true;
-    return this.enablePlugin();
-  }
-
-  enablePlugin() {
-    // reconfigure AWS endpoints based on current stage variables
-    this.getStageVariable();
-
-    return this.startLocalStack().then(
-      () => {
-          this.patchServerlessSecrets();
-          this.patchS3BucketLocationResponse();
-      }
-    );
-  }
-
-  // Convenience method for detecting JS/TS transpiler
-  detectTypescriptPluginType() {
-    if (this.findPlugin(TS_PLUGIN_TSC)) return TS_PLUGIN_TSC
-    if (this.findPlugin(TS_PLUGIN_WEBPACK)) return TS_PLUGIN_WEBPACK
-    return undefined
-  }
-
-  // Convenience method for getting build directory of installed JS/TS transpiler
-  getTSBuildDir() {
-    const TS_PLUGIN = this.detectTypescriptPluginType()
-    if (TS_PLUGIN === TS_PLUGIN_TSC) return TYPESCRIPT_PLUGIN_BUILD_DIR_TSC
-    if (TS_PLUGIN === TS_PLUGIN_WEBPACK) return TYPESCRIPT_PLUGIN_BUILD_DIR_WEBPACK
-    return undefined
-  }
-
-  findPlugin(name) {
-    return this.serverless.pluginManager.plugins.find(p => p.constructor.name === name);
-  }
-
-  skipIfMountLambda(pluginName, functionName, overrideFunction, hookNames) {
-    const plugin = this.findPlugin(pluginName);
-    if (!plugin) {
-      this.log('Warning: Unable to find plugin named: ' + pluginName)
-      return;
-    }
-    if (!plugin[functionName]) {
-      this.log(`Unable to find function ${functionName} on plugin ${pluginName}`)
-      return;
-    }
-    const functionOriginal = plugin[functionName].bind(plugin);
-
-    function overrideFunctionDefault() {
-      if (this.shouldMountCode()) {
-        const fqn = pluginName + '.' + functionName;
-        this.log('Skip plugin function ' + fqn + ' (lambda.mountCode flag is enabled)');
-        return Promise.resolve();
-      }
-      return functionOriginal.apply(null, arguments);
-    }
-
-    overrideFunction = overrideFunction || overrideFunctionDefault;
-    overrideFunction._functionOriginal = functionOriginal;
-    const boundOverrideFunction = overrideFunction.bind(this);
-    plugin[functionName] = boundOverrideFunction;
-
-    // overwrite bound functions for specified hook names
-    (hookNames || []).forEach(
-      (hookName) => {
-        plugin.hooks[hookName] = boundOverrideFunction;
-        const slsHooks = this.serverless.pluginManager.hooks[hookName] || [];
-        slsHooks.forEach(
-          (hookItem) => {
-            if (hookItem.pluginName === pluginName) {
-              hookItem.hook = boundOverrideFunction;
-            }
-          }
-        );
-      }
-    );
-  }
-
-  readConfig(preHooks) {
-    if (this.configInitialized) {
-      return;
-    }
-
-    const localstackConfig = (this.serverless.service.custom || {}).localstack || {};
-    this.config = Object.assign({}, this.options, localstackConfig);
-
-    //Get the target deployment stage
-    this.config.stage = "";
-    this.config.options_stage = this.options.stage || undefined;
-
-    // read current stage variable - to determine whether to reconfigure AWS endpoints
-    this.getStageVariable();
-
-    // If the target stage is listed in config.stages use the serverless-localstack-plugin
-    // To keep default behavior if config.stages is undefined, then use serverless-localstack-plugin
-    this.endpoints = this.endpoints || this.config.endpoints || {};
-    this.endpointFile = this.config.endpointFile;
-    if (this.endpointFile && !this._endpointFileLoaded && this.isActive()) {
-      try {
-        this.loadEndpointsFromDisk(this.endpointFile);
-        this._endpointFileLoaded = true;
-      } catch (e) {
-        if (!this.endpointFile.includes('${')) {
-          throw e;
-        }
-        // Could be related to variable references not being resolved yet, and hence the endpoints file
-        // name looks something like "${env:ENDPOINT_FILE}" -> this readConfig() function is called multiple
-        // times from plugin hooks, hence we return here and expect that next time around it may work...
-        return;
-      }
-    }
-
-    this.configInitialized = this.configInitialized || !preHooks;
-  }
-
-  isActive() {
-    // Activate the plugin if either:
-    //   (1) the serverless stage (explicitly defined or default stage "dev") is included in the `stages` config; or
-    //   (2) serverless is invoked without a --stage flag (default stage "dev") and no `stages` config is provided
-    const effectiveStage = this.options.stage || this.config.stage || DEFAULT_STAGE;
-    const noStageUsed = this.config.stages === undefined && effectiveStage == DEFAULT_STAGE;
-    const includedInStages = this.config.stages && this.config.stages.includes(effectiveStage);
-    return noStageUsed || includedInStages;
-  }
-
-  shouldMountCode() {
-    return (this.config.lambda || {}).mountCode;
-  }
-
-  shouldRunDockerSudo() {
-    return (this.config.docker || {}).sudo;
-  }
-
-  getStageVariable() {
-    const customConfig = this.serverless.service.custom || {};
-    const providerConfig = this.serverless.service.provider || {};
-    this.debug('config.options_stage: ' + this.config.options_stage);
-    this.debug('serverless.service.custom.stage: ' + customConfig.stage);
-    this.debug('serverless.service.provider.stage: ' + providerConfig.stage);
-    this.config.stage = this.config.options_stage || customConfig.stage || providerConfig.stage;
-    this.debug('config.stage: ' + this.config.stage);
-  }
-
-  fixOutputEndpoints() {
-    if(!this.isActive()) {
-      return;
-    }
-    const plugin = this.findPlugin('AwsInfo');
-    const endpoints = plugin.gatheredData.info.endpoints || [];
-    const edgePort = this.getEdgePort();
-    endpoints.forEach((entry, idx) => {
-      // endpoint format for old Serverless versions
-      const regex = /[^\s:]*:\/\/([^.]+)\.execute-api[^/]+\/([^/]+)(\/.*)?/g;
-      const replace = `http://localhost:${edgePort}/restapis/$1/$2/_user_request_$3`;
-      entry = entry.replace(regex, replace);
-      // endpoint format for newer Serverless versions, e.g.:
-      //   - https://2e22431f.execute-api.us-east-1.localhost
-      //   - https://2e22431f.execute-api.us-east-1.localhost.localstack.cloud
-      //   - https://2e22431f.execute-api.us-east-1.amazonaws.com
-      const regex2 = /[^\s:]*:\/\/([^.]+)\.execute-api\.[^/]+(\/([^/]+)(\/.*)?)?/g;
-      const replace2 = `https://$1.execute-api.localhost.localstack.cloud:${edgePort}$2`;
-      endpoints[idx] = entry.replace(regex2, replace2);
-    });
-
-    // Replace ServerlessStepFunctions display
-    this.stepFunctionsReplaceDisplay()
-  }
-
-  /**
-   * Start the LocalStack container in Docker, if it is not running yet.
-   */
-  startLocalStack() {
-    if (!this.config.autostart) {
-      return Promise.resolve();
-    }
-
-    const getContainer = () => {
-      return exec('docker ps').then(
-        (stdout) => {
-          const exists = stdout.split('\n').filter((line) => line.indexOf('localstack/localstack') >= 0 || line.indexOf('localstack_localstack') >= 0);
-          if (exists.length) {
-            return exists[0].replace('\t', ' ').split(' ')[0];
-          }
-        }
-      )
-    };
-
-    const dockerStartupTimeoutMS = 1000 * 60 * 2;
-
-    const checkStatus = (containerID, timeout) => {
-      timeout = timeout || Date.now() + dockerStartupTimeoutMS;
-      if (Date.now() > timeout) {
-        this.log('Warning: Timeout when checking state of LocalStack container');
-        return;
-      }
-      return this.sleep(4000).then(() => {
-        this.log(`Checking state of LocalStack container ${containerID}`)
-        return exec(`docker logs "${containerID}"`).then(
-          (logs) => {
-            const ready = logs.split('\n').filter((line) => line.indexOf('Ready.') >= 0);
-            if (ready.length) {
-              return Promise.resolve();
-            }
-            return checkStatus(containerID, timeout);
-          }
-        );
-      });
-    }
-
-    const addNetworks = async (containerID) => {
-      if(this.config.networks) {
-        for(var network in this.config.networks) {
-          await exec(`docker network connect "${this.config.networks[network]}" ${containerID}`);
-        }
-      }
-      return containerID;
-    }
-    
-    return getContainer().then(
-      (containerID) => {
-        if(containerID) {
-          return;
-        }
-        this.log('Starting LocalStack in Docker. This can take a while.');
-        const cwd = process.cwd();
-        const env = this.clone(process.env);
-        env.DEBUG = '1';
-        env.LAMBDA_EXECUTOR = env.LAMBDA_EXECUTOR || 'docker';
-        env.LAMBDA_REMOTE_DOCKER = env.LAMBDA_REMOTE_DOCKER || '0';
-        env.DOCKER_FLAGS = (env.DOCKER_FLAGS || '') + ` -d -v ${cwd}:${cwd}`;
-        env.START_WEB = env.START_WEB || '0';
-        const maxBuffer = (+env.EXEC_MAXBUFFER)||50*1000*1000; // 50mb buffer to handle output
-        if (this.shouldRunDockerSudo()) {
-          env.DOCKER_CMD = 'sudo docker';
-        }
-        const options = {env: env, maxBuffer};
-        return exec('localstack start', options).then(getContainer)
-          .then((containerID) => addNetworks(containerID))
-          .then((containerID) => checkStatus(containerID));
-      }
-    );
-  }
-
-  /**
-   * Patch code location in case (1) serverless-plugin-typescript is
-   * used, and (2) lambda.mountCode is enabled.
-   */
-  patchTypeScriptPluginMountedCodeLocation() {
-    if (!this.shouldMountCode() || !this.detectTypescriptPluginType() || !this.isActive()) {
-      return;
-    }
-    const template = this.serverless.service.provider.compiledCloudFormationTemplate || {};
-    const resources = template.Resources || {};
-    Object.keys(resources).forEach(
-      (resName) => {
-        const resEntry = resources[resName];
-        if (resEntry.Type === 'AWS::Lambda::Function') {
-          resEntry.Properties.Handler = `${this.getTSBuildDir()}/${resEntry.Properties.Handler}`;
-        }
-      }
-    );
-  }
-
-  /**
-   * Patch S3 getBucketLocation invocation responses to return a
-   * valid response ("us-east-1") instead of the default value "localhost".
-   */
-  patchS3BucketLocationResponse() {
-    const providerRequest = (service, method, params) => {
-      const result = providerRequestOrig(service, method, params);
-      if (service === 'S3' && method === 'getBucketLocation') {
-        return result.then((res) => {
-          if (res.LocationConstraint === 'localhost') {
-            res.LocationConstraint = 'us-east-1';
-          }
-          return Promise.resolve(res);
-        })
-      }
-      return result;
-    };
-    const awsProvider = this.getAwsProvider();
-    const providerRequestOrig = awsProvider.request.bind(awsProvider);
-    awsProvider.request = providerRequest;
-  }
-
-  /**
-   * Patch the "serverless-secrets" plugin (if enabled) to use the local SSM service endpoint
-   */
-  patchServerlessSecrets() {
-    const slsSecretsAWS = this.findPlugin('ServerlessSecrets');
-    if (slsSecretsAWS) {
-      slsSecretsAWS.config.options.providerOptions = slsSecretsAWS.config.options.providerOptions || {};
-      slsSecretsAWS.config.options.providerOptions.endpoint = this.getServiceURL('ssm');
-      slsSecretsAWS.config.options.providerOptions.accessKeyId = 'test';
-      slsSecretsAWS.config.options.providerOptions.secretAccessKey = 'test';
-    }
-  }
-
-  /**
-   * Patch the AWS client library to use our local endpoint URLs.
-   */
-  reconfigureAWS() {
-    if(this.isActive()) {
-      this.log('Using serverless-localstack');
-      const host = this.config.host || 'http://localhost';
-      const edgePort = this.getEdgePort();
-      const configChanges = {};
-
-      // Configure dummy AWS credentials in the environment, to ensure the AWS client libs don't bail.
-      const awsProvider = this.getAwsProvider();
-      const tmpCreds = awsProvider.getCredentials();
-      if (!tmpCreds.credentials){
-        const accessKeyId = process.env.AWS_ACCESS_KEY_ID || 'test';
-        const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || 'test';
-        const fakeCredentials = new AWS.Credentials({accessKeyId, secretAccessKey});
-        configChanges.credentials = fakeCredentials;
-        // set environment variables, ...
-        process.env.AWS_ACCESS_KEY_ID = accessKeyId;
-        process.env.AWS_SECRET_ACCESS_KEY = secretAccessKey;
-        // ..., then populate cache with new credentials
-        awsProvider.cachedCredentials = null;
-        awsProvider.getCredentials();
-      }
-
-      // If a host has been configured, override each service
-      const localEndpoint = `${host}:${edgePort}`;
-      for (const service of this.awsServices) {
-        const serviceLower = service.toLowerCase();
-
-        this.debug(`Reconfiguring service ${service} to use ${localEndpoint}`);
-        configChanges[serviceLower] = { endpoint: localEndpoint };
-
-        if (serviceLower == 's3') {
-          configChanges[serviceLower].s3ForcePathStyle = true;
-        }
-      }
-
-      // Override specific endpoints if specified
-      if (this.endpoints) {
-        for (const service of Object.keys(this.endpoints)) {
-          const url = this.endpoints[service];
-          const serviceLower = service.toLowerCase();
-
-          this.debug(`Reconfiguring service ${service} to use ${url}`);
-          configChanges[serviceLower] = configChanges[serviceLower] || {};
-          configChanges[serviceLower].endpoint = url;
-        }
-      }
-
-      // update SDK with overridden configs
-      awsProvider.sdk.config.update(configChanges);
-      if (awsProvider.cachedCredentials) {
-        // required for compatibility with certain plugin, e.g., serverless-domain-manager
-        awsProvider.cachedCredentials.endpoint = localEndpoint;
-      }
-    }
-    else {
-      this.endpoints = {}
-      this.log("Skipping serverless-localstack:\ncustom.localstack.stages: " +
-        JSON.stringify(this.config.stages) + "\nstage: " + this.config.stage
-      )
-    }
-  }
-
-  /**
-   * Load endpoint URLs from config file, if one exists.
-   */
-  loadEndpointsFromDisk(endpointFile) {
-    let endpointJson;
-
-    this.debug('Loading endpointJson from ' + endpointFile);
-
-    try {
-      endpointJson = JSON.parse( fs.readFileSync(endpointFile) );
-    } catch(err) {
-      throw new ReferenceError(`Endpoint file "${this.endpointFile}" is invalid: ${err}`)
-    }
-
-    for (const key of Object.keys(endpointJson)) {
-      this.debug('Intercepting service ' + key);
-      this.endpoints[key] = endpointJson[key];
-    }
-  }
-
-  interceptRequest(service, method, params) {
-
-    // Enable the plugin here, if not yet enabled (the function call below is idempotent).
-    // TODO: It seems that we can potentially remove the hooks / plugin loading logic
-    //    entirely and only rely on activating the -> we should evaluate this, as it would
-    //    substantially simplify the code in this file.
-    this.beforeEventHook();
-
-    // Template validation is not supported in LocalStack
-    if (method == "validateTemplate") {
-      this.log('Skipping template validation: Unsupported in Localstack');
-      return Promise.resolve('');
-    }
-
-    if (AWS.config[service.toLowerCase()]) {
-      this.debug(`Using custom endpoint for ${service}: ${AWS.config[service.toLowerCase()].endpoint}`);
-
-      if (AWS.config['s3'] && params.TemplateURL) {
-        this.debug(`Overriding S3 templateUrl to ${AWS.config.s3.endpoint}`);
-        params.TemplateURL = params.TemplateURL.replace(/https:\/\/s3.amazonaws.com/, AWS.config['s3'].endpoint);
-      }
-    }
-
-    return this.awsProviderRequest(service, method, params);
-  }
-
-  /** Utility functions below **/
-
-  getEdgePort() {
-    return this.config.edgePort || DEFAULT_EDGE_PORT;
-  }
-
-  getAwsProvider() {
-    this.awsProvider = this.awsProvider || this.serverless.getProvider('aws');
-    return this.awsProvider;
-  }
-
-  getServiceURL() {
-    const proto = TRUE_VALUES.includes(process.env.USE_SSL) ? 'https' : 'http';
-    return `${proto}://localhost:${this.getEdgePort()}`;
-  }
-
-  log(msg) {
-    if (this.serverless.cli) {
-      this.serverless.cli.log.call(this.serverless.cli, msg);
-    }
-  }
-
-  debug(msg) {
-    if (this.config.debug) {
-      this.log(msg);
-    }
-  }
-
-  sleep(millis) {
-    return new Promise(resolve => setTimeout(resolve, millis));
-  }
-
-  clone(obj) {
-    return JSON.parse(JSON.stringify(obj));
-  }
-
-  stepFunctionsReplaceDisplay() {
-    const plugin = this.findPlugin('ServerlessStepFunctions');
-    if (plugin) {
-      const endpoint = this.getServiceURL()
-      plugin.originalDisplay = plugin.display;
-      plugin.localstackEndpoint = endpoint;
-
-      const newDisplay = function () {
-        const regex = /.*:\/\/([^.]+)\.execute-api[^/]+\/([^/]+)(\/.*)?/g;
-        let newEndpoint = this.localstackEndpoint +'/restapis/$1/$2/_user_request_$3'
-        if(this.endpointInfo) {
-          this.endpointInfo = this.endpointInfo.replace(regex, newEndpoint)
-        }
-        this.originalDisplay();
-      }
-
-      newDisplay.bind(plugin)
-      plugin.display = newDisplay;
-    }
-  }
-
+  return false;
 }
 
-module.exports = LocalstackPlugin;
+// our constructor
+function AceDiff(options = {}) {
+  // Ensure instance is a constructor with `new`
+  if (!(this instanceof AceDiff)) {
+    return new AceDiff(options);
+  }
+
+  // Current instance we pass around to other functions
+  const acediff = this;
+  const getDefaultAce = () => (window ? window.ace : undefined);
+
+  acediff.options = merge({
+    ace: getDefaultAce(),
+    mode: null,
+    theme: null,
+    element: null,
+    diffGranularity: C.DIFF_GRANULARITY_BROAD,
+    lockScrolling: false, // not implemented yet
+    showDiffs: true,
+    showConnectors: true,
+    maxDiffs: 5000,
+    left: {
+      id: null,
+      content: null,
+      mode: null,
+      theme: null,
+      editable: true,
+      copyLinkEnabled: true,
+    },
+    right: {
+      id: null,
+      content: null,
+      mode: null,
+      theme: null,
+      editable: true,
+      copyLinkEnabled: true,
+    },
+    classes: {
+      gutterID: 'acediff__gutter',
+      diff: 'acediff__diffLine',
+      connector: 'acediff__connector',
+      newCodeConnectorLink: 'acediff__newCodeConnector',
+      newCodeConnectorLinkContent: '&#8594;',
+      deletedCodeConnectorLink: 'acediff__deletedCodeConnector',
+      deletedCodeConnectorLinkContent: '&#8592;',
+      copyRightContainer: 'acediff__copy--right',
+      copyLeftContainer: 'acediff__copy--left',
+    },
+    connectorYOffset: 0,
+  }, options);
+
+  const { ace } = acediff.options;
+
+  if (!ace) {
+    const errMessage = 'No ace editor found nor supplied - `options.ace` or `window.ace` is missing';
+    console.error(errMessage);
+    return new Error(errMessage);
+  }
+
+  Range = getRangeModule(ace);
+  if (!Range) {
+    const errMessage = 'Could not require Range module for Ace. Depends on your bundling strategy, but it usually comes with Ace itself. See https://ace.c9.io/api/range.html, open an issue on GitHub ace-diff/ace-diff';
+    console.error(errMessage);
+    return new Error(errMessage);
+  }
+
+  if (acediff.options.element === null) {
+    const errMessage = 'You need to specify an element for Ace-diff - `options.element` is missing';
+    console.error(errMessage);
+    return new Error(errMessage);
+  }
+
+  if (acediff.options.element instanceof HTMLElement) {
+    acediff.el = acediff.options.element;
+  } else {
+    acediff.el = document.body.querySelector(acediff.options.element);
+  }
+
+  if (!acediff.el) {
+    const errMessage = `Can't find the specified element ${acediff.options.element}`;
+    console.error(errMessage);
+    return new Error(errMessage);
+  }
+
+  acediff.options.left.id = ensureElement(acediff.el, 'acediff__left');
+  acediff.options.classes.gutterID = ensureElement(acediff.el, 'acediff__gutter');
+  acediff.options.right.id = ensureElement(acediff.el, 'acediff__right');
+
+  acediff.el.innerHTML = `<div class="acediff__wrap">${acediff.el.innerHTML}</div>`;
+
+  // instantiate the editors in an internal data structure
+  // that will store a little info about the diffs and
+  // editor content
+  acediff.editors = {
+    left: {
+      ace: ace.edit(acediff.options.left.id),
+      markers: [],
+      lineLengths: [],
+    },
+    right: {
+      ace: ace.edit(acediff.options.right.id),
+      markers: [],
+      lineLengths: [],
+    },
+    editorHeight: null,
+  };
+
+
+  // set up the editors
+  acediff.editors.left.ace.getSession().setMode(getMode(acediff, C.EDITOR_LEFT));
+  acediff.editors.right.ace.getSession().setMode(getMode(acediff, C.EDITOR_RIGHT));
+  acediff.editors.left.ace.setReadOnly(!acediff.options.left.editable);
+  acediff.editors.right.ace.setReadOnly(!acediff.options.right.editable);
+  acediff.editors.left.ace.setTheme(getTheme(acediff, C.EDITOR_LEFT));
+  acediff.editors.right.ace.setTheme(getTheme(acediff, C.EDITOR_RIGHT));
+
+  acediff.editors.left.ace.setValue(normalizeContent(acediff.options.left.content), -1);
+  acediff.editors.right.ace.setValue(normalizeContent(acediff.options.right.content), -1);
+
+  // store the visible height of the editors (assumed the same)
+  acediff.editors.editorHeight = getEditorHeight(acediff);
+
+  // The lineHeight is set to 0 initially and we need to wait for another tick to get it
+  // Thus moving the diff() with it
+  setTimeout(() => {
+    // assumption: both editors have same line heights
+    acediff.lineHeight = acediff.editors.left.ace.renderer.lineHeight;
+
+    addEventHandlers(acediff);
+    createCopyContainers(acediff);
+    createGutter(acediff);
+    acediff.diff();
+  }, 1);
+}
+
+
+// our public API
+AceDiff.prototype = {
+
+  // allows on-the-fly changes to the AceDiff instance settings
+  setOptions(options) {
+    merge(this.options, options);
+    this.diff();
+  },
+
+  getNumDiffs() {
+    return this.diffs.length;
+  },
+
+  // exposes the Ace editors in case the dev needs it
+  getEditors() {
+    return {
+      left: this.editors.left.ace,
+      right: this.editors.right.ace,
+    };
+  },
+
+  // our main diffing function. I actually don't think this needs to exposed: it's called automatically,
+  // but just to be safe, it's included
+  diff() {
+    const dmp = new DiffMatchPatch();
+    const val1 = this.editors.left.ace.getSession().getValue();
+    const val2 = this.editors.right.ace.getSession().getValue();
+    const diff = dmp.diff_main(val2, val1);
+    dmp.diff_cleanupSemantic(diff);
+
+    this.editors.left.lineLengths = getLineLengths(this.editors.left);
+    this.editors.right.lineLengths = getLineLengths(this.editors.right);
+
+    // parse the raw diff into something a little more palatable
+    const diffs = [];
+    const offset = {
+      left: 0,
+      right: 0,
+    };
+
+    diff.forEach((chunk, index, array) => {
+      const chunkType = chunk[0];
+      let text = chunk[1];
+
+      // Fix for #28 https://github.com/ace-diff/ace-diff/issues/28
+      if (array[index + 1] && text.endsWith('\n') && array[index + 1][1].startsWith('\n')) {
+        text += '\n';
+        diff[index][1] = text;
+        diff[index + 1][1] = diff[index + 1][1].replace(/^\n/, '');
+      }
+
+      // oddly, occasionally the algorithm returns a diff with no changes made
+      if (text.length === 0) {
+        return;
+      }
+      if (chunkType === C.DIFF_EQUAL) {
+        offset.left += text.length;
+        offset.right += text.length;
+      } else if (chunkType === C.DIFF_DELETE) {
+        diffs.push(computeDiff(this, C.DIFF_DELETE, offset.left, offset.right, text));
+        offset.right += text.length;
+      } else if (chunkType === C.DIFF_INSERT) {
+        diffs.push(computeDiff(this, C.DIFF_INSERT, offset.left, offset.right, text));
+        offset.left += text.length;
+      }
+    }, this);
+
+    // simplify our computed diffs; this groups together multiple diffs on subsequent lines
+    this.diffs = simplifyDiffs(this, diffs);
+
+    // if we're dealing with too many diffs, fail silently
+    if (this.diffs.length > this.options.maxDiffs) {
+      return;
+    }
+
+    clearDiffs(this);
+    decorate(this);
+  },
+
+  destroy() {
+    // destroy the two editors
+    const leftValue = this.editors.left.ace.getValue();
+    this.editors.left.ace.destroy();
+    let oldDiv = this.editors.left.ace.container;
+    let newDiv = oldDiv.cloneNode(false);
+    newDiv.textContent = leftValue;
+    oldDiv.parentNode.replaceChild(newDiv, oldDiv);
+
+    const rightValue = this.editors.right.ace.getValue();
+    this.editors.right.ace.destroy();
+    oldDiv = this.editors.right.ace.container;
+    newDiv = oldDiv.cloneNode(false);
+    newDiv.textContent = rightValue;
+    oldDiv.parentNode.replaceChild(newDiv, oldDiv);
+
+    document.getElementById(this.options.classes.gutterID).innerHTML = '';
+    removeEventHandlers();
+  },
+};
+
+let removeEventHandlers = () => { };
+
+function addEventHandlers(acediff) {
+  acediff.editors.left.ace.getSession().on('changeScrollTop', throttle(() => { updateGap(acediff); }, 16));
+  acediff.editors.right.ace.getSession().on('changeScrollTop', throttle(() => { updateGap(acediff); }, 16));
+
+  const diff = acediff.diff.bind(acediff);
+  acediff.editors.left.ace.on('change', diff);
+  acediff.editors.right.ace.on('change', diff);
+
+  if (acediff.options.left.copyLinkEnabled) {
+    query.on(`#${acediff.options.classes.gutterID}`, 'click', `.${acediff.options.classes.newCodeConnectorLink}`, (e) => {
+      copy(acediff, e, C.LTR);
+    });
+  }
+  if (acediff.options.right.copyLinkEnabled) {
+    query.on(`#${acediff.options.classes.gutterID}`, 'click', `.${acediff.options.classes.deletedCodeConnectorLink}`, (e) => {
+      copy(acediff, e, C.RTL);
+    });
+  }
+
+  const onResize = debounce(() => {
+    acediff.editors.availableHeight = document.getElementById(acediff.options.left.id).offsetHeight;
+
+    // TODO this should re-init gutter
+    acediff.diff();
+  }, 250);
+
+  window.addEventListener('resize', onResize);
+  removeEventHandlers = () => {
+    window.removeEventListener('resize', onResize);
+  };
+}
+
+
+function copy(acediff, e, dir) {
+  const diffIndex = parseInt(e.target.getAttribute('data-diff-index'), 10);
+  const diff = acediff.diffs[diffIndex];
+  let sourceEditor;
+  let targetEditor;
+
+  let startLine;
+  let endLine;
+  let targetStartLine;
+  let targetEndLine;
+  if (dir === C.LTR) {
+    sourceEditor = acediff.editors.left;
+    targetEditor = acediff.editors.right;
+    startLine = diff.leftStartLine;
+    endLine = diff.leftEndLine;
+    targetStartLine = diff.rightStartLine;
+    targetEndLine = diff.rightEndLine;
+  } else {
+    sourceEditor = acediff.editors.right;
+    targetEditor = acediff.editors.left;
+    startLine = diff.rightStartLine;
+    endLine = diff.rightEndLine;
+    targetStartLine = diff.leftStartLine;
+    targetEndLine = diff.leftEndLine;
+  }
+
+  let contentToInsert = '';
+  for (let i = startLine; i < endLine; i += 1) {
+    contentToInsert += `${getLine(sourceEditor, i)}\n`;
+  }
+
+  // keep track of the scroll height
+  const h = targetEditor.ace.getSession().getScrollTop();
+  targetEditor.ace.getSession().replace(new Range(targetStartLine, 0, targetEndLine, 0), contentToInsert);
+  targetEditor.ace.getSession().setScrollTop(parseInt(h, 10));
+
+  acediff.diff();
+}
+
+
+function getLineLengths(editor) {
+  const lines = editor.ace.getSession().doc.getAllLines();
+  const lineLengths = [];
+  lines.forEach((line) => {
+    lineLengths.push(line.length + 1); // +1 for the newline char
+  });
+  return lineLengths;
+}
+
+
+// shows a diff in one of the two editors.
+function showDiff(acediff, editor, startLine, endLine, className) {
+  const editorInstance = acediff.editors[editor];
+
+  if (endLine < startLine) { // can this occur? Just in case.
+    endLine = startLine;
+  }
+
+  const classNames = `${className} ${(endLine > startLine) ? 'lines' : 'targetOnly'}`;
+
+  // to get Ace to highlight the full row we just set the start and end chars to 0 and 1
+  editorInstance.markers.push(
+    editorInstance.ace.session.addMarker(
+      new Range(
+        startLine,
+        0,
+        endLine - 1 /* because endLine is always + 1 */,
+        1,
+      ), classNames, 'fullLine',
+    ),
+  );
+}
+
+
+// called onscroll. Updates the gap to ensure the connectors are all lining up
+function updateGap(acediff) {
+  clearDiffs(acediff);
+  decorate(acediff);
+
+  // reposition the copy containers containing all the arrows
+  positionCopyContainers(acediff);
+}
+
+
+function clearDiffs(acediff) {
+  acediff.editors.left.markers.forEach((marker) => {
+    acediff.editors.left.ace.getSession().removeMarker(marker);
+  }, acediff);
+  acediff.editors.right.markers.forEach((marker) => {
+    acediff.editors.right.ace.getSession().removeMarker(marker);
+  }, acediff);
+}
+
+
+function addConnector(acediff, leftStartLine, leftEndLine, rightStartLine, rightEndLine) {
+  const leftScrollTop = acediff.editors.left.ace.getSession().getScrollTop();
+  const rightScrollTop = acediff.editors.right.ace.getSession().getScrollTop();
+
+  // All connectors, regardless of ltr or rtl
+  // have the same point system, even if p1 === p3 or p2 === p4
+  //  p1   p2
+  //
+  //  p3   p4
+
+  acediff.connectorYOffset = 1;
+
+  const p1_x = -1;
+  const p1_y = (leftStartLine * acediff.lineHeight) - leftScrollTop + 0.5;
+  const p2_x = acediff.gutterWidth + 1;
+  const p2_y = rightStartLine * acediff.lineHeight - rightScrollTop + 0.5;
+  const p3_x = -1;
+  const p3_y = (leftEndLine * acediff.lineHeight) - leftScrollTop + acediff.connectorYOffset + 0.5;
+  const p4_x = acediff.gutterWidth + 1;
+  const p4_y = (rightEndLine * acediff.lineHeight) - rightScrollTop + acediff.connectorYOffset + 0.5;
+  const curve1 = getCurve(p1_x, p1_y, p2_x, p2_y);
+  const curve2 = getCurve(p4_x, p4_y, p3_x, p3_y);
+
+  const verticalLine1 = `L${p2_x},${p2_y} ${p4_x},${p4_y}`;
+  const verticalLine2 = `L${p3_x},${p3_y} ${p1_x},${p1_y}`;
+  const d = `${curve1} ${verticalLine1} ${curve2} ${verticalLine2}`;
+
+  const el = document.createElementNS(C.SVG_NS, 'path');
+  el.setAttribute('d', d);
+  el.setAttribute('class', acediff.options.classes.connector);
+  acediff.gutterSVG.appendChild(el);
+}
+
+
+function addCopyArrows(acediff, info, diffIndex) {
+  if (info.leftEndLine > info.leftStartLine && acediff.options.left.copyLinkEnabled) {
+    const arrow = createArrow({
+      className: acediff.options.classes.newCodeConnectorLink,
+      topOffset: info.leftStartLine * acediff.lineHeight,
+      tooltip: 'Copy to right',
+      diffIndex,
+      arrowContent: acediff.options.classes.newCodeConnectorLinkContent,
+    });
+    acediff.copyRightContainer.appendChild(arrow);
+  }
+
+  if (info.rightEndLine > info.rightStartLine && acediff.options.right.copyLinkEnabled) {
+    const arrow = createArrow({
+      className: acediff.options.classes.deletedCodeConnectorLink,
+      topOffset: info.rightStartLine * acediff.lineHeight,
+      tooltip: 'Copy to left',
+      diffIndex,
+      arrowContent: acediff.options.classes.deletedCodeConnectorLinkContent,
+    });
+    acediff.copyLeftContainer.appendChild(arrow);
+  }
+}
+
+
+function positionCopyContainers(acediff) {
+  const leftTopOffset = acediff.editors.left.ace.getSession().getScrollTop();
+  const rightTopOffset = acediff.editors.right.ace.getSession().getScrollTop();
+
+  acediff.copyRightContainer.style.cssText = `top: ${-leftTopOffset}px`;
+  acediff.copyLeftContainer.style.cssText = `top: ${-rightTopOffset}px`;
+}
+
+
+/**
+ // eslint-disable-next-line max-len
+ * This method takes the raw diffing info from the Google lib and returns a nice clean object of the following
+ * form:
+ * {
+ *   leftStartLine:
+ *   leftEndLine:
+ *   rightStartLine:
+ *   rightEndLine:
+ * }
+ *
+ * Ultimately, that's all the info we need to highlight the appropriate lines in the left + right editor, add the
+ * SVG connectors, and include the appropriate <<, >> arrows.
+ *
+ * Note: leftEndLine and rightEndLine are always the start of the NEXT line, so for a single line diff, there will
+ * be 1 separating the startLine and endLine values. So if leftStartLine === leftEndLine or rightStartLine ===
+ * rightEndLine, it means that new content from the other editor is being inserted and a single 1px line will be
+ * drawn.
+ */
+function computeDiff(acediff, diffType, offsetLeft, offsetRight, diffText) {
+  let lineInfo = {};
+
+  // this was added in to hack around an oddity with the Google lib. Sometimes it would include a newline
+  // as the first char for a diff, other times not - and it would change when you were typing on-the-fly. This
+  // is used to level things out so the diffs don't appear to shift around
+  let newContentStartsWithNewline = /^\n/.test(diffText);
+
+  if (diffType === C.DIFF_INSERT) {
+    // pretty confident this returns the right stuff for the left editor: start & end line & char
+    var info = getSingleDiffInfo(acediff.editors.left, offsetLeft, diffText);
+
+    // this is the ACTUAL undoctored current line in the other editor. It's always right. Doesn't mean it's
+    // going to be used as the start line for the diff though.
+    var currentLineOtherEditor = getLineForCharPosition(acediff.editors.right, offsetRight);
+    var numCharsOnLineOtherEditor = getCharsOnLine(acediff.editors.right, currentLineOtherEditor);
+    const numCharsOnLeftEditorStartLine = getCharsOnLine(acediff.editors.left, info.startLine);
+    var numCharsOnLine = getCharsOnLine(acediff.editors.left, info.startLine);
+
+    // this is necessary because if a new diff starts on the FIRST char of the left editor, the diff can comes
+    // back from google as being on the last char of the previous line so we need to bump it up one
+    let rightStartLine = currentLineOtherEditor;
+    if (numCharsOnLine === 0 && newContentStartsWithNewline) {
+      newContentStartsWithNewline = false;
+    }
+    if (info.startChar === 0 && isLastChar(acediff.editors.right, offsetRight, newContentStartsWithNewline)) {
+      rightStartLine = currentLineOtherEditor + 1;
+    }
+
+    var sameLineInsert = info.startLine === info.endLine;
+
+    // whether or not this diff is a plain INSERT into the other editor, or overwrites a line take a little work to
+    // figure out. This feels like the hardest part of the entire script.
+    var numRows = 0;
+    if (
+
+      // dense, but this accommodates two scenarios:
+      // 1. where a completely fresh new line is being inserted in left editor, we want the line on right to stay a 1px line
+      // 2. where a new character is inserted at the start of a newline on the left but the line contains other stuff,
+      //    we DO want to make it a full line
+      (info.startChar > 0 || (sameLineInsert && diffText.length < numCharsOnLeftEditorStartLine))
+
+      // if the right editor line was empty, it's ALWAYS a single line insert [not an OR above?]
+      && numCharsOnLineOtherEditor > 0
+
+      // if the text being inserted starts mid-line
+      && (info.startChar < numCharsOnLeftEditorStartLine)) {
+      numRows++;
+    }
+
+    lineInfo = {
+      leftStartLine: info.startLine,
+      leftEndLine: info.endLine + 1,
+      rightStartLine,
+      rightEndLine: rightStartLine + numRows,
+    };
+  } else {
+    var info = getSingleDiffInfo(acediff.editors.right, offsetRight, diffText);
+
+    var currentLineOtherEditor = getLineForCharPosition(acediff.editors.left, offsetLeft);
+    var numCharsOnLineOtherEditor = getCharsOnLine(acediff.editors.left, currentLineOtherEditor);
+    const numCharsOnRightEditorStartLine = getCharsOnLine(acediff.editors.right, info.startLine);
+    var numCharsOnLine = getCharsOnLine(acediff.editors.right, info.startLine);
+
+    // this is necessary because if a new diff starts on the FIRST char of the left editor, the diff can comes
+    // back from google as being on the last char of the previous line so we need to bump it up one
+    let leftStartLine = currentLineOtherEditor;
+    if (numCharsOnLine === 0 && newContentStartsWithNewline) {
+      newContentStartsWithNewline = false;
+    }
+    if (info.startChar === 0 && isLastChar(acediff.editors.left, offsetLeft, newContentStartsWithNewline)) {
+      leftStartLine = currentLineOtherEditor + 1;
+    }
+
+    var sameLineInsert = info.startLine === info.endLine;
+    var numRows = 0;
+    if (
+
+      // dense, but this accommodates two scenarios:
+      // 1. where a completely fresh new line is being inserted in left editor, we want the line on right to stay a 1px line
+      // 2. where a new character is inserted at the start of a newline on the left but the line contains other stuff,
+      //    we DO want to make it a full line
+      (info.startChar > 0 || (sameLineInsert && diffText.length < numCharsOnRightEditorStartLine))
+
+      // if the right editor line was empty, it's ALWAYS a single line insert [not an OR above?]
+      && numCharsOnLineOtherEditor > 0
+
+      // if the text being inserted starts mid-line
+      && (info.startChar < numCharsOnRightEditorStartLine)) {
+      numRows++;
+    }
+
+    lineInfo = {
+      leftStartLine,
+      leftEndLine: leftStartLine + numRows,
+      rightStartLine: info.startLine,
+      rightEndLine: info.endLine + 1,
+    };
+  }
+
+  return lineInfo;
+}
+
+
+// helper to return the startline, endline, startChar and endChar for a diff in a particular editor. Pretty
+// fussy function
+function getSingleDiffInfo(editor, offset, diffString) {
+  const info = {
+    startLine: 0,
+    startChar: 0,
+    endLine: 0,
+    endChar: 0,
+  };
+  const endCharNum = offset + diffString.length;
+  let runningTotal = 0;
+  let startLineSet = false;
+  let endLineSet = false;
+
+  editor.lineLengths.forEach((lineLength, lineIndex) => {
+    runningTotal += lineLength;
+
+    if (!startLineSet && offset < runningTotal) {
+      info.startLine = lineIndex;
+      info.startChar = offset - runningTotal + lineLength;
+      startLineSet = true;
+    }
+
+    if (!endLineSet && endCharNum <= runningTotal) {
+      info.endLine = lineIndex;
+      info.endChar = endCharNum - runningTotal + lineLength;
+      endLineSet = true;
+    }
+  });
+
+  // if the start char is the final char on the line, it's a newline & we ignore it
+  if (info.startChar > 0 && getCharsOnLine(editor, info.startLine) === info.startChar) {
+    info.startLine++;
+    info.startChar = 0;
+  }
+
+  // if the end char is the first char on the line, we don't want to highlight that extra line
+  if (info.endChar === 0) {
+    info.endLine--;
+  }
+
+  const endsWithNewline = /\n$/.test(diffString);
+  if (info.startChar > 0 && endsWithNewline) {
+    info.endLine++;
+  }
+
+  return info;
+}
+
+
+// note that this and everything else in this script uses 0-indexed row numbers
+function getCharsOnLine(editor, line) {
+  return getLine(editor, line).length;
+}
+
+
+function getLineForCharPosition(editor, offsetChars) {
+  const lines = editor.ace.getSession().doc.getAllLines();
+  let foundLine = 0;
+  let runningTotal = 0;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    runningTotal += lines[i].length + 1; // +1 needed for newline char
+    if (offsetChars <= runningTotal) {
+      foundLine = i;
+      break;
+    }
+  }
+  return foundLine;
+}
+
+
+function isLastChar(editor, char, startsWithNewline) {
+  const lines = editor.ace.getSession().doc.getAllLines();
+  let runningTotal = 0;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    runningTotal += lines[i].length + 1; // +1 needed for newline char
+    let comparison = runningTotal;
+    if (startsWithNewline) {
+      comparison -= 1;
+    }
+
+    if (char === comparison) {
+      break;
+    }
+  }
+  return isLastChar;
+}
+
+function createGutter(acediff) {
+  acediff.gutterHeight = document.getElementById(acediff.options.classes.gutterID).clientHeight;
+  acediff.gutterWidth = document.getElementById(acediff.options.classes.gutterID).clientWidth;
+
+  const leftHeight = getTotalHeight(acediff, C.EDITOR_LEFT);
+  const rightHeight = getTotalHeight(acediff, C.EDITOR_RIGHT);
+  const height = Math.max(leftHeight, rightHeight, acediff.gutterHeight);
+
+  acediff.gutterSVG = document.createElementNS(C.SVG_NS, 'svg');
+  acediff.gutterSVG.setAttribute('width', acediff.gutterWidth);
+  acediff.gutterSVG.setAttribute('height', height);
+
+  document.getElementById(acediff.options.classes.gutterID).appendChild(acediff.gutterSVG);
+}
+
+// acediff.editors.left.ace.getSession().getLength() * acediff.lineHeight
+function getTotalHeight(acediff, editor) {
+  const ed = (editor === C.EDITOR_LEFT) ? acediff.editors.left : acediff.editors.right;
+  return ed.ace.getSession().getLength() * acediff.lineHeight;
+}
+
+// creates two contains for positioning the copy left + copy right arrows
+function createCopyContainers(acediff) {
+  acediff.copyRightContainer = document.createElement('div');
+  acediff.copyRightContainer.setAttribute('class', acediff.options.classes.copyRightContainer);
+  acediff.copyLeftContainer = document.createElement('div');
+  acediff.copyLeftContainer.setAttribute('class', acediff.options.classes.copyLeftContainer);
+
+  document.getElementById(acediff.options.classes.gutterID).appendChild(acediff.copyRightContainer);
+  document.getElementById(acediff.options.classes.gutterID).appendChild(acediff.copyLeftContainer);
+}
+
+
+function clearGutter(acediff) {
+  // gutter.innerHTML = '';
+
+  const gutterEl = document.getElementById(acediff.options.classes.gutterID);
+  gutterEl.removeChild(acediff.gutterSVG);
+
+  createGutter(acediff);
+}
+
+
+function clearArrows(acediff) {
+  acediff.copyLeftContainer.innerHTML = '';
+  acediff.copyRightContainer.innerHTML = '';
+}
+
+
+/*
+  * This combines multiple rows where, say, line 1 => line 1, line 2 => line 2, line 3-4 => line 3. That could be
+  * reduced to a single connector line 1=4 => line 1-3
+  */
+function simplifyDiffs(acediff, diffs) {
+  const groupedDiffs = [];
+
+  function compare(val) {
+    return (acediff.options.diffGranularity === C.DIFF_GRANULARITY_SPECIFIC) ? val < 1 : val <= 1;
+  }
+
+  diffs.forEach((diff, index) => {
+    if (index === 0) {
+      groupedDiffs.push(diff);
+      return;
+    }
+
+    // loop through all grouped diffs. If this new diff lies between an existing one, we'll just add to it, rather
+    // than create a new one
+    let isGrouped = false;
+    for (let i = 0; i < groupedDiffs.length; i += 1) {
+      if (compare(Math.abs(diff.leftStartLine - groupedDiffs[i].leftEndLine))
+        && compare(Math.abs(diff.rightStartLine - groupedDiffs[i].rightEndLine))) {
+        // update the existing grouped diff to expand its horizons to include this new diff start + end lines
+        groupedDiffs[i].leftStartLine = Math.min(diff.leftStartLine, groupedDiffs[i].leftStartLine);
+        groupedDiffs[i].rightStartLine = Math.min(diff.rightStartLine, groupedDiffs[i].rightStartLine);
+        groupedDiffs[i].leftEndLine = Math.max(diff.leftEndLine, groupedDiffs[i].leftEndLine);
+        groupedDiffs[i].rightEndLine = Math.max(diff.rightEndLine, groupedDiffs[i].rightEndLine);
+        isGrouped = true;
+        break;
+      }
+    }
+
+    if (!isGrouped) {
+      groupedDiffs.push(diff);
+    }
+  });
+
+  // clear out any single line diffs (i.e. single line on both editors)
+  const fullDiffs = [];
+  groupedDiffs.forEach((diff) => {
+    if (diff.leftStartLine === diff.leftEndLine && diff.rightStartLine === diff.rightEndLine) {
+      return;
+    }
+    fullDiffs.push(diff);
+  });
+
+  return fullDiffs;
+}
+
+
+function decorate(acediff) {
+  clearGutter(acediff);
+  clearArrows(acediff);
+
+  acediff.diffs.forEach((info, diffIndex) => {
+    if (acediff.options.showDiffs) {
+      showDiff(acediff, C.EDITOR_LEFT, info.leftStartLine, info.leftEndLine, acediff.options.classes.diff);
+      showDiff(acediff, C.EDITOR_RIGHT, info.rightStartLine, info.rightEndLine, acediff.options.classes.diff);
+
+      if (acediff.options.showConnectors) {
+        addConnector(acediff, info.leftStartLine, info.leftEndLine, info.rightStartLine, info.rightEndLine);
+      }
+      addCopyArrows(acediff, info, diffIndex);
+    }
+  }, acediff);
+}
+
+module.exports = AceDiff;
