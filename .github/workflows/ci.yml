@@ -1,56 +1,41 @@
-name: Node.js CI
+name: Node.js CI with LocalStack
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '16'
+      - name: Use Node.js 12
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
 
-    - name: Start LocalStack
-      run: |
-        docker run -d \
-          --name localstack \
-          -p 4566:4566 \
-          -e SERVICES=lambda,s3,cloudformation,logs \
-          -e DEBUG=1 \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          localstack/localstack
+      - name: Start LocalStack
+        run: |
+          docker pull localstack/localstack
+          docker run --rm -d -p 4566:4566 localstack/localstack
 
-    - name: Wait for LocalStack
-      run: |
-        for i in {1..30}; do
-          curl -s http://localhost:4566/_localstack/health && break
-          sleep 2
-        done
+      - name: Install dependencies
+        run: npm install
 
-    - name: Install dependencies
-      run: npm install
+      - name: Run lint and unit tests
+        run: |
+          set -e
+          npm run lint
+          npm run test
 
-    - name: Run linter
-      run: npm run lint
-
-    - name: Run unit tests
-      run: npm test
-
-    - name: Setup links for integration testing
-      run: npm link
-
-    - name: Run integration tests
-      env:
-        AWS_ACCESS_KEY_ID: test
-        AWS_SECRET_ACCESS_KEY: test
-        AWS_DEFAULT_REGION: us-east-1
-      run: |
-        SLS_DEBUG=1 npm run test:integration
+      - name: Run integration tests
+        run: |
+          npm link
+          sleep 5
+          SLS_DEBUG=1 npm run test:integration
