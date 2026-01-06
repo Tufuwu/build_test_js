@@ -22,7 +22,7 @@ jobs:
       - name: Install apt dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgconf-2-4
+
 
       - name: Install Cypress
         run: |
