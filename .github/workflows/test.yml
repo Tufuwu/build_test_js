@@ -30,7 +30,7 @@ jobs:
       - name: Link karma-jsom-launcher
         run: |
           if [ ! -e node_modules/karma-jsom-launcher ]; then 
-            ln -s ../ node_modules/karma-jsom-launcher
+            ln -s../ node_modules/karma-jsom-launcher
           fi
           # if [ ! -e node_modules/karma-jsom-launcher ]; then
           #   ln -s ../ node_modules/karma-jsom-launcher
