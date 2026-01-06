@@ -22,12 +22,13 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-
     - run: npm install
     - run: npm test
 
-    - name: Coveralls
-      if: success()
-      run: npm run coveralls
+    - name: Set up Coveralls
+      run: |
+        curl -sSL https://github.com/coveralls-clients/coveralls-node.js/raw/master/coveralls.js -o coveralls.js
+        node coveralls.js
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
