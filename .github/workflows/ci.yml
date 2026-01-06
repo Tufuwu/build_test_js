@@ -80,10 +80,8 @@ jobs:
           npm run lint
         fi
 
-    - name: Upload coverage to coveralls
-
-      run: |
-        if [[ -d .nyc_output ]]; then
-          npm install --save-dev coveralls@2.13.3
-          nyc report --reporter=text-lcov | coveralls
-        fi
+    - name: Upload code coverage
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        parallel-finished: true
