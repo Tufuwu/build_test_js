@@ -81,7 +81,7 @@ jobs:
         fi
 
     - name: Upload coverage to coveralls
-      if: success() && steps.run-tests.outputs.coverage == 'true'
+
       run: |
         if [[ -d .nyc_output ]]; then
           npm install --save-dev coveralls@2.13.3
