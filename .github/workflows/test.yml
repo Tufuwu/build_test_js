@@ -27,9 +27,11 @@ jobs:
       - name: Install jsdom and karma
         run: npm install jsdom@${{ matrix.jsdom-version }} karma@${{ matrix.karma-version }}
 
-      - name: Create symlink for karma-jsom-launcher
+      - name: Link karma-jsom-launcher
         run: |
-           ln -s../ node_modules/karma-jsom-launcher; fi
+          if [ ! -e node_modules/karma-jsom-launcher ]; then
+            ln -s ../ node_modules/karma-jsom-launcher
+          fi
 
       - name: Run tests
         run: npm test
