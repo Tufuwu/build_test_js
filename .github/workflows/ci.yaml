@@ -25,10 +25,10 @@ jobs:
     - run: npm install
     - run: npm test
 
-    - name: Set up Coveralls
+    - name: Upload coverage to Coveralls
+      if: success()
       run: |
-        curl -sSL https://github.com/coveralls-clients/coveralls-node.js/raw/master/coveralls.js -o coveralls.js
-        node coveralls.js
+        cat ./coverage/lcov-report/lcov-report.html | ./node_modules/coveralls/bin/coveralls.js
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
