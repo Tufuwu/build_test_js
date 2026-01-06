@@ -20,7 +20,12 @@ jobs:
         node-version: ${{ matrix.node_version }}
     - name: Install dependencies
       run: yarn install
-    - name: Install Playwright browsers
+    -
+      name: Install Playwright
       run: npx playwright install
-    - name: Build
+    -
+      name: Install Playwright browser
+      run: npx playwright install-deps
+    -
+      name: Run tests
       run: npm run build
