@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fats: false
       matrix:
-        node-version: [stable, 10, 8]
+        node-version: [ 10, 8]
 
     steps:
     - uses: actions/checkout@v2
