@@ -30,8 +30,9 @@ jobs:
 
       - name: Install Cypress binary
         run: |
-          ./node_modules/.bin/cypress install
+          npx cypress install
+
 
       - name: Run Cypress tests
         run: |
-          ./node_modules/.bin/cypress run
+          npx cypress run
