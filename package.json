@@ -1,36 +1,36 @@
 {
-  "name": "postcss-pseudo-classes",
-  "version": "0.4.0",
-  "description": "PostCSS plugin to convert pseudo-classes to classes for testing purposes",
-  "keywords": [
-    "postcss",
-    "css",
-    "postcss-plugin",
-    "css test",
-    "pseudo classes"
-  ],
-  "author": "Giuseppe Gurgone",
-  "license": "MIT",
+  "name": "portfinder",
+  "description": "A simple tool to find an open port on the current machine",
+  "version": "1.0.28",
+  "author": "Charlie Robbins <charlie.robbins@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/giuseppeg/postcss-pseudo-classes.git"
+    "url": "git@github.com:http-party/node-portfinder.git"
   },
-  "bugs": {
-    "url": "https://github.com/giuseppeg/postcss-pseudo-classes/issues"
-  },
-  "homepage": "https://github.com/giuseppeg/postcss-pseudo-classes",
-  "peerDependencies": {
-    "postcss": "^8.0.0"
+  "keywords": [
+    "http",
+    "ports",
+    "utilities"
+  ],
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "async": "^2.6.2",
+    "debug": "^3.1.1",
+    "mkdirp": "^0.5.5"
   },
   "devDependencies": {
-    "ava": "^2.0.0",
-    "eslint": "^6.0.0",
-    "postcss": "^8.4.31"
+    "glob": "^7.1.4",
+    "vows": "^0.8.2"
   },
+  "main": "./lib/portfinder",
+  "types": "./lib/portfinder.d.ts",
   "scripts": {
-    "test": "ava test/test.js && eslint *.js test/*.js"
+    "test": "vows test/*-test.js --spec"
   },
-  "files": [
-    "index.js"
-  ]
+  "engines": {
+    "node": ">= 0.12.0"
+  },
+  "license": "MIT"
 }
