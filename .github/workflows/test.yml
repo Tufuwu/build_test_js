@@ -29,7 +29,9 @@ jobs:
 
       - name: Link karma-jsom-launcher
         run: |
-          ln -s ../ node_modules/karma-jsom-launcher
+          if [! -e node_modules/karma-jsom-launcher ]; then 
+            ln -s../ node_modules/karma-jsom-launcher
+          fi
           
       - name: Run tests
         run: npm test
