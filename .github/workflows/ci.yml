@@ -20,9 +20,3 @@ jobs:
         run: npm install
       - name: Run tests
         run: DEBUG=* npm test
-      - name: Send notifications
-        uses: dawidd6/dist-github-notifications@v1
-        with:
-          notify: charlie.robbins@gmail.com,erik.trom.github@gmail.com
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
