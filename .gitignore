@@ -1,3 +1,5 @@
-node_modules
-npm-debug.log
-*.swp
+/examples/dist
+/node_modules
+/test/compiled
+package-lock.json
+yarn.lock
