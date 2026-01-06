@@ -1,129 +1,72 @@
-const alwaysLowercase = [
-	'a',
-	'an',
-	'and',
-	'at',
-	'but',
-	'by',
-	'for',
-	'in',
-	'nor',
-	'of',
-	'on',
-	'or',
-	'so',
-	'the',
-	'to',
-	'up',
-	'yet',
-	'v',
-	'v.',
-	'vs',
-	'vs.'
-];
+var jsdom = require("jsdom");
 
-const containers = new Set(['(', '[', '{', '"', `'`, '_']);
+function assign (destination, source) {
+  for (var key in source) {
+    if (source.hasOwnProperty(key)) {
+      destination[key] = source[key];
+    }
+  }
 
-const isEmail = /.+@.+\..+/;
-const isFilePath = /^(\/[\w.]+)+/;
-const isFileName = /^\w+\.\w{1,3}$/;
-const hasInternalCapital = /(?![‑–—-])[a-z]+[A-Z].*/;
-const hasHyphen = /[‑–—-]/g;
-
-function isUrl(url) {
-	try {
-		const parsed = new URL(url);
-		return Boolean(parsed.hostname);
-	} catch {
-		return false;
-	}
+  return destination;
 }
 
-function capitalize(string) {
-	if (string.length === 0) {
-		return string;
-	}
+var jsdomBrowser = function (baseBrowserDecorator, config) {
+  baseBrowserDecorator(this);
 
-	const letters = [...string];
-	const firstLetter = letters.shift();
+  var self = this;
+  
+  this.name = "jsdom";
 
-	if (containers.has(firstLetter)) {
-		return `${firstLetter}${capitalize(letters)}`;
-	}
+  this._start = function (url) {
+    self.window = null;
 
-	return `${firstLetter.toUpperCase()}${letters.join('')}`;
-}
+    if (jsdom.JSDOM) { // Indicate jsdom >= 10.0.0 and a new API
+      var virtualConsole = new jsdom.VirtualConsole();
+      virtualConsole.sendTo(console);
+      virtualConsole.removeAllListeners("clear");
 
-export default function titleCase(
-	string = '',
-	{ excludedWords = [], useDefaultExcludedWords = true, preserveWhitespace = false } = {}
-) {
-	if (string.toUpperCase() === string) {
-		string = string.toLowerCase();
-	}
+      var jsdomOptions = {
+        resources: "usable",
+        runScripts: "dangerously",
+        virtualConsole: virtualConsole
+      };
 
-	if (useDefaultExcludedWords) {
-		excludedWords.push(...alwaysLowercase);
-	}
+      if (config && config.jsdom) {
+        jsdomOptions = assign(jsdomOptions, config.jsdom);
+      }
 
-	const words = string.trim().split(/(\s+)/);
+      jsdom.JSDOM.fromURL(url, jsdomOptions).then(function (dom) {
+        self.window = dom.window;
+      });
+    } else {
+      var jsdomOptions = {
+        url: url,
+        features : {
+          FetchExternalResources: ["script", "iframe"],
+          ProcessExternalResources: ["script"]
+        },
+        created: function (error, window) {
+          self.window = window;
+        }
+      }
 
-	const capitalizedWords = words.map((word, index, array) => {
-		if (/\s+/.test(word)) {
-			return preserveWhitespace ? word : ' ';
-		}
+      if (config && config.jsdom) {
+        jsdomOptions = assign(jsdomOptions, config.jsdom);
+      }
 
-		if (
-			isEmail.test(word) ||
-			isUrl(word) ||
-			isFilePath.test(word) ||
-			isFileName.test(word) ||
-			hasInternalCapital.test(word)
-		) {
-			return word;
-		}
+      jsdom.env(jsdomOptions);
+    }
+  };
 
-		const hyphenMatch = word.match(hasHyphen);
+  this.on("kill", function (done) {
+    self.window && self.window.close();
+    self.emit("done");
+    process.nextTick(done);
+  });
+};
 
-		if (hyphenMatch) {
-			const isMultiPart = hyphenMatch.length > 1;
-			const [hyphenCharacter] = hyphenMatch;
+jsdomBrowser.$inject = ["baseBrowserDecorator", "config.jsdomLauncher"];
 
-			return word
-				.split(hyphenCharacter)
-				.map((subWord) => {
-					if (isMultiPart && excludedWords.includes(subWord.toLowerCase())) {
-						return subWord;
-					}
-
-					return capitalize(subWord);
-				})
-				.join(hyphenCharacter);
-		}
-
-		if (word.includes('/')) {
-			return word
-				.split('/')
-				.map((part) => capitalize(part))
-				.join('/');
-		}
-
-		const isFirstWord = index === 0;
-		const isLastWord = index === words.length - 1;
-		const previousWord = index > 1 ? array[index - 2] : '';
-		const startOfSubPhrase = index > 1 && previousWord.endsWith(':');
-
-		if (
-			!isFirstWord &&
-			!isLastWord &&
-			!startOfSubPhrase &&
-			excludedWords.includes(word.toLowerCase())
-		) {
-			return word.toLowerCase();
-		}
-
-		return capitalize(word);
-	});
-
-	return capitalizedWords.join('');
-}
+module.exports = {
+  "launcher:jsdom": ["type", jsdomBrowser]
+};

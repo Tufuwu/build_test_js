@@ -1,76 +1,117 @@
-# better-title-case
+# karma-jsdom-launcher
 
-> Convert a string to title case based on the [Daring Fireball](https://daringfireball.net/2008/05/title_case) rules.
-
-## Rules
-
-- If the string is all-caps, it will be corrected
-- The following words are not capitalized by default: a, an, and, at, but, by, for, in, nor, of, on, or, so, the, to, up, yet, v, v., vs, and vs.
-- Words with capital letters other than the first are assumed to be capitalized properly and are skipped
-- It also skips any word that looks like a file path, file name, or URL
-- The first and last word are always capitalized
-- Sub-strings (those that are within quotes or parens/braces) are capitalized according to the same rules
+> Launcher for [jsdom].
 
 ## Installation
 
-```
-$ npm install --save better-title-case
+```bash
+npm install karma-jsdom-launcher --save-dev
 ```
 
-## Usage
+*NOTE:* karma and jsdom are peerDependencies of this module. If you haven't install them, run
+
+```bash
+npm install karma-jsdom-launcher jsdom karma --save-dev
+```
+
+to install all your dependencies.
+
+## Configuration
+```js
+// karma.conf.js
+module.exports = function(config) {
+  config.set({
+    browsers: ['jsdom'],
+  });
+};
+```
+
+You can pass list of browsers as a CLI argument too:
+```bash
+karma start --browsers jsdom
+```
+
+You can pass options directly to jsdom as shown below. See jsdom's own
+documentation for all supported options.
 
 ```js
-import titleCase from 'better-title-case';
-console.log(titleCase('Nothing to Be Afraid of?'));
-// Nothing to Be Afraid Of?
+// karma.conf.js
+const jsdom = require("jsdom");
+
+module.exports = function(config) {
+  config.set({
+    browsers: ['jsdom'],
+
+    jsdomLauncher: {
+      jsdom: {
+        resources: new jsdom.ResourceLoader({
+          userAgent: "foobar",
+        })
+      }
+    }
+  });
+};
 ```
 
-## Advanced
+## FAQ
 
-You can configure `better-title-case` to add your own excluded words to the default list, or to prevent the use of the default list by passing a `config` object as the second parameter.
+### I am using Gulp and the test suite is not exiting
 
-### excludedWords
+This occurs due to lingering event handlers and it is currently an [unsolved
+issue][issue-4]. Meanwhile you have to explicitly exit the process yourself.
+This can be done by not passing a callback to Karma.Server or by invoking
+process.exit(), as shown below.
 
-Type: `[string]`<br>
-Default: `[]`
+```javascript
+var gulp = require('gulp');
+var Server = require('karma').Server;
 
-Additional words to exclude from capitalization.
-
-```js
-titleCase('Nothing to be afraid of?', {
-	excludedWords: ['be']
+gulp.task('test', function () {
+  new Server({
+    configFile: __dirname + '/karma.conf.js',
+    singleRun: true
+  }).start();
 });
-// 'Nothing to be Afraid Of?'
 ```
 
-### useDefaultExcludedWords
+```javascript
+var gulp = require('gulp');
+var Server = require('karma').Server;
 
-Type: `boolean`<br>
-Default: `true`
-
-Disable the usage of the default list of excluded words.
-
-```js
-titleCase('Nothing to be afraid of?', {
-	useDefaultExcludedWords: false
+gulp.task('test', function (done) {
+  new Server({
+    configFile: __dirname + '/karma.conf.js',
+    singleRun: true
+  }, function (exitCode) {
+    done();
+    process.exit(exitCode);
+  }).start();
 });
-// 'Nothing To Be Afraid Of?'
 ```
 
-### preserveWhitespace
+### I am using Angular CLI and the test suite hangs indefinitely
 
-Type: `boolean`<br>
-Default: `false`
+You might experience a [known issue][issue-27] where Karma attempts to perform
+a synchronous request, resulting in a deadlock. Disable use of source-maps in
+your tests, as shown below.
 
-Maintain extra whitespace between words. By default, all whitespace between words is collapsed to a single space.
+```
+// angular.json
 
-```js
-titleCase('Nothing  to be   afraid of?', {
-	preserveWhitespace: true
-});
-// 'Nothing  To Be   Afraid Of?'
+{
+  ...
+        "test": {
+          "options": {
+            "sourceMap": false
+
 ```
 
-## License
+----
 
-MIT © [Brad Dougherty](https://brad.is)
+For more information on Karma see the [homepage].
+
+
+[homepage]: http://karma-runner.github.com
+[jsdom]: https://github.com/tmpvar/jsdom
+[issue-4]: https://github.com/badeball/karma-jsdom-launcher/issues/4
+[issue-27]: https://github.com/badeball/karma-jsdom-launcher/issues/27
