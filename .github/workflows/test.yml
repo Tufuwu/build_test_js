@@ -30,9 +30,9 @@ jobs:
 
       - name: Install Cypress binary
         run: |
-          npx cypress install
+          $(npm bin)/cypress install
 
 
       - name: Run Cypress tests
         run: |
-          npx cypress run
+          $(npm bin)/cypress run
