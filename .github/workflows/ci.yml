@@ -22,9 +22,11 @@ jobs:
 
       - name: Start LocalStack
         run: |
+          pip install localstack awscli-local[ver1]
           docker pull localstack/localstack
-          docker run --rm -d -p 4566:4566 localstack/localstack
-
+          localstack start -d
+          localstack wait -t 30
+          
       - name: Install dependencies
         run: npm install
 
