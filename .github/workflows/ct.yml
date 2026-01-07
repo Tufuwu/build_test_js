@@ -18,11 +18,14 @@ jobs:
         with:
           node_js: '16'
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -qq libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev build-essential g++
-          sudo apt-get install -qq xvfb libgles2-mesa-dev libgbm-dev libxxf86vm-dev
+      - name: Update apt-get 🚀
+        run: sudo apt-get update -qq
+
+      - name: Install dependencies (Ubuntu) 🚀
+        run: >-
+          sudo apt-get install -qq libcairo2-dev libjpeg8-dev libpango1.0-dev
+          libgif-dev build-essential g++ xvfb libgles2-mesa-dev libgbm-dev
+          libxxf86vm-dev
 
       - name: Install dependencies
         run: npm install
@@ -34,5 +37,3 @@ jobs:
 
       - name: Run tests
         run: xvfb-run --server-args="-screen 0 1024x768x24" npm test
-        env:
-          CXX: g++-4.8
