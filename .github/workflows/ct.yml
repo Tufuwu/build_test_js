@@ -18,15 +18,11 @@ jobs:
         with:
           node_js: '16'
 
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -qq \
-            libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev \
-            build-essential g++-4.8 g++ xvfb libgles2-mesa-dev \
-            libgbm-dev libxxf86vm-dev
-        env:
-          CXX: g++-4.8
+          sudo apt-get install -qq libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev build-essential g++
+          sudo apt-get install -qq xvfb libgles2-mesa-dev libgbm-dev libxxf86vm-dev
 
       - name: Install dependencies
         run: npm install
