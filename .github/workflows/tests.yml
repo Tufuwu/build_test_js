@@ -2,34 +2,52 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [ master ]
   pull_request:
-    branches: [master]
+    branches: [ master ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16]
+        node-version: [ 16 ]
+
     services:
       mongodb:
-        image: mongo
+        image: mongo:4.0
         ports:
           - 27017:27017
+        options: >-
+          --health-cmd "mongo --eval 'db.adminCommand(\"ping\")'" --health-interval=10s --health-timeout=5s --health-retries=5
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+
       - name: Install dependencies
-        run: npm install
-      - name: Prepare test config
+        run: npm ci
+
+      - name: Copy test config
         run: cp config/test.sample.json config/test.json
-      - name: Start application
+
+      - name: Wait for MongoDB to be ready
+        run: |
+          echo "Waiting for MongoDB on localhost:27017..."
+          until nc -z localhost 27017; do
+            sleep 1
+          done
+          echo "MongoDB is up"
+
+      - name: Start application (background) and give it time to boot
         run: |
           NODE_ENV=test node index.js &
           sleep 5
+
       - name: Run CI
         run: make ci
