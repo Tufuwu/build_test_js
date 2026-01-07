@@ -1,89 +1,88 @@
-![tileserver-gl](https://cloud.githubusercontent.com/assets/59284/18173467/fa3aa2ca-7069-11e6-86b1-0f1266befeb6.jpeg)
+# Gearman Client and Worker
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/mreinstein/node-gearman.svg)](https://greenkeeper.io/)
+
+![tests](https://github.com/mreinstein/node-gearman/actions/workflows/main.yml/badge.svg)
 
 
-# TileServer GL
-[![Build Status](https://travis-ci.org/maptiler/tileserver-gl.svg?branch=master)](https://travis-ci.org/maptiler/tileserver-gl)
-[![Docker Hub](https://img.shields.io/badge/docker-hub-blue.svg)](https://hub.docker.com/r/maptiler/tileserver-gl/)
+### pros:
 
-Vector and raster maps with GL styles. Server-side rendering by MapLibre GL Native. Map tile server for MapLibre GL JS, Android, iOS, Leaflet, OpenLayers, GIS via WMTS, etc.
+* full implementation of worker and client
+* lean abstraction over raw gearman protocol
+* lots of unit tests
+* fast
+* small
+* fully interoperable with gearman clients and workers written in other languages
 
-Download vector tiles from [OpenMapTiles](https://data.maptiler.com/downloads/planet/).
-## Getting Started with Node
+### cons:
 
-Make sure you have Node.js version **14.20.0** or above installed. Node 16 is recommended. (running `node -v` it should output something like `v16.x.x`). Running without docker requires [Native dependencies](https://tileserver.readthedocs.io/en/latest/installation.html#npm) to be installed first.
+* lacks elegant high level abstractions for doing work. A bit more boilerplate to write
+* only supports 1 server connection per client/worker
 
-Install `tileserver-gl` with server-side raster rendering of vector tiles with npm. 
 
-```bash
-npm install -g tileserver-gl
+## usage
+[![NPM](https://nodei.co/npm/gearman.png)](https://nodei.co/npm/gearman/)
+
+
+
+## examples
+
+### create a client, create 1 job, and handle it's completion
+
+```javascript
+const gearman = require('gearman')
+
+let client = gearman("localhost", 4730 , {timeout: 3000})  // timeout in milliseconds. 
+
+// handle timeout 
+client.on('timeout', function() {
+	console.log('Timeout occurred')
+	client.close()
+})
+
+
+// handle finished jobs
+client.on('WORK_COMPLETE', function(job) {
+	console.log('job completed, result:', job.payload.toString())
+	client.close()
+})
+
+// connect to the gearman server
+client.connect(function() {
+	// submit a job to uppercase a string with normal priority in the foreground
+	client.submitJob('upper', 'Hello, World!')
+})
+	
 ```
 
-Once installed, you can use it like the following examples.
 
-using a mbtiles file
-```bash
-wget https://github.com/maptiler/tileserver-gl/releases/download/v1.3.0/zurich_switzerland.mbtiles
-tileserver-gl --mbtiles zurich_switzerland.mbtiles
-[in your browser, visit http://[server ip]:8080]
+### create a worker, register a function, and handle jobs
+
+```javascript
+const gearman = require('gearman')
+
+let worker = gearman('127.0.0.1', 4730)
+
+// handle jobs assigned by the server
+worker.on('JOB_ASSIGN', function(job) {
+	console.log(job.func_name + ' job assigned to this worker')
+	let result = job.payload.toString().toUpperCase()
+	// notify the server the job is done
+	worker.sendWorkComplete(job.handle, result)
+
+	// go back to sleep, telling the server we're ready for more work
+	worker.preSleep()
+});
+
+// grab a job when the server signals one is available
+worker.on('NOOP', function() {  worker.grabJob() })
+
+// connect to the gearman server	
+worker.connect(function(){
+	// register the functions this worker is capable of
+	worker.addFunction('upper')
+
+	// tell the server the worker is going to sleep, waiting for work
+	worker.preSleep()
+});
 ```
-
-using a config.json + style + mbtiles file
-```bash
-wget https://github.com/maptiler/tileserver-gl/releases/download/v1.3.0/test_data.zip
-unzip test_data.zip
-tileserver-gl
-[in your browser, visit http://[server ip]:8080]
-```
-
-Alternatively, you can use the `tileserver-gl-light` npm package instead, which is pure javascript, does not have any native dependencies, and can run anywhere, but does not contain rasterization on the server side made with Maplibre GL Native.
-
-## Getting Started with Docker
-
-An alternative to npm to start the packed software easier is to install [Docker](https://www.docker.com/) on your computer and then run from the tileserver-gl directory
-
-Example using a mbtiles file
-```bash
-wget https://github.com/maptiler/tileserver-gl/releases/download/v1.3.0/zurich_switzerland.mbtiles
-docker run --rm -it -v $(pwd):/data -p 8080:8080 maptiler/tileserver-gl --mbtiles zurich_switzerland.mbtiles
-[in your browser, visit http://[server ip]:8080]
-```
-
-Example using a config.json + style + mbtiles file
-```bash
-wget https://github.com/maptiler/tileserver-gl/releases/download/v1.3.0/test_data.zip
-unzip test_data.zip
-docker run --rm -it -v $(pwd):/data -p 8080:8080 maptiler/tileserver-gl
-[in your browser, visit http://[server ip]:8080]
-```
-
-Example using a different path
-```bash
-docker run --rm -it -v /your/local/config/path:/data -p 8080:8080 maptiler/tileserver-gl
-```
-replace '/your/local/config/path' with the path to your config file
-
-
-Alternatively, you can use the `maptiler/tileserver-gl-light` docker image instead, which is pure javascript, does not have any native dependencies, and can run anywhere, but does not contain rasterization on the server side made with Maplibre GL Native.
-
-## Getting Started with Linux cli
-
-Test from command line
-```bash
-wget https://github.com/maptiler/tileserver-gl/releases/download/v1.3.0/test_data.zip
-unzip -q test_data.zip -d test_data
-xvfb-run --server-args="-screen 0 1024x768x24" npm test
-```
-
-Run from command line
-```bash
-xvfb-run --server-args="-screen 0 1024x768x24" node .
-```
-
-## Documentation
-
-You can read the full documentation of this project at https://tileserver.readthedocs.io/.
-
-## Alternative
-
-Discover MapTiler Server if you need a [map server with easy setup and user-friendly interface](https://www.maptiler.com/server/).
-
