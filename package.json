@@ -1,36 +1,55 @@
 {
-  "name": "gearman",
-  "preferGlobal": false,
-  "version": "2.1.0",
-  "author": "Mike Reinstein <reinstein.mike@gmail.com>",
-  "contributors": [
-    "goelvivek"
+  "name": "pa11y-dashboard",
+  "version": "4.2.0",
+  "private": true,
+  "description": "Pa11y Dashboard is a visual web interface to the Pa11y accessibility reporter",
+  "keywords": [
+    "accessibility",
+    "analysis",
+    "report"
   ],
-  "description": "gearman client and worker library",
+  "author": "Team Pa11y",
+  "contributors": [
+    "Perry Harlock (http://www.phwebs.co.uk/)",
+    "Rowan Manning (http://rowanmanning.com/)"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/mreinstein/node-gearman"
+    "url": "https://github.com/pa11y/dashboard.git"
   },
-  "keywords": [
-    "gearman",
-    "javascript"
-  ],
+  "homepage": "https://github.com/pa11y/dashboard",
+  "bugs": "https://github.com/pa11y/dashboard/issues",
+  "license": "GPL-3.0",
+  "engines": {
+    "node": ">=12 <16"
+  },
   "dependencies": {
-    "binary": "0.3.x",
-    "debug": "^3.0.1",
-    "put": "0.0.x"
+    "body-parser": "~1.19.2",
+    "compression": "~1.7.4",
+    "express": "~4.17.3",
+    "express-hbs": "~2.4.0",
+    "http-headers": "~3.0.2",
+    "kleur": "~4.1.4",
+    "moment": "~2.29.1",
+    "morgan": "~1.10.0",
+    "nanoid": "~3.3.2",
+    "pa11y-webservice": "~4.0.1",
+    "pa11y-webservice-client-node": "~3.0.0",
+    "underscore": "~1.13.2"
   },
   "devDependencies": {
-    "tap": "^12.0.1"
+    "bower": "^1.8.13",
+    "cheerio": "^1.0.0-rc.10",
+    "eslint": "^7.27.0",
+    "less": "^3.11.1",
+    "mocha": "^8.4.0",
+    "pa11y-lint-config": "^2.0.0",
+    "proclaim": "^3.6.0",
+    "request": "^2.88.2",
+    "uglify-js": "^3.11.0"
   },
-  "main": "index.js",
   "scripts": {
-    "prepublish": "npm test",
-    "test": "tap tests/"
-  },
-  "noAnalyze": true,
-  "license": "MIT",
-  "engine": {
-    "node": ">=6"
+    "start": "node index.js",
+    "test": "make ci"
   }
 }

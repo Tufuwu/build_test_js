@@ -1,12 +1,12 @@
-# ignore those pesky files that Mac generates
-.DS_Store
 
-# ignore streamline temp files
-tmp--*
+# Config files
+config/development.json
+config/production.json
+config/test.json
 
+# Generated npm files
+node_modules
 npm-debug.log
 
-# ignore the node inclusion directory
-node_modules/
-
-package-lock.json
+# JetBrains IDE
+.idea
