@@ -33,7 +33,7 @@ jobs:
         run: >-
           sudo apt-get install -qq libcairo2-dev libjpeg8-dev libpango1.0-dev
           libgif-dev build-essential g++ xvfb libgles2-mesa-dev libgbm-dev
-          libxxf86vm-dev libicu66
+          libxxf86vm-dev libicu-dev
 
       - name: Setup node env 📦
         uses: actions/setup-node@v3
