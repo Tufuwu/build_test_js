@@ -10,25 +10,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [16]
-
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+    - name: Use Node.js
+      uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 'stable'
+        cache: 'npm'
 
-    - run: npm install
-    - run: npm test
+    - name: Install dependencies
+      run: npm install
 
-    # Corresponds to the `after_success` stage in Travis CI
-    # This action reads the coverage report and uploads it to Coveralls.
-    - name: Upload coverage to Coveralls
-      uses: coverallsapp/github-action@v2
-      with:
-        # The GITHUB_TOKEN is automatically created by GitHub Actions
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build
+      run: npm run build
+
+    - name: Test
+      run: npm test
+
+    - name: Upload coverage to Codecov
+      if: success()
+      run: npm run codecov
