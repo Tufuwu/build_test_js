@@ -25,10 +25,10 @@ jobs:
     - run: npm install
     - run: npm test
 
-    - name: Coveralls
-      if: success()
-      run: |
-        npm install -g nyc coveralls
-        nyc report --reporter=text-lcov | coveralls
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # Corresponds to the `after_success` stage in Travis CI
+    # This action reads the coverage report and uploads it to Coveralls.
+    - name: Upload coverage to Coveralls
+      uses: coverallsapp/github-action@v2
+      with:
+        # The GITHUB_TOKEN is automatically created by GitHub Actions
+        github-token: ${{ secrets.GITHUB_TOKEN }}
