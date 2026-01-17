@@ -1,206 +1,30 @@
-# i18n-zipcodes [![Build Status](https://travis-ci.org/sarcadass/i18n-zipcodes.svg?branch=master)](https://travis-ci.org/sarcadass/i18n-zipcodes) [![codecov](https://codecov.io/gh/sarcadass/i18n-zipcodes/branch/master/graph/badge.svg)](https://codecov.io/gh/sarcadass/i18n-zipcodes)
+[![Travis build status shield](https://img.shields.io/travis/cozy/cozy-home.svg?branch=master)](https://travis-ci.org/cozy/cozy-home)
+[![Github Release version shield](https://img.shields.io/github/tag/cozy/cozy-home.svg)](https://github.com/cozy/cozy-home/releases)
+[![NPM Licence shield](https://img.shields.io/npm/l/cozy-home.svg)](https://github.com/cozy/cozy-home/blob/master/LICENSE)
 
-International zipcodes validator in Javascript, based on Regex for Node.js and the browser.
+# [Cozy] Home
 
-## Install
+## What's Cozy?
 
-### For Node.js:
-```sh
-$ npm install i18n-zipcodes
-```
+![Cozy Logo](https://cdn.rawgit.com/cozy/cozy-guidelines/master/templates/cozy_logo_small.svg)
 
-### For the browser:
-* Download the script in the `dist` folder
+[Cozy][] is a platform that brings all your web services in the same private space. With it, your webapps and your devices can share data easily, providing you with a new experience. You can install Cozy on your own hardware where no one's tracking you.
 
+## What is Home ?
 
-## Usage
+An application to configure and runs cozy konnectors. It is the main entrypoint to a Cozy.
 
-```js
-i18nZipcodes(countryCode: string, zipCode: string): boolean
-// countryCode param is case insensitive
-```
+* Lists applications and konnectors
+* Manage konnectors and accounts through Harvest
+* Runs services that take care of synchronizing `io.cozy.accounts` and `io.cozy.ciphers`.
 
-### For Node.js
-```js
-// CommonJS Syntax
-const i18nZipcodes = require('i18n-zipcodes');
-// or ES Syntax
-import i18nZipcodes from 'i18n-zipcodes';
+You can read more:
 
-i18nZipcodes('US', '90210'); // true
+* [Develop](./docs/develop.md)
+* [Services](./docs/services.md)
 
-i18nZipcodes('fr', '5632'); // false
-```
+Cozy Home is developed by Cozy Cloud and distributed under the [AGPL v3 license][agpl-3.0].
 
-### For the browser
-```html
-<script src="i18n-zipcodes.min.js"></script>
-<script>
-    console.log(i18nZipcodes('fr', '75014')); // true
-</script>
-```
+[cozy]: https://cozy.io "Cozy Cloud"
+[agpl-3.0]: https://www.gnu.org/licenses/agpl-3.0.html
 
-
-## 115 Countries supported
-Country codes use the [ISO 3166-1](https://en.wikipedia.org/wiki/ISO_3166-1) format.
-
-### A
-- 🇦🇩 (`AD`) Andorra
-- 🇦🇲 (`AM`) Armenia
-- 🇦🇷 (`AR`) Argentina
-- 🇦🇸 (`AS`) American Samoa
-- 🇦🇹 (`AT`) Austria
-- 🇦🇺 (`AU`) Australia
-- 🇦🇿 (`AZ`) Azerbaijan
-
-### B
-- 🇧🇦 (`BA`) Bosnia and Herzegovina
-- 🇧🇩 (`BD`) Bangladesh
-- 🇧🇪 (`BE`) Belgium
-- 🇧🇬 (`BG`) Bulgaria
-- 🇧🇯 (`BJ`) Benin
-- 🇧🇲 (`BM`) Bermuda
-- 🇧🇳 (`BN`) Brunei
-- 🇧🇷 (`BR`) Brazil
-- 🇧🇾 (`BY`) Belarus
-
-### C
-- 🇨🇦 (`CA`) Canada
-- 🇨🇭 (`CH`) Switzerland
-- 🇨🇳 (`CN`) China
-- 🇨🇺 (`CU`) Cuba
-- 🇨🇽 (`CX`) Christmas Island
-- 🇨🇾 (`CY`) Cyprus
-- 🇨🇿 (`CZ`) Czechia
-
-### D
-- 🇩🇪 (`DE`) Germany
-- 🇩🇰 (`DK`) Denmark
-- 🇩🇿 (`DZ`) Algeria
-
-### E
-- 🇪🇪 (`EE`) Estonia
-- 🇪🇸 (`ES`) Spain
-
-### F
-- 🇫🇮 (`FI`) Finland
-- 🇫🇲 (`FM`) Micronesia
-- 🇫🇴 (`FO`) Faroe Islands
-- 🇫🇷 (`FR`) France
-
-### G
-- 🇬🇪 (`GE`) Georgia
-- 🇬🇫 (`GF`) French Guiana
-- 🇬🇱 (`GL`) Greenland
-- 🇬🇵 (`GP`) Guadeloupe
-- 🇬🇷 (`GR`) Greece
-- 🇬🇹 (`GT`) Guatemala
-- 🇬🇺 (`GU`) Guam
-- 🇬🇼 (`GW`) Guinea-Bissau
-
-### H
-- 🇭🇷 (`HR`) Croatia
-- 🇭🇺 (`HU`) Hungary
-
-### I
-- 🇮🇨 (`IC`) Canary Islands
-- 🇮🇩 (`ID`) Indonesia
-- 🇮🇪 (`IE`) Ireland
-- 🇮🇱 (`IL`) Israel
-- 🇮🇳 (`IN`) Inde
-- 🇮🇸 (`IS`) Iceland
-- 🇮🇹 (`IT`) Italy
-
-### J
-- 🇯🇵 (`JP`) Japan
-
-### K
-- 🇰🇪 (`KE`) Kenya
-- 🇰🇬 (`KG`) Kyrgyzstan
-- 🇰🇷 (`KR`) South Korea
-- 🇰🇼 (`KW`) Kuwait
-- 🇰🇿 (`KZ`) Kazakhstan
-
-### L
-- 🇱🇮 (`LI`) Liechtenstein
-- 🇱🇹 (`LT`) Lithuania
-- 🇱🇺 (`LU`) Luxembourg
-- 🇱🇻 (`LV`) Latvia
-
-### M
-- 🇲🇦 (`MA`) Morocco
-- 🇲🇩 (`MD`) Moldova
-- 🇲🇪 (`ME`) Montenegro
-- 🇲🇬 (`MG`) Madagascar
-- 🇲🇭 (`MH`) Marshall Islands
-- 🇲🇰 (`MK`) North Macedonia
-- 🇲🇲 (`MM`) Myanmar
-- 🇲🇳 (`MN`) Mongolia
-- 🇲🇵 (`MP`) Northern Mariana Islands
-- 🇲🇶 (`MQ`) Martinique
-- 🇲🇹 (`MT`) Malta
-- 🇲🇻 (`MV`) Maldives
-- 🇲🇽 (`MX`) Mexico
-- 🇲🇾 (`MY`) Malaysia
-- 🇲🇿 (`MZ`) Mozambique
-
-### N
-- 🇳🇱 (`NL`) Netherlands
-- 🇳🇴 (`NO`) Norway
-- 🇳🇿 (`NZ`) New Zealand
-
-### P
-- 🇵🇭 (`PH`) Philippines
-- 🇵🇰 (`PK`) Pakistan
-- 🇵🇱 (`PL`) Poland
-- 🇫🇷 (`PM`) Saint Pierre and Miquelon
-- 🇵🇷 (`PR`) Puerto Rico
-- 🇵🇸 (`PS`) Palestine
-- 🇵🇹 (`PT`) Portugal
-- 🇵🇼 (`PW`) Palau
-
-### R
-- 🇷🇪 (`RE`) Réunion
-- 🇷🇴 (`RO`) Romania
-- 🇷🇸 (`RS`) Serbia
-- 🇷🇺 (`RU`) Russian Federation
-
-### S
-- 🇸🇦 (`SA`) Saudi Arabia
-- 🇸🇩 (`SD`) Sudan
-- 🇸🇪 (`SE`) Sweden
-- 🇸🇬 (`SG`) Singapore
-- 🇸🇮 (`SI`) Slovenia
-- 🇸🇰 (`SK`) Slovakia
-- 🇸🇲 (`SM`) San Marino
-- 🇸🇿 (`SZ`) Swaziland
-
-### T
-- 🇹🇭 (`TH`) Thailand
-- 🇹🇯 (`TJ`) Tajikistan
-- 🇹🇲 (`TM`) Turkmenistan
-- 🇹🇳 (`TN`) Tunisia
-- 🇹🇷 (`TR`) Turkey
-- 🇹🇼 (`TW`) Taiwan
-
-### U
-- 🇺🇦 (`UA`) Ukraine
-- 🇬🇧 (`UK`) United Kingdom
-- 🇺🇸 (`US`) United States of America
-- 🇺🇾 (`UY`) Uruguay
-- 🇺🇿 (`UZ`) Uzbekistan
-
-### V
-- 🇻🇪 (`VE`) Venezuela
-- 🇻🇮 (`VI`) Virgin Islands (U.S.)
-- 🇻🇳 (`VN`) Viet Nam
-
-### X
-- 🇽🇰 (`XK`) Kosovo
-
-### Y
-- (`YU`) Yugoslavia
-
-### Z
-- 🇿🇦 (`ZA`) South Africa
-- 🇿🇲 (`ZM`) Zambia
