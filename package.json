@@ -1,50 +1,36 @@
 {
-  "name": "transportation",
-  "version": "1.2.35",
-  "description": "Import GTFS into a semantic model",
-  "main": "index.js",
-  "bin": {
-    "transportation": "bin/transportation"
-  },
-  "scripts": {
-    "standard": "standard && standard ./bin/*",
-    "tap": "tap --no-check-coverage ./test",
-    "test": "npm run standard && npm run tap && npm run test-cli",
-    "test-cli": "./bin/transportation --version && ./bin/transportation positions ./test/import/gtfs/data/generic"
-  },
+  "name": "postcss-pseudo-classes",
+  "version": "0.4.0",
+  "description": "PostCSS plugin to convert pseudo-classes to classes for testing purposes",
   "keywords": [
-    "GTFS",
-    "gtfs",
-    "transportation",
-    "transit",
-    "GeoJSON",
-    "geojson"
+    "postcss",
+    "css",
+    "postcss-plugin",
+    "css test",
+    "pseudo classes"
   ],
-  "author": "Falco Nogatz <fnogatz@gmail.com>",
+  "author": "Giuseppe Gurgone",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/fnogatz/transportation"
+    "url": "git+https://github.com/giuseppeg/postcss-pseudo-classes.git"
   },
-  "dependencies": {
-    "@turf/distance": "^6.3.0",
-    "@turf/length": "^6.3.0",
-    "@turf/nearest-point-on-line": "^6.3.0",
-    "async": "^3.0.1",
-    "char-spinner": "^1.0.1",
-    "commander": "^8.2.0",
-    "concat-stream": "^2.0.0",
-    "csv": "^5.5.0",
-    "geobuf": "^3.0.2",
-    "moment": "^2.29.1",
-    "require-all": "^3.0.0",
-    "tconsole": "^1.0.0",
-    "turf-featurecollection": "^1.0.1",
-    "turf-linestring": "^1.0.2",
-    "turf-point": "^2.0.0"
+  "bugs": {
+    "url": "https://github.com/giuseppeg/postcss-pseudo-classes/issues"
+  },
+  "homepage": "https://github.com/giuseppeg/postcss-pseudo-classes",
+  "peerDependencies": {
+    "postcss": "^8.0.0"
   },
   "devDependencies": {
-    "standard": "^16.0.3",
-    "tap": "^15.0.6"
-  }
+    "ava": "^2.0.0",
+    "eslint": "^6.0.0",
+    "postcss": "^8.4.31"
+  },
+  "scripts": {
+    "test": "ava test/test.js && eslint *.js test/*.js"
+  },
+  "files": [
+    "index.js"
+  ]
 }

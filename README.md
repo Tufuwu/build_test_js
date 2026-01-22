@@ -1,68 +1,92 @@
-# transportation
+# PostCSS Pseudo Classes [![Build Status][ci-img]][ci]
 
-Import [GTFS](https://developers.google.com/transit/gtfs/reference) data into a semantic model
+[PostCSS] plugin to automatically add in companion classes
+where pseudo-selectors are used.
+This allows you to add the class name to force the styling of a pseudo-selector,
+which can be really helpful for testing or being able
+to concretely reach all style states.
 
-![Screenshot](screenshot.png)
+[PostCSS]: https://github.com/postcss/postcss
+[ci-img]:  https://travis-ci.org/giuseppeg/postcss-pseudo-classes.svg
+[ci]:      https://travis-ci.org/giuseppeg/postcss-pseudo-classes
+
+### Credits
+
+This plugin is a port of [rework-pseudo-classes](https://github.com/SlexAxton/rework-pseudo-classes) written by [Alex Sexton](https://twitter.com/SlexAxton).
 
 ## Installation
 
-```sh
-npm install transportation
+```bash
+$ npm install postcss-pseudo-classes
 ```
 
-## Usage
+## Example
 
-```
-var Transit = require('transportation')
-var transit = new Transit()
+```js
+var pseudoclasses = require('postcss-pseudo-classes')({
+  // default contains `:root`.
+  blacklist: [],
 
-// import GTFS data
-transit.importGTFS('/path/to/gtfs/dir', function (err) {
-  // have a look at the Transit instance
-  console.log(transit)
-})
-```
+  // (optional) create classes for a restricted list of selectors
+  // N.B. the colon (:) is optional
+  restrictTo: [':nth-child', 'hover'],
 
-transportation provides a replacement for node's `console` by using [tconsole](https://www.npmjs.com/package/tconsole), so you can inspect the objects in the node.js REPL by using `require('transportation/console')`:
+  // default is `false`. If `true`, will output CSS
+  // with all combinations of pseudo styles/pseudo classes.
+  allCombinations: true,
 
-```
-> var konsole = require('transportation/console')
-> konsole(transit)
-┌────────────┬─────┐
-│ Agencies   │ SWU │
-├────────────┼─────┤
-│ # Stops    │ 773 │
-├────────────┼─────┤
-│ # Services │ 14  │
-├────────────┼─────┤
-│ # Shapes   │ 65  │
-└────────────┴─────┘
-> konsole(transit.agencies.SWU.routes)
-┌───────┬────────────┬───────────────────────────────────────────────┬─────────┐
-│ ID    │ Short Name │ Long Name                                     │ # Trips │
-├───────┼────────────┼───────────────────────────────────────────────┼─────────┤
-│ 87001 │ 1          │ Söflingen–Böfingen                            │ 613     │
-├───────┼────────────┼───────────────────────────────────────────────┼─────────┤
-│ 87003 │ 3          │ Wiblingen (Alte Siedlung)–Wissenschaftsstadt  │ 649     │
-├───────┼────────────┼───────────────────────────────────────────────┼─────────┤
-│ 87004 │ 4          │ Grimmelfingen–Kuhberg–Böfingen Süd            │ 590     │
-└───────┴────────────┴───────────────────────────────────────────────┴─────────┘
+  // default is `true`. If `false`, will generate
+  // pseudo classes for `:before` and `:after`
+  preserveBeforeAfter: false
+
+  // default is `\:`. It will be added to pseudo classes.
+  prefix: '\\:'
+});
+
+postcss([ pseudoclasses ])
+  .process(css)
+  .then(function (result) { console.log(result.css); });
 ```
 
-## Command Line
+### style.css
 
-```sh
-npm install -g transportation
+```css
+.some-selector:hover {
+  text-decoration: underline;
+}
 ```
 
-transportation provides a binary `transportation`. It supports the following commands.
+yields
 
-### Export Vehicles' Positions as GeoJSON
-
-Prints all vehicles' positions of a specific date as GeoJSON linestrings with time components:
-
-```sh
-transportation positions /path/to/gtfs/dir
+```css
+.some-selector:hover,
+.some-selector.\:hover {
+  text-decoration: underline;
+}
 ```
 
-By default multiple trips are simply newline-separated GeoJSON to support streaming. If you want to return a single JSON array use the `--array` flag. Additional options are available via `transportation positions --help`. The generated GeoJSON LineString has its `time` property set as an array of timestamps and is therefore compatible with tools like [LeafletPlayback](https://github.com/hallahan/LeafletPlayback) and [others](https://github.com/fnogatz/zeitpunkt#compatible-tools).
+### usage
+
+```html
+<button class="some-selector :hover">howdy</button>
+```
+
+## Edge cases
+
+* This plugin escapes parenthesis so `:nth-child(5)` would look like `.class.\:nth-child\(5\)` and can be used as a regular class: `<button class=":nth-child(5)">howdy</button>`.
+* Pseudo-selectors with two colons are ignored entirely since they're a slightly different thing.
+* Chained pseudo-selectors just become chained classes: `:focus:hover` becomes `.\:focus.\:hover`.
+
+## Tests
+
+```bash
+$ npm test
+```
+
+## Contributors
+
+[@ai](https://github.com/ai)
+
+## License
+
+(MIT)
