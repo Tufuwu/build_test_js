@@ -1,66 +1,104 @@
 {
-  "name": "nudged",
-  "version": "2.0.1-alpha",
-  "description": "Affine transformation estimator e.g. for multi-touch gestures and calibration",
+  "name": "repoman",
+  "description": "Multi-repository source code management command-line tool",
   "keywords": [
-    "geometry",
-    "transformation",
-    "scale",
-    "rotate",
-    "translate",
-    "pinch",
-    "math",
-    "affine",
-    "multitouch",
-    "gesture",
-    "estimator",
-    "estimation",
-    "similarity",
-    "calibration",
-    "layout"
+    "repository",
+    "scm",
+    "git",
+    "svn",
+    "command-line"
   ],
-  "homepage": "https://github.com/axelpale/nudged",
-  "main": "index.js",
-  "author": {
-    "name": "Akseli Palen",
-    "email": "akseli.palen@gmail.com"
+  "version": "1.6.0",
+  "homepage": "http://github.com/basti1302/repoman",
+  "author": "Cliffano Subagio <blah@cliffano.com> (http://blog.cliffano.com)",
+  "contributors": [
+    {
+      "name": "Bastian Krol",
+      "email": "bastian.krol@web.de"
+    },
+    {
+      "name": "Sterling Camden"
+    },
+    {
+      "name": "Stephen Steneker"
+    },
+    {
+      "name": "Andreas Houben"
+    },
+    "All contributors (https://github.com/basti1302/repoman/graphs/contributors)"
+  ],
+  "main": "./lib/repoman",
+  "bin": {
+    "repoman": "./bin/repoman"
   },
+  "preferGlobal": true,
   "repository": {
     "type": "git",
-    "url": "git://github.com/axelpale/nudged.git"
+    "url": "http://github.com/basti1302/repoman.git"
   },
-  "license": "MIT",
-  "devDependencies": {
-    "async": "^3.2.0",
-    "browserify": "^17.0.1",
-    "component-emitter": "^1.2.0",
-    "genversion": "^3.2.0",
-    "hammerjs": "^2.0.4",
-    "loadimages": "^1.0.0",
-    "lodash": "^4.17.21",
-    "standard": "^17.1.2",
-    "tap-arc": "^1.3.2",
-    "tape": "^5.2.2"
+  "bugs": {
+    "url": "http://github.com/basti1302/repoman/issues"
+  },
+  "directories": {
+    "bin": "./bin",
+    "lib": "./lib",
+    "test": "./test"
   },
   "scripts": {
-    "start": "npm run start:examples_server",
-    "start:examples_server": "python2.7 -m SimpleHTTPServer 8000",
-    "test": "npm run test:lint && npm run test:unit",
-    "test:unit": "node test/index.test.js | tap-arc",
-    "test:lint": "standard index.js 'lib/**/*.js' 'test/**/*.js'",
-    "test:lint:fix": "standard --fix index.js 'lib/**/*.js' 'test/**/*.js'",
-    "build:docs": "node doc/gendocs/index.js",
-    "gv": "genversion lib/version.js",
-    "release": "npm run gv && npm test && npm run build:docs && npm publish",
-    "test:nudged-editor": "standard --fix 'examples/nudged-editor/lib/*.js'",
-    "build:nudged-editor": "npm run test:nudged-editor && browserify examples/nudged-editor/lib/index.js -o examples/nudged-editor/dist/app.js",
-    "test:nudged-map": "standard --fix 'examples/nudged-map/lib/*.js'",
-    "build:nudged-map": "npm run test:nudged-map && browserify examples/nudged-map/lib/index.js -o examples/nudged-map/dist/app.js",
-    "test:nudged-gesture": "standard --fix 'examples/nudged-gesture/lib/*.js'",
-    "build:nudged-gesture": "npm run test:nudged-gesture && browserify examples/nudged-gesture/lib/index.js -o examples/nudged-gesture/dist/app.js",
-    "test:typical-gesture": "standard  --fix 'examples/typical-gesture/lib/*.js'",
-    "build:typical-gesture": "npm run test:typical-gesture && browserify examples/typical-gesture/lib/index.js -o examples/typical-gesture/dist/app.js",
-    "build:examples": "npm run build:nudged-editor && npm run build:nudged-gesture && npm run build:typical-gesture && npm run build:nudged-map",
-    "build:standalone": "browserify index.js --standalone nudged -o nudged.js"
-  }
+    "build": "npm run clean && npm run lint && npm run test:ci && npm run test-integration && npm run docs",
+    "clean": "rimraf .build",
+    "docs": "jsdoc --configure .jsdoc.json",
+    "lint": "eslint --ignore-path .gitignore --ext .js .",
+    "prettier": "prettier --write 'lib/**/*.js' 'conf/**/*.json' 'test/**/*.js' 'test-integration/**/*.json'",
+    "site": "ncp report.html.template .build/index.html && buildbranch gh-pages .build '' --no-verify",
+    "test": "is-ci test:ci test:local",
+    "test:ci": "jest --coverage",
+    "test:local": "jest --watch",
+    "test-integration": "cmdt --base-dir .build/test-integration/ run test-integration/",
+    "prepublishOnly": "npm run build",
+    "postpublish": "npm run site"
+  },
+  "dependencies": {
+    "@octokit/rest": "^14.0.9",
+    "async": "^2.6.3",
+    "bagofcli": "^1.1.0",
+    "bagofrequest": "^1.0.0",
+    "bitbucket-api": "^0.1.0",
+    "bluebird": "^3.5.5",
+    "cli-table": "^0.3.1",
+    "colors": "^1.4.0",
+    "commander": "^2.20.3",
+    "dotfile": "0.0.2",
+    "fs.extra": "^1.3.2",
+    "gitoriou.js": "^0.0.1",
+    "ini": "^1.3.5",
+    "lodash": "^4.17.20",
+    "mustache": "^2.3.2",
+    "prompt": "^1.0.0",
+    "prompts": "^2.4.0",
+    "svn-info": "^1.1.0"
+  },
+  "devDependencies": {
+    "buildbranch": "^2.0.1",
+    "chai": "^4.2.0",
+    "cmdt": "github:basti1302/cmdt#v1.0.2",
+    "eslint": "^7.14.0",
+    "eslint-plugin-jest": "^24.1.3",
+    "is-ci-cli": "^2.1.2",
+    "jest": "^26.6.3",
+    "jsdoc": "^3.6.6",
+    "mkdirp": "^0.5.5",
+    "mock-fs": "^4.13.0",
+    "ncp": "^2.0.0",
+    "nyc": "^11.9.0",
+    "plato": "^1.7.0",
+    "prettier": "^1.19.1",
+    "proxyquire": "^1.8.0",
+    "rimraf": "^2.7.1",
+    "sinon": "^4.5.0"
+  },
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "license": "MIT"
 }
