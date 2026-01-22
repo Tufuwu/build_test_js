@@ -6,7 +6,7 @@ name: CI (webpack 5)
 on:
   push:
     branches:
-      - master
+      - main
       - "feature/**"
   pull_request:
     branches: [ "*" ]
