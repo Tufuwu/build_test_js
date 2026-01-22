@@ -1,31 +1,42 @@
-const splitArrayIntoBatches = require('./lib/splitArrayIntoBatches');
+var schema = require('protocol-buffers-schema')
+var compile = require('./compile')
+var compileToJS = require('./compile-to-js')
 
+var flatten = function (values) {
+  if (!values) return null
+  var result = {}
+  Object.keys(values).forEach(function (k) {
+    result[k] = values[k].value
+  })
+  return result
+}
 
-module.exports = (tasks, concurrency, interval = 0, failFast = true) => {
-  const processBatches = (batches, prevResults = []) => {
-    if (!batches.length) {
-      return Promise.resolve(prevResults);
-    }
+module.exports = function (proto, opts) {
+  if (!opts) opts = {}
+  if (!proto) throw new Error('Pass in a .proto string or a protobuf-schema parsed object')
 
-    return Promise.all(
-      batches[0].map(fn => (failFast ? fn() : fn().catch(err => err))),
-    ).then((batchResults) => {
-      const results = [...prevResults, ...batchResults];
-      return (batches.length <= 1)
-        ? results
-        : new Promise((resolve, reject) => setTimeout(
-          () => processBatches(batches.slice(1), results).then(resolve, reject),
-          interval,
-        ));
-    });
-  };
+  var sch = (typeof proto === 'object' && !Buffer.isBuffer(proto)) ? proto : schema.parse(proto)
 
-  return processBatches(splitArrayIntoBatches(tasks, concurrency));
-};
+  // to not make toString,toJSON enumarable we make a fire-and-forget prototype
+  var Messages = function () {
+    var self = this
 
+    compile(sch, opts.encodings || {}, opts.inlineEnc).forEach(function (m) {
+      self[m.name] = flatten(m.values) || m
+    })
+  }
 
-// Exclude `createStream` method in basic build for browsers.
-if (!process.env.PACT_NO_STREAMS) {
-  // eslint-disable-next-line global-require
-  module.exports.createStream = require('./lib/createStream');
+  Messages.prototype.toString = function () {
+    return schema.stringify(sch)
+  }
+
+  Messages.prototype.toJSON = function () {
+    return sch
+  }
+
+  return new Messages()
+}
+
+module.exports.toJS = function (proto, opts) {
+  return compileToJS(module.exports(proto, { inlineEnc: true }), opts)
 }

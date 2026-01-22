@@ -1,115 +1,165 @@
-# Porch
+# protocol-buffers
 
-Process **promise-based** tasks in **series** and **parallel**, controlling
-**concurrency** and **throttling**.
+[Protocol Buffers](https://developers.google.com/protocol-buffers/) for Node.js
 
-[![Node.js CI](https://github.com/lupomontero/porch/actions/workflows/node.js.yml/badge.svg)](https://github.com/lupomontero/porch/actions/workflows/node.js.yml)
-[![Coverage Status](https://coveralls.io/repos/lupomontero/porch/badge.svg?branch=main)](https://coveralls.io/r/lupomontero/porch?branch=main)
-
-## Installation
-
-```sh
-npm install porch
+```
+npm install protocol-buffers
 ```
 
-## Usage / API
+[![build status](https://github.com/mafintosh/protocol-buffers/actions/workflows/test.yml/badge.svg)](https://github.com/mafintosh/protocol-buffers/actions/workflows/test.yml)
+![dat](http://img.shields.io/badge/Development%20sponsored%20by-dat-green.svg?style=flat)
 
-### `Promise porch(tasks, concurrency, interval, failFast)`
+## Usage
 
-#### Arguments
+Assuming the following `test.proto` file exists
 
-* `tasks` (`Array`): An array of `tasks`, where each _task_ is a function that
-  expects no arguments and will return a `Promise`.
-* `concurrency` (`Number`): Default: `1`. Maximum number of tasks to run
-  concurrently (in parallel).
-* `interval` (`Number`): Default: `0`. Interval between each _batch_ of
-  concurrent _tasks_.
-* `failFast` (`Boolean`): Default: `true`. Whether to bail out when one of the
-  promises fails. If set to `false` errors will be included in the results
-  passed to `then()` instead of being passed independently via the `catch()`
-  method.
+```proto
+enum FOO {
+  BAR = 1;
+}
 
-#### Return value
+message Test {
+  required float num  = 1;
+  required string payload = 2;
+}
 
-A `Promise` that will resolve to an array with the results for each _task_.
-Results will be in the same order as in the input _tasks_ array.
-
-#### Examples
-
-##### Series
-
-Process each task after the other, sequentially. Each task will wait for the
-previous one to complete. Concurrency set to `1` (one task at a time).
-
-```js
-const porch = require('porch');
-const tasks = users.map(user => () => auth.deleteUser(user.localId);
-
-porch(tasks)
-  .then(console.log)
-  .catch(console.error);
+message AnotherOne {
+  repeated FOO list = 1;
+}
 ```
 
-##### Batches
+Use the above proto file to encode/decode messages by doing
 
-Process _tasks_ in _batches_ based on a given _concurrency_. In this example
-_tasks_ will be processed in batches of 5 _tasks_ each. Each batch waits for the
-previous one to complete and then performs its tasks in parallel.
+``` js
+var protobuf = require('protocol-buffers')
 
-```js
-porch(tasks, 5)
-  .then(console.log)
-  .catch(console.error);
+// pass a proto file as a buffer/string or pass a parsed protobuf-schema object
+var messages = protobuf(fs.readFileSync('test.proto'))
+
+var buf = messages.Test.encode({
+  num: 42,
+  payload: 'hello world'
+})
+
+console.log(buf) // should print a buffer
 ```
 
-##### Throttled
+To decode a message use `Test.decode`
 
-Same as example above but adding a 1000ms delay between batches.
-
-```js
-porch(tasks, 5, 1000)
-  .then(console.log)
-  .catch(console.error);
+``` js
+var obj = messages.Test.decode(buf)
+console.log(obj) // should print an object similar to above
 ```
 
-##### failFast=false (don't bail out on errors)
+Enums are accessed in the same way as messages
 
-Same as above, but in this case if a promise fails, processing will continue
-instead of stopping the whole thing. When `failFast` is set to `false`, errors
-will appear as the value/result for the relevant element in the results array
-(failed tasks/promises won't end up in the `catch()` method).
-
-```js
-porch(tasks, 5, 1000, false)
-  .then(console.log)
+``` js
+var buf = messages.AnotherOne.encode({
+  list: [
+    messages.FOO.BAR
+  ]
+})
 ```
 
-### `stream.Readable porch.createStream(tasks, concurrency, interval, failFast)`
+Nested emums are accessed as properties on the corresponding message
 
-#### Arguments
-
-Same as [`porch()`](#arguments).
-
-#### Return value
-
-A readable stream (`stream.Readable`) instead of a `Promise`. Each result will
-be emitted as a data event and the stream will operate in `objectMode`.
-
-#### Examples
-
-##### Handling each event independently... (old school)
-
-```js
-porch.createStream(tasks, 5, 1000, false)
-  .on('error', err => console.error('error', err))
-  .on('data', data => console.log('data', data))
-  .on('end', _ => console.log('ended!'));
+``` js
+var buf = message.SomeMessage.encode({
+  list: [
+    messages.SomeMessage.NESTED_ENUM.VALUE
+  ]
+})
 ```
 
-##### Piping to a writable stream
+See the [Google Protocol Buffers docs](https://developers.google.com/protocol-buffers/) for more information about the
+available types etc.
 
-```js
-// This example assumes that tasks will resolve to string values so that the
-// resulting stream can be directly piped to stdout.
-porch.createStream(tasks, 5, 1000, false).pipe(process.stdout);
+## Compile to a file
+
+Since v4 you can now compile your schemas to a JavaScript file you can require from Node.
+This means you do not have runtime parse the schemas, which is useful if using in the browser or on embedded devices.
+It also makes the dependency footprint a lot smaller.
+
+``` sh
+# first install the cli tool
+npm install -g protocol-buffers
+
+# compile the schema
+protocol-buffers test.proto -o messages.js
+
+# then install the runtime dependency in the project
+npm install --save protocol-buffers-encodings
 ```
+
+That's it! Then in your application you can simply do
+
+``` js
+var messages = require('./messages')
+
+var buf = messages.Test.encode({
+  num: 42
+})
+```
+
+The compilation functionality is also available as a JavaScript API for programmatic use:
+
+``` js
+var protobuf = require('protocol-buffers')
+
+// protobuf.toJS() takes the same arguments as protobuf()
+var js = protobuf.toJS(fs.readFileSync('test.proto'))
+fs.writeFileSync('messages.js', js)
+```
+
+## Performance
+
+This module is fast.
+
+It uses code generation to build as fast as possible encoders/decoders for the protobuf schema.
+You can run the benchmarks yourself by doing `npm run bench`.
+
+On my Macbook Air it gives the following results
+
+```
+Benchmarking JSON (baseline)
+  Running object encoding benchmark...
+  Encoded 1000000 objects in 2142 ms (466853 enc/s)
+
+  Running object decoding benchmark...
+  Decoded 1000000 objects in 970 ms (1030928 dec/s)
+
+  Running object encoding+decoding benchmark...
+  Encoded+decoded 1000000 objects in 3131 ms (319387 enc+dec/s)
+
+Benchmarking protocol-buffers
+  Running object encoding benchmark...
+  Encoded 1000000 objects in 2089 ms (478698 enc/s)
+
+  Running object decoding benchmark...
+  Decoded 1000000 objects in 735 ms (1360544 dec/s)
+
+  Running object encoding+decoding benchmark...
+  Encoded+decoded 1000000 objects in 2826 ms (353857 enc+dec/s)
+```
+
+Note that JSON parsing/serialization in node is a native function that is *really* fast.
+
+## Leveldb encoding compatibility
+
+Compiled protocol buffers messages are valid levelup encodings.
+This means you can pass them as `valueEncoding` and `keyEncoding`.
+
+``` js
+var level = require('level')
+var db = level('db')
+
+db.put('hello', {payload:'world'}, {valueEncoding:messages.Test}, function(err) {
+  db.get('hello', {valueEncoding:messages.Test}, function(err, message) {
+    console.log(message)
+  })
+})
+```
+
+## License
+
+MIT

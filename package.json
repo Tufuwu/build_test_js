@@ -1,33 +1,54 @@
 {
-  "name": "porch",
-  "description": "Promise Orchestrator: Process promise-based tasks in series and parallel, controlling concurrency and throttling",
-  "version": "1.2.0",
-  "main": "./index.js",
-  "license": "MIT",
+  "name": "protocol-buffers",
+  "version": "4.2.0",
+  "description": "Protocol Buffers for Node.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lupomontero/porch.git"
+    "url": "https://github.com/mafintosh/protocol-buffers"
   },
-  "scripts": {
-    "pretest": "eslint .",
-    "test": "jest --coverage --verbose",
-    "coveralls": "cat ./coverage/lcov.info | coveralls",
-    "build:basic": "webpack --define process.env.PACT_NO_STREAMS=true --mode production --entry ./index.js -o ./dist/porch.basic.min.js --output-library porch --output-library-target umd",
-    "build:full": "webpack --mode production --entry ./index.js -o ./dist/porch.full.min.js --output-library porch --output-library-target umd",
-    "build": "npm run build:basic && npm run build:full"
+  "dependencies": {
+    "generate-function": "^2.0.0",
+    "generate-object-property": "^1.2.0",
+    "protocol-buffers-encodings": "^1.1.0",
+    "protocol-buffers-schema": "^3.1.1",
+    "signed-varint": "^2.0.0",
+    "varint": "^5.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.5",
-    "@babel/preset-env": "^7.16.11",
-    "coveralls": "^3.1.1",
-    "eslint": "^8.10.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.25.4",
-    "jest": "^27.5.1",
-    "webpack": "^5.70.0",
-    "webpack-cli": "^4.9.2"
+    "standard": "^10.0.3",
+    "tape": "^4.8.0"
   },
-  "engines": {
-    "node": ">=12"
-  }
+  "bin": {
+    "protocol-buffers": "./bin.js"
+  },
+  "scripts": {
+    "test": "standard && npm run test-generated && npm run test-compiled",
+    "test-generated": "tape test/*.js",
+    "test-compiled": "./bin.js test/test.proto -o test/helpers/compiled.js && COMPILED=true tape test/*.js",
+    "bench": "node bench"
+  },
+  "bugs": {
+    "url": "https://github.com/mafintosh/protocol-buffers/issues"
+  },
+  "homepage": "https://github.com/mafintosh/protocol-buffers",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "keywords": [
+    "protobuf",
+    "protocol",
+    "buffers",
+    "protocolbuffers",
+    "encode",
+    "decode",
+    "google",
+    "serialize",
+    "parse",
+    "levelup",
+    "encodings",
+    "encoding"
+  ],
+  "author": "Mathias Buus",
+  "license": "MIT"
 }
