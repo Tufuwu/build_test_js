@@ -1,5 +1,14 @@
 module.exports = {
-  clearMocks: true,
-  coverageProvider: 'v8',
-  testMatch: ['**/test/**/*.js']
-};
+  'roots': [
+    '<rootDir>/src'
+  ],
+  'collectCoverageFrom': [
+    'src/**/*.{js,jsx,ts}',
+    '!<rootDir>/node_modules/',
+    '!<rootDir>/path/to/dir/',
+    '!<rootDir>/dist/'
+  ],
+  'transform': {
+    '^.+\\.tsx?$': 'ts-jest'
+  }
+}

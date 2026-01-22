@@ -1,104 +1,65 @@
 {
-  "name": "repoman",
-  "description": "Multi-repository source code management command-line tool",
+  "name": "lrud",
+  "version": "8.0.0",
+  "description": "Left, Right, Up, Down. A spatial navigation library for devices with input via directional controls",
+  "main": "dist/cjs/index.min.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "homepage": "https://github.com/bbc/lrud",
+  "license": "Apache-2.0",
+  "files": [
+    "dist"
+  ],
   "keywords": [
-    "repository",
-    "scm",
-    "git",
-    "svn",
-    "command-line"
+    "tv",
+    "navigation",
+    "tv-apps",
+    "react",
+    "react-tv",
+    "focus",
+    "focus management",
+    "spatial navigation",
+    "smart tv"
   ],
-  "version": "1.6.0",
-  "homepage": "http://github.com/basti1302/repoman",
-  "author": "Cliffano Subagio <blah@cliffano.com> (http://blog.cliffano.com)",
-  "contributors": [
-    {
-      "name": "Bastian Krol",
-      "email": "bastian.krol@web.de"
-    },
-    {
-      "name": "Sterling Camden"
-    },
-    {
-      "name": "Stephen Steneker"
-    },
-    {
-      "name": "Andreas Houben"
-    },
-    "All contributors (https://github.com/basti1302/repoman/graphs/contributors)"
-  ],
-  "main": "./lib/repoman",
-  "bin": {
-    "repoman": "./bin/repoman"
-  },
-  "preferGlobal": true,
   "repository": {
     "type": "git",
-    "url": "http://github.com/basti1302/repoman.git"
-  },
-  "bugs": {
-    "url": "http://github.com/basti1302/repoman/issues"
-  },
-  "directories": {
-    "bin": "./bin",
-    "lib": "./lib",
-    "test": "./test"
-  },
-  "scripts": {
-    "build": "npm run clean && npm run lint && npm run test:ci && npm run test-integration && npm run docs",
-    "clean": "rimraf .build",
-    "docs": "jsdoc --configure .jsdoc.json",
-    "lint": "eslint --ignore-path .gitignore --ext .js .",
-    "prettier": "prettier --write 'lib/**/*.js' 'conf/**/*.json' 'test/**/*.js' 'test-integration/**/*.json'",
-    "site": "ncp report.html.template .build/index.html && buildbranch gh-pages .build '' --no-verify",
-    "test": "is-ci test:ci test:local",
-    "test:ci": "jest --coverage",
-    "test:local": "jest --watch",
-    "test-integration": "cmdt --base-dir .build/test-integration/ run test-integration/",
-    "prepublishOnly": "npm run build",
-    "postpublish": "npm run site"
-  },
-  "dependencies": {
-    "@octokit/rest": "^14.0.9",
-    "async": "^2.6.3",
-    "bagofcli": "^1.1.0",
-    "bagofrequest": "^1.0.0",
-    "bitbucket-api": "^0.1.0",
-    "bluebird": "^3.5.5",
-    "cli-table": "^0.3.1",
-    "colors": "^1.4.0",
-    "commander": "^2.20.3",
-    "dotfile": "0.0.2",
-    "fs.extra": "^1.3.2",
-    "gitoriou.js": "^0.0.1",
-    "ini": "^1.3.5",
-    "lodash": "^4.17.20",
-    "mustache": "^2.3.2",
-    "prompt": "^1.0.0",
-    "prompts": "^2.4.0",
-    "svn-info": "^1.1.0"
+    "url": "git@github.com:bbc/lrud.git"
   },
   "devDependencies": {
-    "buildbranch": "^2.0.1",
-    "chai": "^4.2.0",
-    "cmdt": "github:basti1302/cmdt#v1.0.2",
-    "eslint": "^7.14.0",
-    "eslint-plugin-jest": "^24.1.3",
-    "is-ci-cli": "^2.1.2",
+    "@types/jest": "^26.0.22",
+    "@typescript-eslint/eslint-plugin": "^4.19.0",
+    "@typescript-eslint/parser": "^4.19.0",
+    "eslint": "^7.22.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1",
     "jest": "^26.6.3",
-    "jsdoc": "^3.6.6",
-    "mkdirp": "^0.5.5",
-    "mock-fs": "^4.13.0",
-    "ncp": "^2.0.0",
-    "nyc": "^11.9.0",
-    "plato": "^1.7.0",
-    "prettier": "^1.19.1",
-    "proxyquire": "^1.8.0",
-    "rimraf": "^2.7.1",
-    "sinon": "^4.5.0"
+    "rimraf": "^2.6.2",
+    "rollup": "^1.25.1",
+    "rollup-plugin-commonjs": "^9.1.2",
+    "rollup-plugin-node-resolve": "^4.2.4",
+    "rollup-plugin-typescript": "^1.0.1",
+    "rollup-plugin-typescript2": "^0.30.0",
+    "rollup-plugin-uglify": "^6.0.4",
+    "ts-jest": "^26.5.4",
+    "tslib": "^2.1.0",
+    "typescript": "^4.2.3"
   },
-  "engines": {
-    "node": ">= 4.0.0"
+  "dependencies": {
+    "mitt": "^1.2.0"
   },
-  "license": "MIT"
+  "scripts": {
+    "preversion": "npm test",
+    "postversion": "git push && git push --tags",
+    "clean": "rimraf dist",
+    "lint": "eslint src/*.ts src/**/*.ts",
+    "test": "npm run build && jest",
+    "test:verbose": "jest --verbose",
+    "test:coverage": "jest --coverage",
+    "prepare": "npm run build",
+    "prebuild": "npm run clean",
+    "build": "rollup -c",
+    "watch": "npm run build -- -w"
+  }
 }

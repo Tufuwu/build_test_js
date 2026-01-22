@@ -1,9 +1,0 @@
-{
-  "source": {
-    "include": [ "lib" ]
-  },
-  "opts": {
-    "destination": ".build/docs",
-    "recurse": true
-  }
-}

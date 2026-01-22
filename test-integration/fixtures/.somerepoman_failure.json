@@ -1,6 +1,0 @@
-{
-  "foobar": {
-    "type": "git",
-    "url": "http://someinexistinghost/someinexistinguser/someinexistingrepo"
-  }
-}
