@@ -1,72 +1,103 @@
-# cesium-webpack-example
+Cloudinary Node SDK
+=========================
+## About
+The Cloudinary Node SDK allows you to quickly and easily integrate your application with Cloudinary.
+Effortlessly optimize, transform, upload and manage your cloud's assets.
 
-A minimal recommended setup for an applications using [Cesium](https://cesium.com) with [Webpack](https://webpack.js.org/concepts/).
 
-[![Build Status](https://travis-ci.org/CesiumGS/cesium-webpack-example.svg?branch=using-custom-loader)](https://travis-ci.org/CesiumGS/cesium-webpack-example)
+#### Note
+This Readme provides basic installation and usage information. 
+For the complete documentation, see the [Node SDK Guide](https://cloudinary.com/documentation/node_integration).
 
-## Running this application
+## Table of Contents
+- [Key Features](#key-features)
+- [Version Support](#Version-Support)
+- [Installation](#installation)
+- [Usage](#usage)
+    - [Setup](#Setup)
+    - [Transform and Optimize Assets](#Transform-and-Optimize-Assets)
+    - [Generate Image and HTML Tags](#Generate-Image-and-Video-HTML-Tags)
 
-````sh
-npm install
-npm start
-````
 
-Navigate to `localhost:8080`.
+## Key Features
+- [Transform](https://cloudinary.com/documentation/node_video_manipulation#video_transformation_examples) and
+ [optimize](https://cloudinary.com/documentation/node_image_manipulation#image_optimizations) assets.
+- Generate [image](https://cloudinary.com/documentation/node_image_manipulation#deliver_and_transform_images) and
+ [video](https://cloudinary.com/documentation/node_video_manipulation#video_element) tags.
+- [Asset Management](https://cloudinary.com/documentation/node_asset_administration).
+- [Secure URLs](https://cloudinary.com/documentation/video_manipulation_and_delivery#generating_secure_https_urls_using_sdks).
 
-### Available scripts
 
-* `npm start` - Runs a webpack build with `webpack.config.js` and starts a development server
-* `npm run build` - Runs a webpack build with `webpack.config.js`
 
-## Requiring Cesium in your application
+## Version Support
+| SDK Version | Node version |
+|-------------|--------------|
+| 1.x.x       | Node@6 & up  |
+| 2.x.x       | Node@9 & up  |
 
-We recommend [importing named exports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) from the Cesium ES module, via the `import` keyword. This allows webpack to [tree shake](https://webpack.js.org/guides/tree-shaking/) your application automatically.
+## Installation
+```bash
+npm install cloudinary
+```
 
-### Import named modules from Cesium
+# Usage
+### Setup
+```js
+// Require the Cloudinary library
+const cloudinary = require('cloudinary').v2
+```
 
-````js
-import { Color } from 'cesium';
-var c = Color.fromRandom();
-````
+### Transform and Optimize Assets
+- [See full documentation](https://cloudinary.com/documentation/node_image_manipulation).
 
-### Import Cesium static asset files
+```js
+cloudinary.url("sample.jpg", {width: 100, height: 150, crop: "fill", fetch_format: "auto"})
+```
 
-````js
-import "cesium/Build/Cesium/Widgets/widgets.css";
-````
-
-## Removing pragmas
-
-To remove pragmas such as a traditional Cesium release build, use the [`strip-pragma-loader`](https://www.npmjs.com/package/strip-pragma-loader).
-
-Install the plugin with npm,
-
-````sh
-npm install strip-pragma-loader --save-dev
-````
-
-and include the loader in `module.rules` with `debug` set to `false`.
-
-````js
-rules: [{
-	test: /\.js$/,
-	enforce: 'pre',
-	include: path.resolve(__dirname, cesiumSource),
-	use: [{
-		loader: 'strip-pragma-loader',
-		options: {
-		    pragmas: {
-				debug: false
-			}
-		}
-	}]
-}]
-````
+### Upload
+- [See full documentation](https://cloudinary.com/documentation/node_image_and_video_upload).
+- [Learn more about configuring your uploads with upload presets](https://cloudinary.com/documentation/upload_presets). 
+```js
+cloudinary.v2.uploader.upload("/home/my_image.jpg", {upload_preset: "my_preset"}, (error, result)=>{
+  console.log(result, error);
+});
+```
+### Large/Chunked Upload
+- [See full documentation](https://cloudinary.com/documentation/node_image_and_video_upload#node_js_video_upload).
+```js
+   cloudinary.v2.uploader.upload_large(LARGE_RAW_FILE, {
+          chunk_size: 7000000
+        }, (error, result) => {console.log(error)});
+```
+### Security options
+- [See full documentation](https://cloudinary.com/documentation/solution_overview#security).
 
 ## Contributions
+- Ensure tests run locally (add test command)
+- Open a PR and ensure Travis tests pass
 
-Pull requests are appreciated. Please use the same [Contributor License Agreement (CLA)](https://github.com/CesiumGS/cesium/blob/master/CONTRIBUTING.md) used for [Cesium](https://cesium.com/).
 
----
+## Get Help
+If you run into an issue or have a question, you can either:
+- Issues related to the SDK: [Open a Github issue](https://github.com/cloudinary/cloudinary_npm/issues).
+- Issues related to your account: [Open a support ticket](https://cloudinary.com/contact)
 
-Developed by the Cesium team.
+
+## About Cloudinary
+Cloudinary is a powerful media API for websites and mobile apps alike, Cloudinary enables developers to efficiently manage, transform, optimize, and deliver images and videos through multiple CDNs. Ultimately, viewers enjoy responsive and personalized visual-media experiences—irrespective of the viewing device.
+
+
+## Additional Resources
+- [Cloudinary Transformation and REST API References](https://cloudinary.com/documentation/cloudinary_references): Comprehensive references, including syntax and examples for all SDKs.
+- [MediaJams.dev](https://mediajams.dev/): Bite-size use-case tutorials written by and for Cloudinary Developers
+- [DevJams](https://www.youtube.com/playlist?list=PL8dVGjLA2oMr09amgERARsZyrOz_sPvqw): Cloudinary developer podcasts on YouTube.
+- [Cloudinary Academy](https://training.cloudinary.com/): Free self-paced courses, instructor-led virtual courses, and on-site courses.
+- [Code Explorers and Feature Demos](https://cloudinary.com/documentation/code_explorers_demos_index): A one-stop shop for all code explorers, Postman collections, and feature demos found in the docs.
+- [Cloudinary Roadmap](https://cloudinary.com/roadmap): Your chance to follow, vote, or suggest what Cloudinary should develop next. 
+- [Cloudinary Facebook Community](https://www.facebook.com/groups/CloudinaryCommunity): Learn from and offer help to other Cloudinary developers.
+- [Cloudinary Account Registration](https://cloudinary.com/users/register/free): Free Cloudinary account registration.
+- [Cloudinary Website](https://cloudinary.com): Learn about Cloudinary's products, partners, customers, pricing, and more.
+
+
+## Licence
+Released under the MIT license.
