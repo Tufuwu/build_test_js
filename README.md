@@ -1,92 +1,73 @@
-# PostCSS Pseudo Classes [![Build Status][ci-img]][ci]
-
-[PostCSS] plugin to automatically add in companion classes
-where pseudo-selectors are used.
-This allows you to add the class name to force the styling of a pseudo-selector,
-which can be really helpful for testing or being able
-to concretely reach all style states.
-
-[PostCSS]: https://github.com/postcss/postcss
-[ci-img]:  https://travis-ci.org/giuseppeg/postcss-pseudo-classes.svg
-[ci]:      https://travis-ci.org/giuseppeg/postcss-pseudo-classes
-
-### Credits
-
-This plugin is a port of [rework-pseudo-classes](https://github.com/SlexAxton/rework-pseudo-classes) written by [Alex Sexton](https://twitter.com/SlexAxton).
+# node-portfinder [![CI](https://github.com/http-party/node-portfinder/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/http-party/node-portfinder/actions/workflows/ci.yml)
 
 ## Installation
 
-```bash
-$ npm install postcss-pseudo-classes
+``` bash
+  $ npm install portfinder
 ```
 
-## Example
+## Usage
+The `portfinder` module has a simple interface:
+
+``` js
+  var portfinder = require('portfinder');
+
+  portfinder.getPort(function (err, port) {
+    //
+    // `port` is guaranteed to be a free port
+    // in this scope.
+    //
+  });
+```
+
+Or with promise (if `Promise`s are supported) :
+
+``` js
+  const portfinder = require('portfinder');
+
+  portfinder.getPortPromise()
+    .then((port) => {
+        //
+        // `port` is guaranteed to be a free port
+        // in this scope.
+        //
+    })
+    .catch((err) => {
+        //
+        // Could not get a free port, `err` contains the reason.
+        //
+    });
+```
+
+If `portfinder.getPortPromise()` is called on a Node version without Promise (<4), it will throw an Error unless [Bluebird](http://bluebirdjs.com/docs/getting-started.html) or any Promise pollyfill is used.
+
+### Ports search scope
+
+By default `portfinder` will start searching from `8000` and scan until maximum port number (`65535`) is reached.
+
+You can change this globally by setting:
 
 ```js
-var pseudoclasses = require('postcss-pseudo-classes')({
-  // default contains `:root`.
-  blacklist: [],
-
-  // (optional) create classes for a restricted list of selectors
-  // N.B. the colon (:) is optional
-  restrictTo: [':nth-child', 'hover'],
-
-  // default is `false`. If `true`, will output CSS
-  // with all combinations of pseudo styles/pseudo classes.
-  allCombinations: true,
-
-  // default is `true`. If `false`, will generate
-  // pseudo classes for `:before` and `:after`
-  preserveBeforeAfter: false
-
-  // default is `\:`. It will be added to pseudo classes.
-  prefix: '\\:'
-});
-
-postcss([ pseudoclasses ])
-  .process(css)
-  .then(function (result) { console.log(result.css); });
+portfinder.setBasePort(3000);    // default: 8000
+portfinder.setHighestPort(3333); // default: 65535
 ```
 
-### style.css
+or by passing optional options object on each invocation:
 
-```css
-.some-selector:hover {
-  text-decoration: underline;
-}
+```js
+portfinder.getPort({
+    port: 3000,    // minimum port
+    stopPort: 3333 // maximum port
+}, callback);
 ```
 
-yields
-
-```css
-.some-selector:hover,
-.some-selector.\:hover {
-  text-decoration: underline;
-}
+## Run Tests
+``` bash
+  $ npm test
 ```
 
-### usage
-
-```html
-<button class="some-selector :hover">howdy</button>
-```
-
-## Edge cases
-
-* This plugin escapes parenthesis so `:nth-child(5)` would look like `.class.\:nth-child\(5\)` and can be used as a regular class: `<button class=":nth-child(5)">howdy</button>`.
-* Pseudo-selectors with two colons are ignored entirely since they're a slightly different thing.
-* Chained pseudo-selectors just become chained classes: `:focus:hover` becomes `.\:focus.\:hover`.
-
-## Tests
-
-```bash
-$ npm test
-```
-
-## Contributors
-
-[@ai](https://github.com/ai)
-
-## License
-
-(MIT)
+#### Author: [Charlie Robbins][0]
+#### Maintainer: [Erik Trom][1]
+#### License: MIT/X11
+[0]: http://nodejitsu.com
+[1]: https://github.com/eriktrom
