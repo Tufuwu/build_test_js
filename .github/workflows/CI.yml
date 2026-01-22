@@ -1,22 +1,36 @@
-name: CI
+name: test
 
 on:
   push:
-    branches: [main]
-
-  workflow_dispatch:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build:
+  test:
+
     runs-on: ubuntu-latest
 
+    env:
+      CI: true
+      TZ: utc
+      NODE_ENV: test
+
+    strategy:
+      matrix:
+        node-version: ['4', '6']
+
+    name: test on nodejs ${{ matrix.node-version }}
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+
+      - name: install node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
         with:
-          node-version: 8
-          cache: yarn
-      - run: yarn
-      - run: yarn deploy
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          node-version: ${{ matrix.node-version }}
+
+      - uses: bahmutov/npm-install@v1
+
+      - name: run tests
+        run: npm run test
