@@ -1,5 +1,12 @@
-/examples/dist
-/node_modules
-/test/compiled
-package-lock.json
-yarn.lock
+lib-cov
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+node_modules
+npm-debug.log
+build-lib
