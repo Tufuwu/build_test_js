@@ -1,35 +1,27 @@
-name: CI
-
+name: Node.js CI
 on:
   push:
-    branches: [ main, master ]
+    branches: master
   pull_request:
-    branches: [ main, master ]
-
 jobs:
-  test:
+  unit:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        node-version: ["0.10", "0.11", "0.12", "4", "5"]
-        test-suite: [unit]
-        include:
-          - node-version: "node"
-            test-suite: lint
-
+        node-version: ["0.10", "lts/*", "latest"]
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          
-      - name: Install dependencies
-        run: npm install
-        
-      - name: Run script
-        run: npm run ${{ matrix.test-suite }}
-        env:
-          TEST_SUITE: ${{ matrix.test-suite }}
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install
+    - run: npm run unit
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: latest
+    - run: npm install
+    - run: npm run lint
