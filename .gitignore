@@ -1,6 +1,5 @@
-/build
-/node_modules
-/public/roms/local
-/src/index.css
-.DS_Store
-yarn-error.log
+# Compiled Javascript.
+build
+
+# Dependency directory
+node_modules

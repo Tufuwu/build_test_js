@@ -1,43 +1,55 @@
 {
-  "name": "jsnes-web",
-  "version": "1.0.0",
-  "license": "Apache-2.0",
-  "private": true,
-  "dependencies": {
-    "@popperjs/core": "^2.11.8",
-    "bootstrap": "5.2.0",
-    "jsnes": "git+ssh://git@github.com/bfirsh/jsnes.git",
-    "prop-types": "^15.8.1",
-    "raven-js": "^3.27.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-ga": "^3.3.1",
-    "react-router-dom": "^6.3.0",
-    "reactstrap": "^9.1.3",
-    "ringbufferjs": "^1.1.0",
-    "sass": "^1.54.5"
-  },
-  "devDependencies": {
-    "@svgr/webpack": "^6.3.1",
-    "canvas": "^3.1.2",
-    "prettier": "^1.16.4",
-    "prettier-check": "^2.0.0",
-    "react-scripts": "5.0.1"
-  },
-  "overrides": {
-    "@svgr/webpack": "$@svgr/webpack"
-  },
+  "name": "calipers",
+  "version": "2.0.1",
+  "description": "The fastest Node.js library for measuring image and PDF dimensions.",
+  "main": "lib/index.js",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "prettier-check src/**/*.js && react-scripts test",
-    "eject": "react-scripts eject",
-    "format": "prettier --write src/**/*.js"
+    "bench": "node bench/index.js",
+    "bench:ts": "ts-node bench/index.ts",
+    "b": "tsc bench/test",
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint .",
+    "lint:file": "eslint"
   },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ]
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calipersjs/calipers.git"
+  },
+  "keywords": [
+    "image",
+    "size",
+    "pdf",
+    "png",
+    "jpeg",
+    "gif",
+    "bmp",
+    "svg",
+    "webp"
+  ],
+  "author": "Marcus Gartner",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/calipersjs/calipers/issues"
+  },
+  "homepage": "https://github.com/calipersjs/calipers",
+  "devDependencies": {
+    "@types/jest": "^26.0.15",
+    "@typescript-eslint/eslint-plugin": "^4.8.1",
+    "@typescript-eslint/parser": "^4.8.1",
+    "benny": "^3.6.15",
+    "calipers-png": "2.x.x",
+    "eslint": "^7.13.0",
+    "eslint-config-standard": "^16.0.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "jest": "26.x.x",
+    "ts-jest": "^26.4.4",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
+  },
+  "dependencies": {
+    "bluebird": "3.x.x"
+  }
 }
