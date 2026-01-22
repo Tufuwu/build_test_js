@@ -1,4 +1,4 @@
-name: test
+name: Node.js CI
 
 on:
   push:
@@ -7,30 +7,35 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-
+  build:
     runs-on: ubuntu-latest
 
-    env:
-      CI: true
-      TZ: utc
-      NODE_ENV: test
-
     strategy:
+      fail-fast: false 
       matrix:
-        node-version: ['10', '12', '14', '16']
-
-    name: test on nodejs ${{ matrix.node-version }}
+        include:
+          - node-version: '0.10'
+            npm-version: '2'
+          - node-version: '0.12'
+            npm-version: '2'
+          - node-version: '4'
+            npm-version: '2'
+          - node-version: '4'
+            npm-version: '3'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: install node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
 
-      - uses: bahmutov/npm-install@v1
+      - name: Install specific npm version
+        run: npm install -g npm@${{ matrix.npm-version }}
 
-      - name: run tests
-        run: npm run test
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
