@@ -1,103 +1,93 @@
-Cloudinary Node SDK
-=========================
-## About
-The Cloudinary Node SDK allows you to quickly and easily integrate your application with Cloudinary.
-Effortlessly optimize, transform, upload and manage your cloud's assets.
+
+# wildcard
+
+Very simple wildcard matching, which is designed to provide the same
+functionality that is found in the
+[eve](https://github.com/adobe-webplatform/eve) eventing library.
 
 
-#### Note
-This Readme provides basic installation and usage information. 
-For the complete documentation, see the [Node SDK Guide](https://cloudinary.com/documentation/node_integration).
+[![NPM](https://nodei.co/npm/wildcard.png)](https://nodei.co/npm/wildcard/)
 
-## Table of Contents
-- [Key Features](#key-features)
-- [Version Support](#Version-Support)
-- [Installation](#installation)
-- [Usage](#usage)
-    - [Setup](#Setup)
-    - [Transform and Optimize Assets](#Transform-and-Optimize-Assets)
-    - [Generate Image and HTML Tags](#Generate-Image-and-Video-HTML-Tags)
+[![stable](https://img.shields.io/badge/stability-stable-green.svg)](https://github.com/dominictarr/stability#stable) 
 
+## Usage
 
-## Key Features
-- [Transform](https://cloudinary.com/documentation/node_video_manipulation#video_transformation_examples) and
- [optimize](https://cloudinary.com/documentation/node_image_manipulation#image_optimizations) assets.
-- Generate [image](https://cloudinary.com/documentation/node_image_manipulation#deliver_and_transform_images) and
- [video](https://cloudinary.com/documentation/node_video_manipulation#video_element) tags.
-- [Asset Management](https://cloudinary.com/documentation/node_asset_administration).
-- [Secure URLs](https://cloudinary.com/documentation/video_manipulation_and_delivery#generating_secure_https_urls_using_sdks).
-
-
-
-## Version Support
-| SDK Version | Node version |
-|-------------|--------------|
-| 1.x.x       | Node@6 & up  |
-| 2.x.x       | Node@9 & up  |
-
-## Installation
-```bash
-npm install cloudinary
-```
-
-# Usage
-### Setup
-```js
-// Require the Cloudinary library
-const cloudinary = require('cloudinary').v2
-```
-
-### Transform and Optimize Assets
-- [See full documentation](https://cloudinary.com/documentation/node_image_manipulation).
+It works with strings:
 
 ```js
-cloudinary.url("sample.jpg", {width: 100, height: 150, crop: "fill", fetch_format: "auto"})
+var wildcard = require('wildcard');
+
+console.log(wildcard('foo.*', 'foo.bar'));
+// --> true
+
+console.log(wildcard('foo.*', 'foo'));
+// --> true
+
 ```
 
-### Upload
-- [See full documentation](https://cloudinary.com/documentation/node_image_and_video_upload).
-- [Learn more about configuring your uploads with upload presets](https://cloudinary.com/documentation/upload_presets). 
+Arrays:
+
 ```js
-cloudinary.v2.uploader.upload("/home/my_image.jpg", {upload_preset: "my_preset"}, (error, result)=>{
-  console.log(result, error);
-});
+var wildcard = require('wildcard');
+var testdata = [
+  'a.b.c',
+  'a.b',
+  'a',
+  'a.b.d'
+];
+
+console.log(wildcard('a.b.*', testdata));
+// --> ['a.b.c', 'a.b', 'a.b.d']
+
 ```
-### Large/Chunked Upload
-- [See full documentation](https://cloudinary.com/documentation/node_image_and_video_upload#node_js_video_upload).
+
+Objects (matching against keys):
+
 ```js
-   cloudinary.v2.uploader.upload_large(LARGE_RAW_FILE, {
-          chunk_size: 7000000
-        }, (error, result) => {console.log(error)});
+var wildcard = require('wildcard');
+var testdata = {
+  'a.b.c' : {},
+  'a.b'   : {},
+  'a'     : {},
+  'a.b.d' : {}
+};
+
+console.log(wildcard('a.*.c', testdata));
+// --> { 'a.b.c': {} }
+
 ```
-### Security options
-- [See full documentation](https://cloudinary.com/documentation/solution_overview#security).
 
-## Contributions
-- Ensure tests run locally (add test command)
-- Open a PR and ensure Travis tests pass
+## Alternative Implementations
 
+- <https://github.com/isaacs/node-glob>
 
-## Get Help
-If you run into an issue or have a question, you can either:
-- Issues related to the SDK: [Open a Github issue](https://github.com/cloudinary/cloudinary_npm/issues).
-- Issues related to your account: [Open a support ticket](https://cloudinary.com/contact)
+  Great for full file-based wildcard matching.
 
+- <https://github.com/sindresorhus/matcher>
 
-## About Cloudinary
-Cloudinary is a powerful media API for websites and mobile apps alike, Cloudinary enables developers to efficiently manage, transform, optimize, and deliver images and videos through multiple CDNs. Ultimately, viewers enjoy responsive and personalized visual-media experiences—irrespective of the viewing device.
+   A well cared for and loved JS wildcard matcher.
 
+## License(s)
 
-## Additional Resources
-- [Cloudinary Transformation and REST API References](https://cloudinary.com/documentation/cloudinary_references): Comprehensive references, including syntax and examples for all SDKs.
-- [MediaJams.dev](https://mediajams.dev/): Bite-size use-case tutorials written by and for Cloudinary Developers
-- [DevJams](https://www.youtube.com/playlist?list=PL8dVGjLA2oMr09amgERARsZyrOz_sPvqw): Cloudinary developer podcasts on YouTube.
-- [Cloudinary Academy](https://training.cloudinary.com/): Free self-paced courses, instructor-led virtual courses, and on-site courses.
-- [Code Explorers and Feature Demos](https://cloudinary.com/documentation/code_explorers_demos_index): A one-stop shop for all code explorers, Postman collections, and feature demos found in the docs.
-- [Cloudinary Roadmap](https://cloudinary.com/roadmap): Your chance to follow, vote, or suggest what Cloudinary should develop next. 
-- [Cloudinary Facebook Community](https://www.facebook.com/groups/CloudinaryCommunity): Learn from and offer help to other Cloudinary developers.
-- [Cloudinary Account Registration](https://cloudinary.com/users/register/free): Free Cloudinary account registration.
-- [Cloudinary Website](https://cloudinary.com): Learn about Cloudinary's products, partners, customers, pricing, and more.
+### MIT
 
+Copyright (c) 2023 Damon Oehlman <damon.oehlman@gmail.com>
 
-## Licence
-Released under the MIT license.
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
