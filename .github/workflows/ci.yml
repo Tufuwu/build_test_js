@@ -10,6 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         node-version: ["0.10", "0.11", "0.12", "4", "5"]
         test-suite: [unit]
