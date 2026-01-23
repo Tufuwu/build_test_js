@@ -15,8 +15,8 @@ jobs:
   checkout_and_test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        fail-fast: false
         include:
           - node-version: 8.x
           - node-version: 10.x
