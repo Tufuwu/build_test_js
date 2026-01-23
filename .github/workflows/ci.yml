@@ -2,32 +2,31 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - master
+  pull_request: {}
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+
+    runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        # TODO: Include 22 and 23 when https://github.com/yeoman/yeoman-welcome/issues/7 is fixed
-        node: [8, 10, node]
-
+        node-version: [10.x, 12.x]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: yarn
+    - run: yarn install --frozen-lockfile
+    - run: yarn lint
+    - run: yarn test
+    - run: yarn test:integration
+    - run: yarn test:notelemetry
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node }}
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
+    - uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
