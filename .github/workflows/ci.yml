@@ -43,7 +43,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         # Use npm cache to speed up dependency installation
     - name: Install dependencies
-      run: npm ci
+      run: npm install
 
     - name: Run build script (if present)
       run: npm run build --if-present
