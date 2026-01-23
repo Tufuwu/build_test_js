@@ -1,23 +1,7 @@
-'use strict'
+import test from 'ava';
+import welcomeText from '.';
 
-var assert = require('assert')
-var https = require('https')
-var pem = require('./')
-
-var server = https.createServer(pem, function (req, res) {
-  res.end('foo')
-})
-
-server.listen(function () {
-  var opts = {
-    port: server.address().port,
-    rejectUnauthorized: false
-  }
-  https.request(opts, function (res) {
-    assert.strictEqual(res.statusCode, 200)
-    res.on('data', function (chunk) {
-      assert.strictEqual(chunk.toString(), 'foo')
-      process.exit(0)
-    })
-  }).end()
-})
+test('main', t => {
+	t.true(welcomeText.length > 0);
+	t.true(welcomeText.includes('Welcome to Yeoman'));
+});

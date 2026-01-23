@@ -1,7 +1,14 @@
-'use strict'
+'use strict';
+const chalk = require('chalk');
 
-var path = require('path')
-var fs = require('fs')
-
-exports.key = fs.readFileSync(path.join(__dirname, 'key.pem'))
-exports.cert = fs.readFileSync(path.join(__dirname, 'cert.pem'))
+module.exports =
+`
+    _-----_
+   |       |
+   |${chalk.red("--(o)--")}|   .--------------------------.
+  \`---------\´  |    ${chalk.yellow.bold("Welcome to Yeoman,")}    |
+   ${chalk.yellow("(")} _\´${chalk.yellow("U")}\`_ ${chalk.yellow(")")}   |   ${chalk.yellow.bold("ladies and gentlemen!")}  |
+   /___A___\\   '__________________________'
+    ${chalk.yellow("|  ~  |")}
+  __${chalk.yellow("'.___.'")}__
+\´   ${chalk.red("`  |")}° ${chalk.red("´ Y")} \``
