@@ -18,9 +18,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - node-version: 8.x
           - node-version: 10.x
           - node-version: 12.x
+          - node-version: 14.x
 
     steps:
       - name: Checkout code from ${{ github.repository }}
