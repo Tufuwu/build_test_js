@@ -12,6 +12,7 @@ jobs:
         node_version:
           - 18
           - 16
+          - 15
           - 14
 
     steps:
