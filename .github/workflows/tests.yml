@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        fail-fast: false
         include:
           - node-version: 8.x
           - node-version: 10.x
