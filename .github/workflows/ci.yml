@@ -1,24 +1,19 @@
-name: Node.js CI
-
+name: CI
 on:
   push:
-    branches: [ master, main ]
+    branches:
+      - main
   pull_request:
-    branches: [ master, main ]
-
+    branches:
+      - master
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [8.x, node]
-
+  Build:
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm install
-    - run: npm run test
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      - run: npm i
+      - run: npm run test
