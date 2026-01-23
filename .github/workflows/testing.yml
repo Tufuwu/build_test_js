@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 10.x]
+        node-version: [10.x, 12.x, 14.x]
     steps:
       - name: Checkout code 🛎️
         uses: actions/checkout@v2
